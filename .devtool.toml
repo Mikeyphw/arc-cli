@@ -1,0 +1,505 @@
+[project]
+runner = "python"
+platform = "cli"
+root = "."
+python = "python3"
+run_command = "python -m arc_cli --help"
+
+[workspace]
+default_target = "arc"
+
+[workspace.scheduler]
+parallel = true
+max_parallel_nodes = 3
+max_gradle_nodes = 1
+max_dotnet_nodes = 1
+
+[toolchain]
+manager = "none"
+
+[python]
+manager = "venv"
+environment = ".devtool/venvs/arc"
+test_framework = "pytest"
+extras = ["test"]
+locked = false
+offline = false
+install_project = true
+isolation = true
+disable_network = false
+lint = []
+validator_dependencies = ["build>=1.2"]
+pre_commit = false
+source_import_isolation = true
+cli_contract = true
+matrix = ["3.11", "3.12", "3.13", "3.14"]
+matrix_mode = "active"
+fresh_dist = true
+clean_categories = ["artifacts", "caches", "environments"]
+
+[python.pytest]
+tests = ["tests"]
+args = ["-ra", "--maxfail=1"]
+include_defaults = false
+
+[python.package]
+verify_all_wheels = true
+rebuild_sdist = true
+import_smoke = true
+verify_cli = true
+install_dependencies = true
+reproducible = true
+import_modules = ["arc_cli"]
+console_scripts = ["arc"]
+
+[python.security]
+enabled = false
+sbom = true
+
+[validation]
+test_profile = "full"
+
+[test_profiles.quick]
+pytest_tests = [
+  "tests/test_formats.py",
+  "tests/test_filtering.py",
+  "tests/test_completion.py",
+]
+pytest_args = ["--maxfail=1"]
+pytest_include_defaults = false
+
+[test_profiles.integration]
+pytest_tests = [
+  "tests/test_cli_integration.py",
+  "tests/test_safety.py",
+]
+pytest_args = ["--maxfail=1"]
+pytest_include_defaults = false
+
+[test_profiles.full]
+pytest_tests = ["tests"]
+pytest_args = ["--maxfail=1"]
+pytest_include_defaults = false
+
+[test_profiles.final_gate]
+pytest_tests = ["tests"]
+pytest_args = ["--maxfail=1", "-ra"]
+pytest_include_defaults = false
+
+[test_profiles.r04]
+pytest_tests = [
+  "tests/test_r04_execution_plan.py",
+  "tests/test_r04_remote_transport.py",
+]
+pytest_args = ["--maxfail=1"]
+pytest_include_defaults = false
+
+[test_profiles.r05]
+pytest_tests = [
+  "tests/test_r05_remote_native.py",
+]
+pytest_args = ["--maxfail=1"]
+pytest_include_defaults = false
+
+[ui.profiles.arc]
+extends = "developer"
+density = "compact"
+show_commands = "on-error"
+show_completed_steps = true
+
+[targets.arc]
+runner = "python"
+platform = "cli"
+root = "."
+execution_environment = "native-termux"
+inputs = [
+  "src/**",
+  "tests/**",
+  "scripts/**",
+  "pyproject.toml",
+  ".devtool.toml",
+  "devtoolw",
+  "devtoolw.cmd",
+  "completions/**",
+  "docs/**",
+  "release/**",
+  "README.md",
+  "CONTRIBUTING.md",
+]
+outputs = [
+  "dist/**",
+  ".devtool/reports/**",
+  ".devtool/evidence/**",
+  ".devtool/build-artifacts/**",
+]
+
+[targets.arc.artifacts]
+output_directory = ".devtool/build-artifacts"
+collision = "unique"
+verify = true
+directories = ["dist"]
+patterns = ["*.whl", "*.tar.gz"]
+recursive = false
+
+[targets.arc.jobs.syntax]
+runner = "command"
+command = ["python3", "-m", "compileall", "-q", "src", "tests", "scripts"]
+inputs = ["src/**", "tests/**", "scripts/**"]
+metadata = { read_only = true, purpose = "syntax", contract = "arc-devtool-v2" }
+
+[targets.arc.jobs.final-gate]
+runner = "command"
+command = ["python3", "scripts/run_final_gate_tests.py"]
+inputs = [
+  "src/**",
+  "tests/**",
+  "scripts/**",
+  "release/ARC-FINAL-SEAL.json",
+  "docs/ARC-R01-AUDIT.md",
+  "docs/ARC-R02-AUDIT.md",
+  "docs/ARC-R03-AUDIT.md",
+  "docs/ARC-R04-AUDIT.md",
+  "docs/ARC-R05-AUDIT.md",
+  "docs/ARC-FINAL-GATE-SEAL.md",
+  "pyproject.toml",
+  ".devtool.toml",
+  "completions/_arc",
+]
+outputs = [".devtool/evidence/arc-final-gate/**"]
+metadata = { read_only = false, purpose = "arc-r01-r05-final-gate", contract = "arc-final-gate-v3" }
+
+[targets.arc.jobs.wrapper-seal]
+runner = "command"
+command = ["python3", "scripts/run_wrapper_seal.py"]
+inputs = [".devtool.toml", "devtoolw", "devtoolw.cmd", "docs/WRAPPER.md"]
+outputs = [".devtool/evidence/arc-final-gate/wrapper-seal.json"]
+metadata = { read_only = false, purpose = "devtool-wrapper-surface-seal", contract = "arc-final-seal-v3" }
+
+[targets.arc.jobs.content-seal]
+runner = "command"
+command = ["python3", "scripts/run_content_seal.py"]
+inputs = ["src/**", "tests/**", "scripts/**", "docs/**", "release/ARC-FINAL-SEAL.json", "completions/**", ".devtool.toml", "pyproject.toml", "README.md", "CHANGELOG.md", "CONTRIBUTING.md", "devtoolw", "devtoolw.cmd"]
+outputs = [".devtool/evidence/arc-final-gate/content-seal.json", ".devtool/evidence/arc-final-gate/candidate-seal.json"]
+metadata = { read_only = false, purpose = "post-gate-content-seal-candidate", contract = "arc-final-seal-v6" }
+
+[targets.arc.jobs.final-seal-verdict]
+runner = "command"
+command = ["python3", "scripts/write_final_seal_verdict.py"]
+inputs = [".devtool/evidence/arc-final-gate/**"]
+outputs = [".devtool/evidence/arc-final-gate/final-seal-verdict.json", ".devtool/evidence/arc-final-gate/summary.json"]
+metadata = { read_only = false, purpose = "arc-final-seal-readiness-verdict", contract = "arc-final-seal-v6" }
+
+[targets.arc.jobs.r04-tests]
+runner = "command"
+command = ["python3", "scripts/run_r04_tests.py"]
+inputs = [
+  "src/**",
+  "tests/test_r04_execution_plan.py",
+  "tests/test_r04_remote_transport.py",
+  "scripts/run_r04_tests.py",
+  ".devtool.toml",
+]
+metadata = { read_only = true, purpose = "arc-r04-targeted-tests", contract = "arc-r04" }
+
+[targets.arc.jobs.r05-tests]
+runner = "command"
+command = ["python3", "scripts/run_r05_tests.py"]
+inputs = [
+  "src/**",
+  "tests/test_r05_remote_native.py",
+  "scripts/run_r05_tests.py",
+  ".devtool.toml",
+]
+metadata = { read_only = true, purpose = "arc-r05-targeted-tests", contract = "arc-r05" }
+
+[targets.arc.jobs.ruff-toolchain]
+runner = "command"
+command = ["python3", "scripts/check_system_ruff.py"]
+inputs = ["scripts/check_system_ruff.py", ".devtool.toml"]
+metadata = { read_only = true, purpose = "ruff-toolchain", contract = "arc-devtool-v3" }
+
+[targets.arc.jobs.ruff-check]
+runner = "command"
+command = ["ruff", "check", "src", "tests", "scripts"]
+inputs = ["src/**", "tests/**", "scripts/**", "pyproject.toml"]
+metadata = { read_only = true, purpose = "ruff-check", contract = "arc-devtool-v3" }
+
+[targets.arc.jobs.ruff-format-check]
+runner = "command"
+command = ["ruff", "format", "--check", "src", "tests", "scripts"]
+inputs = ["src/**", "tests/**", "scripts/**", "pyproject.toml"]
+metadata = { read_only = true, purpose = "ruff-format-check", contract = "arc-devtool-v3" }
+
+[targets.arc.jobs.ruff-format-fix]
+runner = "command"
+command = ["ruff", "format", "src", "tests", "scripts"]
+inputs = ["src/**", "tests/**", "scripts/**", "pyproject.toml"]
+outputs = ["src/**", "tests/**", "scripts/**"]
+metadata = { read_only = false, purpose = "ruff-format-fix", contract = "arc-devtool-v3" }
+
+[targets.arc.jobs.ruff-fix]
+runner = "command"
+command = ["ruff", "check", "--fix", "src", "tests", "scripts"]
+inputs = ["src/**", "tests/**", "scripts/**", "pyproject.toml"]
+outputs = ["src/**", "tests/**", "scripts/**"]
+metadata = { read_only = false, purpose = "ruff-fix", contract = "arc-devtool-v3" }
+
+[targets.arc.jobs.source-hygiene]
+runner = "command"
+command = ["python3", "scripts/check_source_hygiene.py"]
+inputs = ["src/**", "tests/**", "scripts/**"]
+metadata = { read_only = true, purpose = "source-hygiene", contract = "arc-devtool-v3" }
+
+[targets.arc.jobs.completion-contract]
+runner = "command"
+command = ["python3", "scripts/check_completion_contract.py"]
+inputs = ["src/arc_cli/completion.py", "src/arc_cli/interactive.py", "completions/_arc"]
+metadata = { read_only = true, purpose = "completion-contract", contract = "arc-devtool-v2" }
+
+[targets.arc.jobs.devtool-contract]
+runner = "command"
+command = ["python3", "scripts/check_devtool_contract.py"]
+inputs = [".devtool.toml", "devtoolw", "devtoolw.cmd", "docs/WRAPPER.md"]
+metadata = { read_only = true, purpose = "devtool-contract", contract = "arc-devtool-v2" }
+
+[targets.arc.jobs.backend-smoke]
+runner = "command"
+command = [".devtool/venvs/arc/bin/python", "scripts/devtool_backend_smoke.py"]
+inputs = ["src/**", "scripts/devtool_backend_smoke.py"]
+outputs = [".devtool/evidence/backend-smoke.json"]
+metadata = { read_only = false, purpose = "native-backend-smoke", contract = "arc-devtool-v2" }
+
+[targets.arc.jobs.release-evidence]
+runner = "command"
+command = [".devtool/venvs/arc/bin/python", "scripts/write_release_evidence.py"]
+inputs = ["dist/**", "pyproject.toml", "completions/_arc"]
+outputs = [".devtool/evidence/release-contract.json"]
+metadata = { read_only = false, purpose = "release-evidence", contract = "arc-devtool-v2" }
+
+[targets.arc.workflows]
+lint = [
+  { id = "ruff-toolchain", ref = "job:ruff-toolchain", depends_on = [] },
+  { id = "ruff-check", ref = "job:ruff-check", depends_on = ["ruff-toolchain"] },
+  { id = "ruff-format", ref = "job:ruff-format-check", depends_on = ["ruff-toolchain"] },
+  { id = "completion", ref = "job:completion-contract", depends_on = [] },
+  { id = "contract", ref = "job:devtool-contract", depends_on = [] },
+]
+
+format = [
+  { id = "ruff-toolchain", ref = "job:ruff-toolchain", depends_on = [] },
+  { id = "ruff-format", ref = "job:ruff-format-fix", depends_on = ["ruff-toolchain"] },
+  { id = "ruff-fix", ref = "job:ruff-fix", depends_on = ["ruff-format"] },
+]
+
+fast = [
+  { id = "restore", ref = "runner:python#restore", depends_on = [] },
+  { id = "syntax", ref = "job:syntax", depends_on = [] },
+  { id = "hygiene", ref = "job:source-hygiene", depends_on = ["syntax"] },
+  { id = "ruff-toolchain", ref = "job:ruff-toolchain", depends_on = [] },
+  { id = "ruff", ref = "job:ruff-check", depends_on = ["ruff-toolchain"] },
+  { id = "completion", ref = "job:completion-contract", depends_on = [] },
+  { id = "contract", ref = "job:devtool-contract", depends_on = [] },
+  { id = "tests", ref = "runner:python#test", depends_on = ["restore", "syntax", "hygiene"] },
+  { id = "smoke", ref = "job:backend-smoke", depends_on = ["restore", "tests", "ruff", "completion", "contract"] },
+]
+
+quality = [
+  { id = "restore", ref = "runner:python#restore", depends_on = [] },
+  { id = "syntax", ref = "job:syntax", depends_on = [] },
+  { id = "hygiene", ref = "job:source-hygiene", depends_on = ["syntax"] },
+  { id = "ruff-toolchain", ref = "job:ruff-toolchain", depends_on = [] },
+  { id = "ruff-check", ref = "job:ruff-check", depends_on = ["ruff-toolchain"] },
+  { id = "ruff-format", ref = "job:ruff-format-check", depends_on = ["ruff-toolchain"] },
+  { id = "completion", ref = "job:completion-contract", depends_on = [] },
+  { id = "contract", ref = "job:devtool-contract", depends_on = [] },
+  { id = "tests", ref = "runner:python#test", depends_on = ["restore", "syntax", "hygiene", "ruff-check", "ruff-format"] },
+  { id = "smoke", ref = "job:backend-smoke", depends_on = ["restore", "tests", "completion", "contract"] },
+]
+
+release = [
+  { id = "ruff-toolchain", ref = "job:ruff-toolchain", depends_on = [] },
+  { id = "ruff-check", ref = "job:ruff-check", depends_on = ["ruff-toolchain"] },
+  { id = "ruff-format", ref = "job:ruff-format-check", depends_on = ["ruff-toolchain"] },
+  { id = "completion", ref = "job:completion-contract", depends_on = [] },
+  { id = "contract", ref = "job:devtool-contract", depends_on = [] },
+  { id = "validate", ref = "runner:python#validate", depends_on = ["ruff-check", "ruff-format"] },
+  { id = "package", ref = "runner:python#package", depends_on = ["validate"] },
+  { id = "smoke", ref = "job:backend-smoke", depends_on = ["validate", "completion", "contract"] },
+  { id = "evidence", ref = "job:release-evidence", depends_on = ["package", "smoke"] },
+]
+
+final_gate = [
+  { id = "syntax", ref = "job:syntax", depends_on = [] },
+  { id = "hygiene", ref = "job:source-hygiene", depends_on = ["syntax"] },
+  { id = "completion", ref = "job:completion-contract", depends_on = [] },
+  { id = "contract", ref = "job:devtool-contract", depends_on = [] },
+  { id = "gate", ref = "job:final-gate", depends_on = ["hygiene", "completion", "contract"] },
+]
+
+final_seal = [
+  { id = "syntax", ref = "job:syntax", depends_on = [] },
+  { id = "hygiene", ref = "job:source-hygiene", depends_on = ["syntax"] },
+  { id = "completion", ref = "job:completion-contract", depends_on = [] },
+  { id = "contract", ref = "job:devtool-contract", depends_on = [] },
+  { id = "gate", ref = "job:final-gate", depends_on = ["hygiene", "completion", "contract"] },
+  { id = "wrapper-seal", ref = "job:wrapper-seal", depends_on = ["gate"] },
+  { id = "content-seal", ref = "job:content-seal", depends_on = ["gate"] },
+  { id = "verdict", ref = "job:final-seal-verdict", depends_on = ["wrapper-seal", "content-seal"] },
+]
+
+[wrapper]
+schema = 1
+default_command = "check"
+
+[wrapper.commands.setup]
+description = "Create/synchronize the Devtool-managed host-Python environment"
+devtool = "restore"
+target = "arc"
+allow_passthrough = true
+
+[wrapper.commands.build]
+description = "Build arc-cli through Devtool's Python runner"
+devtool = "build"
+target = "arc"
+allow_passthrough = true
+aliases = ["b"]
+
+[wrapper.commands.test]
+description = "Run pytest through Devtool with native test selection"
+devtool = "test"
+target = "arc"
+allow_passthrough = true
+aliases = ["t"]
+
+[wrapper.commands.test.options.profile]
+type = "choice"
+description = "Select a repository test profile"
+choices = ["quick", "integration", "r04", "r05", "final_gate", "full"]
+command_argv = ["--profile", "{value}"]
+
+[wrapper.commands.test.options.node]
+type = "string"
+description = "Run an exact pytest node id; repeatable"
+repeatable = true
+command_argv = ["--pytest-test", "{value}"]
+
+[wrapper.commands.test.options.failed]
+type = "boolean"
+description = "Re-run previously failed tests"
+command_argv = ["--failed"]
+
+[wrapper.commands.test.options.changed]
+type = "boolean"
+description = "Select tests affected by Git changes"
+command_argv = ["--changed"]
+
+[wrapper.commands.test.options.list]
+type = "boolean"
+description = "List collected tests without executing them"
+command_argv = ["--list-tests"]
+
+[wrapper.commands.lint]
+description = "Run Termux system Ruff checks plus completion/Devtool contracts"
+workflow = "lint"
+target = "arc"
+aliases = ["l"]
+
+[wrapper.commands.format]
+description = "Apply Termux system Ruff formatting and safe fixes"
+workflow = "format"
+target = "arc"
+aliases = ["fmt"]
+
+[wrapper.commands.check]
+description = "Run the authoritative arc-cli quality DAG"
+workflow = "quality"
+target = "arc"
+aliases = ["verify", "v"]
+
+[wrapper.commands.validate]
+description = "Run Devtool's native Python validation pipeline"
+devtool = "validate"
+target = "arc"
+allow_passthrough = true
+aliases = ["val"]
+
+[wrapper.commands.validate.options.profile]
+type = "choice"
+description = "Select the validation test profile"
+choices = ["quick", "integration", "r04", "r05", "final_gate", "full"]
+command_argv = ["--test-profile", "{value}"]
+
+[wrapper.commands.validate.options.affected]
+type = "boolean"
+description = "Scope validation to Git-affected ownership"
+global_argv = ["--affected"]
+
+[wrapper.commands.validate.options.failed]
+type = "boolean"
+description = "Re-run previously failed tests inside validation"
+command_argv = ["--failed"]
+
+[wrapper.commands.validate.options.changed]
+type = "boolean"
+description = "Select tests related to changed files"
+command_argv = ["--changed"]
+
+[wrapper.commands.package]
+description = "Build and verify distributable wheel/sdist artifacts"
+devtool = "package"
+target = "arc"
+allow_passthrough = true
+aliases = ["pkg"]
+
+[wrapper.commands.package.options.output]
+type = "path"
+description = "Copy verified package artifacts to this directory"
+relative_to = "cwd"
+command_argv = ["--output-dir", "{value}"]
+
+[wrapper.commands.package.options.name]
+type = "string"
+description = "Override the managed artifact base name"
+command_argv = ["--output-name", "{value}"]
+
+[wrapper.commands.package.options.collision]
+type = "choice"
+description = "Choose managed artifact collision handling"
+choices = ["unique", "replace", "fail"]
+command_argv = ["--artifact-collision", "{value}"]
+
+[wrapper.commands.clean]
+description = "Clean Devtool-managed Python artifacts, caches, and environments"
+devtool = "clean"
+target = "arc"
+allow_passthrough = true
+
+[wrapper.commands.fast]
+description = "Run the fast EXO DAG: restore, Ruff check, tests, completion, backend smoke"
+workflow = "fast"
+target = "arc"
+aliases = ["f"]
+
+[wrapper.commands.quality]
+description = "Run system Ruff, tests, contracts, and backend smoke"
+workflow = "quality"
+target = "arc"
+aliases = ["q"]
+
+[wrapper.commands.gate]
+description = "Run the cumulative ARC-R01 through ARC-R05 qualification gate"
+workflow = "final_gate"
+target = "arc"
+aliases = ["g"]
+
+[wrapper.commands.seal]
+description = "Run the final ARC gate, Devtool wrapper seal, content seal, and SEALED verdict"
+workflow = "final_seal"
+target = "arc"
+aliases = ["s"]
+
+[wrapper.commands.release]
+description = "Run validation, verified packaging, smoke, SBOM, and release evidence"
+workflow = "release"
+target = "arc"
+aliases = ["rel"]

@@ -1,0 +1,21 @@
+{
+  "schema_version": 6,
+  "status": "SEAL_CONTRACT",
+  "seal_id": "ARC-R01-R05-FINAL",
+  "seal_strategy": "wrapper-gate-live-content-root-and-git-commit",
+  "base_commit_expected_prefix": "a7028c1",
+  "authoritative_scope": "repository config, workflows, completions, docs, release seal contract, Python scripts/source/tests, and top-level project metadata",
+  "validation_entrypoint": "./devtoolw seal",
+  "gate_entrypoint": "./devtoolw gate",
+  "live_ledger": ".devtool/evidence/arc-final-gate/candidate-seal.json",
+  "live_verdict": ".devtool/evidence/arc-final-gate/final-seal-verdict.json",
+  "before_commit_contract": "The artifact finalizer must reverify the exact post-gate candidate ledger before Devtool commits.",
+  "durable_identity": "The Devtool-created Git commit plus the validated content root recorded in run evidence identify the final sealed tree.",
+  "roadmap": {
+    "ARC-R01": "semantic correctness",
+    "ARC-R02": "interaction, completion, progress, and safety",
+    "ARC-R03": "capability-aware backend qualification",
+    "ARC-R04": "execution plans, SSH/rclone transport, remote completion/cache, native command learning",
+    "ARC-R05": "SSH-native execution convergence"
+  }
+}

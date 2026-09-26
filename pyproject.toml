@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "arc-cli"
+version = "0.1.0"
+description = "Normalized archive CLI over native tar/zip/7z/rar/compressor backends"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["rich>=13.9"]
+license = {text = "MIT"}
+authors = [{name = "OpenAI"}]
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[project.scripts]
+arc = "arc_cli.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+addopts = "-q"
