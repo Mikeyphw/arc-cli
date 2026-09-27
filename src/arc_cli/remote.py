@@ -761,6 +761,27 @@ def stream_pipeline_to_remote(
             file.close()
 
 
+def delete_remote(location: RemoteLocation, config: dict, *, dry_run: bool = False) -> None:
+    """Delete one remote file after higher-level transactional checks succeed."""
+    if location.kind == "rclone":
+        exe = shutil.which("rclone") or "rclone"
+        argv = [exe, "deletefile", _rclone_target(location)]
+        record_stage("rclone-delete", argv, description=f"delete {location.raw}")
+    else:
+        base = _ssh_args(location, config)
+        script = 'set -e; path=$1; test -f "$path" || test -L "$path"; rm -f -- "$path"'
+        remote_cmd = shlex.join(["sh", "-c", script, "arc-delete", location.path])
+        argv = [*base, remote_cmd]
+        record_stage("ssh-delete", argv, description=f"delete {location.raw}")
+    if dry_run:
+        return
+    proc = subprocess.run(argv, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=30, check=False)
+    if proc.returncode != 0:
+        detail = proc.stderr.decode(errors="replace").strip() if isinstance(proc.stderr, bytes) else str(proc.stderr or "").strip()
+        raise BackendUnavailable(f"remote delete failed ({proc.returncode}): {detail}")
+    invalidate_remote_parent(location, config)
+
+
 def remote_exists(location: RemoteLocation, config: dict) -> bool:
     if location.kind == "rclone":
         exe = shutil.which("rclone")

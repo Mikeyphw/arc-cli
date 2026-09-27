@@ -1,0 +1,15 @@
+.TH "ARC-REMOTE" "7" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-remote \- SSH and rclone transport semantics
+.SH "LOCATIONS"
+SSH: ssh://NAME/path or configured NAME:path. rclone: rclone://NAME/path or remote:path.
+.SH "EXECUTION"
+auto/local uses Arc's conservative stream\-or\-stage transport. \-\-execution=remote delegates supported operations to Arc installed on the same SSH endpoint after version/capability checks.
+.SH "ATOMICITY"
+Uploads use temporary remote destinations and final rename/moveto where supported. Conversion verifies its local candidate before upload and then re\-reads the published remote destination before \-\-replace\-source can delete a source.
+.SH "TRUTHFUL STRATEGIES"
+When conversion stages a remote source or destination locally, human and JSON strategy text says transport\-staged. Arc does not label that path as a direct remote stream.
+.SH "COMPLETION"
+Remote directory listings are cached by provider/directory/config generation and invalidated by successful mutations.
+.SH "SEE ALSO"
+arc(1), arc\-config(5), arc\-convert(1)

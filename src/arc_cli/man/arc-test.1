@@ -1,0 +1,27 @@
+.TH "ARC-TEST" "1" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-test \- verify archive integrity
+.SH "SYNOPSIS"
+arc test ARCHIVE [OPTIONS]
+.PP
+arct ...
+.PP
+arc\-test ...
+.PP
+arccheck ...
+.SH "DESCRIPTION"
+Run the selected backend's integrity verification. Unlike arc info, this command is explicitly an integrity operation.
+.SH "OPTIONS"
+\-\-json
+.PP
+\-\-include/\-\-exclude and rule files
+.PP
+\-\-password/\-\-password\-file/\-\-password\-env
+.PP
+\-\-backend NAME
+.SH "EXAMPLES"
+arct backup.zip
+.PP
+arc test private.7z \-\-password\-env ARCHIVE_PASS
+.SH "SEE ALSO"
+arc\-info(1), arc\-list(1)

@@ -1,0 +1,72 @@
+.TH "ARC-FORMATS" "7" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-formats \- normalized archive and stream format semantics
+.SH "FORMATS"
+Containers: TAR, ZIP, 7z, RAR. Compressed TAR: gzip, bzip2, xz, Zstandard. Single streams: gzip, bzip2, xz, Zstandard.
+.SH "SELECTORS"
+.nf
+\-zip       zip        default suffix .zip
+.fi
+.nf
+\-7z        7z         default suffix .7z
+.fi
+.nf
+\-rar       rar        default suffix .rar
+.fi
+.nf
+\-tar       tar        default suffix .tar
+.fi
+.nf
+\-targz     tar.gz     default suffix .tar.gz
+.fi
+.nf
+\-tgz       tar.gz     default suffix .tgz
+.fi
+.nf
+\-tarbz2    tar.bz2    default suffix .tar.bz2
+.fi
+.nf
+\-tbz2      tar.bz2    default suffix .tbz2
+.fi
+.nf
+\-tbz       tar.bz2    default suffix .tbz
+.fi
+.nf
+\-tarxz     tar.xz     default suffix .tar.xz
+.fi
+.nf
+\-txz       tar.xz     default suffix .txz
+.fi
+.nf
+\-tarzst    tar.zstd   default suffix .tar.zst
+.fi
+.nf
+\-tzst      tar.zstd   default suffix .tzst
+.fi
+.nf
+\-tarzstd   tar.zstd   default suffix .tar.zstd
+.fi
+.nf
+\-gz        gzip       default suffix .gz
+.fi
+.nf
+\-gzip      gzip       default suffix .gzip
+.fi
+.nf
+\-bz2       bzip2      default suffix .bz2
+.fi
+.nf
+\-xz        xz         default suffix .xz
+.fi
+.nf
+\-zst       zstd       default suffix .zst
+.fi
+.nf
+\-zstd      zstd       default suffix .zstd
+.fi
+.SH "DETECTION"
+Read\-side detection prefers content signatures and nested\-TAR evidence. Extensions are hints/fallbacks. Empty compressed TAR requires the .tar.* hint because an empty TAR marker is byte\-ambiguous with an arbitrary zero\-filled stream.
+.SH "SINGLE STREAMS"
+Single\-stream formats represent exactly one byte stream and have no member list. Conversion from a multi\-member container to a single stream therefore requires exactly one selected regular file.
+.SH "SEE ALSO"
+arc(1), arc\-create(1), arc\-convert(1)

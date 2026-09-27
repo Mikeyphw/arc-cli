@@ -1,0 +1,21 @@
+.TH "ARC-REMOVE" "1" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-remove \- remove archive members
+.SH "SYNOPSIS"
+arc remove ARCHIVE MEMBER... [OPTIONS]
+.PP
+arcrm ...
+.PP
+arc\-remove ...
+.SH "DESCRIPTION"
+Remove explicitly selected members when the selected format/backend can provide normalized mutation semantics. Unsupported compressed\-container mutations fail rather than silently recreating with different semantics.
+.SH "OPTIONS"
+\-\-backend NAME
+.PP
+\-\-password/\-\-password\-file/\-\-password\-env
+.PP
+\-\-dry\-run
+.SH "EXAMPLES"
+arcrm plain.tar old/path.txt
+.SH "SEE ALSO"
+arc\-add(1), arc\-update(1)

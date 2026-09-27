@@ -50,7 +50,7 @@ verify_cli = true
 install_dependencies = true
 reproducible = true
 import_modules = ["arc_cli"]
-console_scripts = ["arc"]
+console_scripts = ["arc", "arcmk", "arc-create", "arcpack", "arcx", "arc-extract", "arcunpack", "arcls", "arc-list", "arci", "arc-info", "arct", "arc-test", "arccheck", "arccv", "arc-convert", "arcconvert", "arca", "arc-add", "arcu", "arc-update", "arcrm", "arc-remove", "arcbe", "arc-backends", "arc-formats", "arcp", "arc-profiles"]
 
 [python.security]
 enabled = false

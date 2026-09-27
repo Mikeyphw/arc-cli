@@ -1,0 +1,20 @@
+.TH "ARC-PROFILES" "5" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-profiles \- reusable Arc option profiles
+.SH "DESCRIPTION"
+Profiles live under [profiles.NAME]. Scalar defaults apply before explicit CLI options, and profile filter rules run before command\-line rules so the CLI remains final last\-match\-wins authority.
+.SH "FIELDS"
+backend, progress, level, threads, yazi, show_native, native_style, execution, include, exclude, include_from, exclude_from.
+.SH "EXAMPLE"
+[profiles.backup]
+.PP
+level = 8
+.PP
+threads = 0
+.PP
+exclude = ['.git/', '__pycache__/']
+.PP
+.PP
+arc create backup \-tzst src/ \-\-profile backup
+.SH "SEE ALSO"
+arc(1), arc\-config(5)

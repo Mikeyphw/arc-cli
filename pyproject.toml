@@ -17,9 +17,44 @@ test = ["pytest>=8"]
 
 [project.scripts]
 arc = "arc_cli.cli:main"
+arcmk = "arc_cli.cli:main"
+arc-create = "arc_cli.cli:main"
+arcpack = "arc_cli.cli:main"
+arcx = "arc_cli.cli:main"
+arc-extract = "arc_cli.cli:main"
+arcunpack = "arc_cli.cli:main"
+arcls = "arc_cli.cli:main"
+arc-list = "arc_cli.cli:main"
+arci = "arc_cli.cli:main"
+arc-info = "arc_cli.cli:main"
+arct = "arc_cli.cli:main"
+arc-test = "arc_cli.cli:main"
+arccheck = "arc_cli.cli:main"
+arccv = "arc_cli.cli:main"
+arc-convert = "arc_cli.cli:main"
+arcconvert = "arc_cli.cli:main"
+arca = "arc_cli.cli:main"
+arc-add = "arc_cli.cli:main"
+arcu = "arc_cli.cli:main"
+arc-update = "arc_cli.cli:main"
+arcrm = "arc_cli.cli:main"
+arc-remove = "arc_cli.cli:main"
+arcbe = "arc_cli.cli:main"
+arc-backends = "arc_cli.cli:main"
+arc-formats = "arc_cli.cli:main"
+arcp = "arc_cli.cli:main"
+arc-profiles = "arc_cli.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+arc_cli = ["man/*"]
+
+[tool.setuptools.data-files]
+"share/man/man1" = ["src/arc_cli/man/arc.1", "src/arc_cli/man/arc-identify.1", "src/arc_cli/man/arc-create.1", "src/arc_cli/man/arc-extract.1", "src/arc_cli/man/arc-list.1", "src/arc_cli/man/arc-info.1", "src/arc_cli/man/arc-test.1", "src/arc_cli/man/arc-convert.1", "src/arc_cli/man/arc-add.1", "src/arc_cli/man/arc-update.1", "src/arc_cli/man/arc-remove.1", "src/arc_cli/man/arc-backends.1", "src/arc_cli/man/arc-completion.1"]
+"share/man/man5" = ["src/arc_cli/man/arc-config.5", "src/arc_cli/man/arc-profiles.5"]
+"share/man/man7" = ["src/arc_cli/man/arc-formats.7", "src/arc_cli/man/arc-backends.7", "src/arc_cli/man/arc-remote.7"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

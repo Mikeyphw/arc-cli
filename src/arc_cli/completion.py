@@ -6,29 +6,32 @@ from pathlib import Path
 
 from .config import load_config, profile_names
 from .formats import CREATE_SUFFIX_SHORTCUTS
+from .command_docs import EXECUTABLE_ALIASES
 from .interactive import filesystem_candidates, rg_files
 from .remote import complete_remote, configured_remote_names, parse_remote
 
-OPERATIONS = ["identify", "list", "extract", "create", "add", "update", "remove", "test", "backends", "formats", "completion"]
+OPERATIONS = ["identify", "list", "extract", "create", "info", "test", "convert", "add", "update", "remove", "backends", "formats", "profiles", "man", "help", "completion"]
 FORMATS = ["tar", "tar.gz", "tar.bz2", "tar.xz", "tar.zstd", "zip", "7z", "rar", "gzip", "bzip2", "xz", "zstd"]
 BACKEND_NAMES = ["tar", "bsdtar", "7z", "7zz", "zip", "unzip", "rar", "unrar", "gzip", "pigz", "bzip2", "pbzip2", "xz", "pixz", "zstd", "pzstd"]
 
 VALUE_OPTIONS = {
     "--format", "-F", "--backend", "-o", "--output", "--level", "--threads", "--exclude", "--include",
     "--exclude-from", "--include-from", "--progress", "--password-file", "--password-env", "--profile",
-    "--show-native", "--native-style", "--execution",
+    "--show-native", "--native-style", "--execution", "--source-password-file", "--source-password-env",
 }
-OPTIONAL_VALUE_OPTIONS = {"--password", "--yazi"}
+OPTIONAL_VALUE_OPTIONS = {"--password", "--source-password", "--yazi"}
 
 BASE = {
     "--format", "-F", "--backend", "--no-fallback", "--profile", "--dry-run", "--show-command", "-q", "--quiet", "-v", "--verbose",
     "--json", "--progress", "--yazi", "--password", "--password-file", "--password-env",
-    "--show-native", "--native-style", "--execution",
+    "--show-native", "--native-style", "--execution", "--source-password-file", "--source-password-env",
 }
 FILTERS = {"--exclude", "--include", "--exclude-from", "--include-from"}
 CREATE = {"--level", "--threads", "--add-extension", "--follow-symlinks", "--one-file-system", "--preserve-owner", "--preserve-acls", "--preserve-xattrs"}
 CREATE_SUFFIX_FLAGS = {flag for flag, _fmt, _suffix in CREATE_SUFFIX_SHORTCUTS}
 EXTRACT = {"-o", "--output", "--overwrite", "--skip-existing", "--rename-existing", "--unsafe-paths", "--stdout", "--preserve-owner", "--preserve-acls", "--preserve-xattrs"}
+CONVERT = CREATE | FILTERS | CREATE_SUFFIX_FLAGS | {"-f", "--force", "--replace-source", "--batch", "--source-password", "--source-password-file", "--source-password-env"}
+INFO = {"--format", "-F", "--backend", "--no-fallback", "--profile", "--password", "--password-file", "--password-env", "--members", "--verify", "--technical", "--json", "-q", "--quiet", "-v", "--verbose", "--progress", "--show-command", "--show-native", "--native-style", "--execution"}
 
 COMMAND_OPTIONS: dict[str, set[str]] = {
     "identify": {"--format", "-F", "--json", "--yazi"},
@@ -39,8 +42,13 @@ COMMAND_OPTIONS: dict[str, set[str]] = {
     "add": BASE | FILTERS | CREATE,
     "update": BASE | FILTERS | CREATE,
     "remove": BASE,
+    "info": INFO,
+    "convert": BASE | CONVERT,
     "backends": {"--json", "--remote"},
     "formats": {"--json", "--remote"},
+    "profiles": {"--json"},
+    "man": {"--list", "--plain"},
+    "help": set(),
     "completion": set(),
 }
 
@@ -94,7 +102,7 @@ def _archive_members(path: str) -> list[str]:
 def _option_candidates(op: str, prefix: str, prior_tokens: list[str] | None = None) -> list[str]:
     options = set(COMMAND_OPTIONS.get(op, set()))
     prior = prior_tokens or []
-    if op == "create":
+    if op in {"create", "convert"}:
         has_shortcut = any(token in CREATE_SUFFIX_FLAGS for token in prior)
         has_format = any(
             token in {"-F", "--format"} or token.startswith("--format=")
@@ -117,7 +125,7 @@ def _path_candidates(prefix: str, *, op: str, refresh: bool = False, dirs_only: 
                 config,
                 refresh=refresh,
                 dirs_only=dirs_only,
-                archives_only=op in {"identify", "list", "test", "extract", "remove"},
+                archives_only=op in {"identify", "list", "test", "extract", "remove", "info", "convert"},
             )
         except Exception:
             return []
@@ -169,11 +177,12 @@ def completion_candidates(words: list[str]) -> list[str]:
                 "list": ["auto", "archive"],
                 "test": ["auto", "archive"],
                 "remove": ["auto", "archive"],
+                "convert": ["auto", "inputs"],
             }.get(op, [])
             attached = [x for x in allowed if x.startswith(value_prefix)]
         elif opt == "--level":
             attached = [str(x) for x in range(10) if str(x).startswith(value_prefix)]
-        elif opt == "--password-env":
+        elif opt in {"--password-env", "--source-password-env"}:
             attached = sorted(k for k in os.environ if k.startswith(value_prefix))
         elif opt == "--show-native":
             attached = [x for x in ["before", "after", "both"] if x.startswith(value_prefix)]
@@ -208,7 +217,7 @@ def completion_candidates(words: list[str]) -> list[str]:
         return [x for x in allowed if x.startswith(prefix)]
     if prev == "--level":
         return [str(x) for x in range(10) if str(x).startswith(prefix)]
-    if prev == "--password-env":
+    if prev in {"--password-env", "--source-password-env"}:
         return sorted(k for k in os.environ if k.startswith(prefix))
     if prev == "--show-native":
         return [x for x in ["before", "after", "both"] if x.startswith(prefix)]
@@ -221,7 +230,7 @@ def completion_candidates(words: list[str]) -> list[str]:
         return [x for x in configured_remote_names(config) if x.startswith(prefix)]
     if prev in {"-o", "--output"}:
         return _path_candidates(prefix, op=op, refresh=refresh_remote, dirs_only=True)
-    if prev in {"--password-file", "--exclude-from", "--include-from"}:
+    if prev in {"--password-file", "--source-password-file", "--exclude-from", "--include-from"}:
         return [x for x in rg_files() if x.startswith(prefix)]
     if cur.startswith("-"):
         return _option_candidates(op, prefix, before_current)
@@ -233,12 +242,18 @@ def completion_candidates(words: list[str]) -> list[str]:
         if parse_remote(pos[0], load_config(), probe_rclone=True):
             return []
         return [x for x in _archive_members(pos[0]) if x.startswith(prefix)]
-    if op in {"create", "add", "update"}:
+    if op in {"create", "add", "update", "convert"}:
         if not pos:
             return _path_candidates(prefix, op=op, refresh=refresh_remote)
         return _path_candidates(prefix, op=op, refresh=refresh_remote)
-    if op in {"identify", "test"}:
+    if op in {"identify", "test", "info"}:
         return _path_candidates(prefix, op=op, refresh=refresh_remote)
+    if op == "convert":
+        return _path_candidates(prefix, op=op, refresh=refresh_remote)
+    if op in {"man", "help"}:
+        topics = ["arc", "create", "extract", "list", "info", "test", "convert", "add", "update", "remove", "backends", "formats", "remote", "config", "profiles"]
+        topics.extend(sorted(EXECUTABLE_ALIASES))
+        return [x for x in sorted(set(topics)) if x.startswith(prefix)]
     if op == "completion":
         return [x for x in ["zsh", "cache", "refresh", "clear-cache"] if x.startswith(prefix)]
     return []
@@ -256,9 +271,9 @@ def completion_mode(words: list[str]) -> str:
     if cur.startswith("-"):
         return "single"
     pos = _positionals(words[1:-1])
-    if op == "identify":
+    if op in {"identify", "info"}:
         return "multi"
-    if op in {"create", "add", "update"}:
+    if op in {"create", "add", "update", "convert"}:
         return "multi" if pos else "single"
     if op in {"extract", "list", "remove"}:
         return "multi" if pos else "single"
@@ -273,21 +288,52 @@ def encode_candidates_nul(candidates: list[str]) -> bytes:
 
 def zsh_completion() -> str:
     # Keep the shell layer deliberately thin. Python owns the command grammar;
-    # Zsh owns presentation and optional fzf selection.
-    return r'''#compdef arc
+    # Zsh owns presentation and optional fzf selection. Executable aliases are
+    # derived from the same metadata used by the dispatcher so completion does
+    # not silently treat an alias's first operand as an Arc subcommand.
+    aliases = " ".join(["arc", *sorted(EXECUTABLE_ALIASES)])
+    cases = "\n".join(
+        f"    {alias}) print -r -- {command} ;;"
+        for alias, command in sorted(EXECUTABLE_ALIASES.items())
+    )
+    template = r'''#compdef __ALIASES__
 # Generated by: arc completion zsh
 # Context-aware native Zsh completion. Dynamic candidate transport is NUL-framed.
+
+_arc_implied_op() {
+  case "${words[1]}" in
+    arc) print -r -- "${words[2]}" ;;
+__ALIAS_CASES__
+    *) print -r -- "${words[2]}" ;;
+  esac
+}
+
+_arc_query_words() {
+  local op="$(_arc_implied_op)"
+  if [[ "${words[1]}" == arc ]]; then
+    reply=("${words[2,-1]}")
+  else
+    reply=("$op" "${words[2,-1]}")
+  fi
+}
 
 _arc_dynamic_candidates() {
   reply=()
   local item
+  local -a query
+  _arc_query_words
+  query=("${reply[@]}")
+  reply=()
   while IFS= read -r -d '' item; do
     reply+=("$item")
-  done < <(arc __complete0 -- "${words[2,-1]}" 2>/dev/null)
+  done < <(arc __complete0 -- "${query[@]}" 2>/dev/null)
 }
 
 _arc_dynamic_mode() {
-  arc __complete-mode -- "${words[2,-1]}" 2>/dev/null
+  local -a query
+  _arc_query_words
+  query=("${reply[@]}")
+  arc __complete-mode -- "${query[@]}" 2>/dev/null
 }
 
 _arc_fuzzy_complete() {
@@ -296,15 +342,13 @@ _arc_fuzzy_complete() {
   mode="$(_arc_dynamic_mode)"
   fzf_args=(--read0 --print0 --height=80% --border --reverse --prompt='arc> ')
   [[ "$mode" == multi ]] && fzf_args+=(--multi)
-  query_words=("${words[2,-1]}")
+  _arc_query_words
+  query_words=("${reply[@]}")
   while true; do
     selected=()
     while IFS= read -r -d '' item; do
       selected+=("$item")
     done < <(arc __complete0 -- "${query_words[@]}" 2>/dev/null | fzf "${fzf_args[@]}")
-    # In single-value remote/archive contexts, choosing a directory keeps the
-    # same fzf session alive and descends into it. Multi-value create inputs
-    # intentionally accept directories as selections instead.
     if [[ "$mode" == single && ${#selected} -eq 1 && "${selected[1]}" == */ ]]; then
       query_words[-1]="${selected[1]}**"
       continue
@@ -317,7 +361,7 @@ _arc_fuzzy_complete() {
 _arc() {
   local cur="${words[CURRENT]}"
   local prev="${words[CURRENT-1]}"
-  local op="${words[2]}"
+  local op="$(_arc_implied_op)"
   local -a reply
 
   if [[ "$cur" == *'**' ]] && (( $+commands[fzf] )); then
@@ -325,17 +369,17 @@ _arc() {
     return
   fi
 
-  if (( CURRENT == 2 )); then
-    _values 'arc operation' identify list extract create add update remove test backends formats completion
+  if [[ "${words[1]}" == arc && CURRENT == 2 ]]; then
+    _values 'arc operation' identify list extract create info test convert add update remove backends formats profiles man help completion
     return
   fi
 
   case "$prev" in
     --format|-F) _values 'archive format' tar tar.gz tar.bz2 tar.xz tar.zstd zip 7z rar gzip bzip2 xz zstd; return ;;
-    --backend|--profile|--progress|--yazi|--level|--password-env|--show-native|--native-style|--execution|--remote)
+    --backend|--profile|--progress|--yazi|--level|--password-env|--source-password-env|--show-native|--native-style|--execution|--remote)
       _arc_dynamic_candidates; compadd -Q -a reply; return ;;
     -o|--output) _arc_dynamic_candidates; compadd -Q -a reply; return ;;
-    --password-file|--exclude-from|--include-from) _files; return ;;
+    --password-file|--source-password-file|--exclude-from|--include-from) _files; return ;;
   esac
 
   if [[ "$cur" == -* ]]; then
@@ -352,5 +396,7 @@ _arc() {
   fi
 }
 
-compdef _arc arc
+compdef _arc __ALIASES__
 '''
+    return template.replace("__ALIASES__", aliases).replace("__ALIAS_CASES__", cases)
+

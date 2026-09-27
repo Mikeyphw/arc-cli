@@ -1,0 +1,21 @@
+.TH "ARC-BACKENDS" "1" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-backends \- inspect native backend capabilities
+.SH "SYNOPSIS"
+arc backends [OPTIONS]
+.PP
+arcbe ...
+.PP
+arc\-backends ...
+.SH "DESCRIPTION"
+Report configured backend preference order, installed binaries, and normalized capabilities rather than assuming similarly named native tools are interchangeable.
+.SH "OPTIONS"
+\-\-json
+.PP
+\-\-remote NAME
+.SH "EXAMPLES"
+arc backends
+.PP
+arc backends \-\-remote tablet
+.SH "SEE ALSO"
+arc\-backends(7), arc\-formats(7)

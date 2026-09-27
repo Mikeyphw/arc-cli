@@ -355,3 +355,35 @@ def test_native_tar_roundtrip_preserves_newline_filename(tmp_path: Path, monkeyp
     assert main(["create", "odd.tar", "src", "--backend", "tar", "--progress", "never"]) == 0
     assert main(["extract", "odd.tar", "--backend", "tar", "-o", "out", "--progress", "never"]) == 0
     assert (tmp_path / "out" / "src" / odd).read_text() == "odd-data"
+
+
+def test_member_parsers_preserve_native_modification_timestamps():
+    seven = parse_7z_slt("""
+Path = a.txt
+Size = 1
+Modified = 2020-01-02 03:04:05
+Attributes = A
+
+Path = b.txt
+Size = 2
+Modified = 2024-05-06 07:08:09
+Attributes = A
+
+""")
+    assert [m.mtime for m in seven] == ["2020-01-02 03:04:05", "2024-05-06 07:08:09"]
+
+    rar = parse_rar_lt("""
+Name: a.txt
+Type: File
+Size: 1
+mtime: 2020-01-02 03:04:05
+Attributes: -rw-r--r--
+
+Name: b.txt
+Type: File
+Size: 2
+Modified: 2024-05-06 07:08:09
+Attributes: -rw-r--r--
+
+""")
+    assert [m.mtime for m in rar] == ["2020-01-02 03:04:05", "2024-05-06 07:08:09"]

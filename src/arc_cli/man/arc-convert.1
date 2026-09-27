@@ -1,0 +1,125 @@
+.TH "ARC-CONVERT" "1" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-convert \- convert an archive or compressed stream
+.SH "SYNOPSIS"
+arc convert SOURCE [DESTINATION] [FORMAT\-SELECTOR] [OPTIONS]
+.PP
+arccv ...
+.PP
+arc\-convert ...
+.PP
+arcconvert ...
+.SH "DESCRIPTION"
+Transform one logical archive representation into another through Arc's normalized content detection, member selection, safety validation, destination creation, integrity verification, and publication rules. SOURCE is preserved unless \-\-replace\-source is explicit.
+.SH "OPTIONS"
+\-F, \-\-format FORMAT
+.nf
+\-zip       zip        default suffix .zip
+.fi
+.nf
+\-7z        7z         default suffix .7z
+.fi
+.nf
+\-rar       rar        default suffix .rar
+.fi
+.nf
+\-tar       tar        default suffix .tar
+.fi
+.nf
+\-targz     tar.gz     default suffix .tar.gz
+.fi
+.nf
+\-tgz       tar.gz     default suffix .tgz
+.fi
+.nf
+\-tarbz2    tar.bz2    default suffix .tar.bz2
+.fi
+.nf
+\-tbz2      tar.bz2    default suffix .tbz2
+.fi
+.nf
+\-tbz       tar.bz2    default suffix .tbz
+.fi
+.nf
+\-tarxz     tar.xz     default suffix .tar.xz
+.fi
+.nf
+\-txz       tar.xz     default suffix .txz
+.fi
+.nf
+\-tarzst    tar.zstd   default suffix .tar.zst
+.fi
+.nf
+\-tzst      tar.zstd   default suffix .tzst
+.fi
+.nf
+\-tarzstd   tar.zstd   default suffix .tar.zstd
+.fi
+.nf
+\-gz        gzip       default suffix .gz
+.fi
+.nf
+\-gzip      gzip       default suffix .gzip
+.fi
+.nf
+\-bz2       bzip2      default suffix .bz2
+.fi
+.nf
+\-xz        xz         default suffix .xz
+.fi
+.nf
+\-zst       zstd       default suffix .zst
+.fi
+.nf
+\-zstd      zstd       default suffix .zstd
+.fi
+.PP
+\-\-add\-extension
+.PP
+\-f, \-\-force
+.PP
+\-\-batch
+.PP
+\-\-replace\-source
+.PP
+\-\-source\-password/\-\-source\-password\-file/\-\-source\-password\-env
+.PP
+\-\-password/\-\-password\-file/\-\-password\-env
+.PP
+\-\-include/\-\-exclude and rule files
+.PP
+\-\-level 0..9
+.PP
+\-\-threads N
+.PP
+\-\-backend NAME
+.PP
+\-\-no\-fallback
+.PP
+\-\-dry\-run
+.PP
+\-\-show\-command
+.PP
+\-\-show\-native[=before|after|both]
+.PP
+\-\-json
+.SH "SEMANTICS"
+A short selector or \-F/\-\-format controls the actual target encoding even when DESTINATION has a conflicting recognized suffix. With no destination, Arc derives a new sibling name by replacing one recognized source suffix. For an explicitly supplied extensionless destination, a short selector appends its suffix; plain \-F/\-\-format requires \-\-add\-extension to append one. Compatible single\-stream conversions and unfiltered TAR\-compression changes use byte\-stream pipelines locally. Container\-to\-container conversions use an isolated safe member tree. When remote transport forces local staging, the displayed strategy is prefixed transport\-staged rather than claiming a direct remote stream.
+.SH "STREAM AND MEMBER SELECTION"
+Container\-to\-gzip/bzip2/xz/zstd requires exactly one selected regular file. Include\-only filters act as an explicit selection, so \-\-include file can narrow a multi\-member container. Stream\-to\-container conversion uses a logical filename derived from the stream source rather than Arc's temporary staging path.
+.SH "BATCH CONVERSION"
+Multiple sources with an explicit target format are independent batch jobs. Arc resolves and collision\-checks the complete destination set before starting the first conversion, so a late filename conflict cannot leave an earlier batch item already published. \-\-batch resolves the ambiguous two\-source case.
+.SH "PUBLICATION AND VERIFICATION"
+Local output is created at an unpublished same\-filesystem candidate, integrity\-tested there, and atomically replaced into the requested final path only after verification. A failed conversion therefore leaves no new corrupt final path and does not clobber an existing \-\-force destination. Remote output is atomically uploaded, re\-read, and verified before \-\-replace\-source may delete any source.
+.SH "EXAMPLES"
+arc convert old.zip \-tzst
+.PP
+arc convert private.rar archive.7z \-7z \-\-source\-password\-env OLD_PASS \-\-password\-env NEW_PASS
+.PP
+arc convert archive.zip \-zst \-\-include video.mp4
+.PP
+arc convert database.sql.gz \-zst
+.PP
+arc convert a.zip b.zip c.zip \-tzst \-\-replace\-source
+.SH "SEE ALSO"
+arc\-create(1), arc\-info(1), arc\-formats(7), arc\-remote(7)

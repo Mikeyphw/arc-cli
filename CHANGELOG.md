@@ -15,6 +15,11 @@
 - Keep exact changed, missing, newly authoritative, and unexpectedly sealed path lists in seal failures, while allowing unrelated runtime/transaction detritus outside the authoritative source set.
 
 ## Unreleased
+- Add first-class `arc convert` with authoritative format selectors, batch conversion, safe single-member stream conversion, isolated container staging, TAR/stream pipelines, source/destination password separation, unpublished local candidates with post-verification atomic publish, transactional `--replace-source`, truthful `transport-staged` remote semantics with post-upload re-read verification, dry-run/native-plan surfaces, and truthful size-change JSON/UI.
+- Add `arc info`/`arci` with summary metadata, tri-state integrity (`null` until `--verify`), content/extension mismatch reporting, member/time/technical data, gzip filename/size hints, multi-archive JSON, and limited metadata behavior for password-protected headers.
+- Install real Arc dispatcher aliases (`arcmk`, `arcx`, `arcls`, `arci`, `arct`, `arccv`, `arca`, `arcu`, `arcrm`, descriptive `arc-*` forms, plus pack/unpack/check/convert convenience forms) and make Zsh completion alias-aware.
+- Ship generated detailed command/config/reference manpages plus `docs/COMMAND_REFERENCE.md` and `arc man` / `arc help` fallback rendering for Termux/minimal systems; centralize command identity/alias metadata, preserve alias literal/canonical identity in JSON, retain the generator in sdists, and test package/man/completion parity.
+- Fix Info-ZIP integrity testing to pass the resolved password to `unzip -t`, enabling destination-password verification without a second prompt/hang.
 - Final seal verification is now scoped to the exact authoritative ARC source/config/docs/test set, so unrelated Devtool transaction/runtime files cannot perturb the content root while authoritative additions or byte changes still fail closed.
 - Improve the Termux create UX with a copyable/redacted Arc invocation, width-aware progress columns, a resolved create header, and a compact final size/compression summary.
 - Add create-only single-dash suffix selectors such as `-zip`, `-tgz`, `-tarzst`, and `-zst`; selectors override filename inference and append their exact suffix when the destination has no recognized archive suffix.

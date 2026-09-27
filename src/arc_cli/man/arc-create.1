@@ -1,0 +1,99 @@
+.TH "ARC-CREATE" "1" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-create \- create an archive or compressed stream
+.SH "SYNOPSIS"
+arc create ARCHIVE INPUT... [OPTIONS]
+.PP
+arcmk ...
+.PP
+arc\-create ...
+.PP
+arcpack ...
+.SH "DESCRIPTION"
+Create a new archive or compressed stream transactionally. Format may be inferred from the destination or selected explicitly with \-F/\-\-format or a short suffix selector.
+.SH "OPTIONS"
+\-F, \-\-format FORMAT
+.nf
+\-zip       zip        default suffix .zip
+.fi
+.nf
+\-7z        7z         default suffix .7z
+.fi
+.nf
+\-rar       rar        default suffix .rar
+.fi
+.nf
+\-tar       tar        default suffix .tar
+.fi
+.nf
+\-targz     tar.gz     default suffix .tar.gz
+.fi
+.nf
+\-tgz       tar.gz     default suffix .tgz
+.fi
+.nf
+\-tarbz2    tar.bz2    default suffix .tar.bz2
+.fi
+.nf
+\-tbz2      tar.bz2    default suffix .tbz2
+.fi
+.nf
+\-tbz       tar.bz2    default suffix .tbz
+.fi
+.nf
+\-tarxz     tar.xz     default suffix .tar.xz
+.fi
+.nf
+\-txz       tar.xz     default suffix .txz
+.fi
+.nf
+\-tarzst    tar.zstd   default suffix .tar.zst
+.fi
+.nf
+\-tzst      tar.zstd   default suffix .tzst
+.fi
+.nf
+\-tarzstd   tar.zstd   default suffix .tar.zstd
+.fi
+.nf
+\-gz        gzip       default suffix .gz
+.fi
+.nf
+\-gzip      gzip       default suffix .gzip
+.fi
+.nf
+\-bz2       bzip2      default suffix .bz2
+.fi
+.nf
+\-xz        xz         default suffix .xz
+.fi
+.nf
+\-zst       zstd       default suffix .zst
+.fi
+.nf
+\-zstd      zstd       default suffix .zstd
+.fi
+.PP
+\-\-add\-extension
+.PP
+\-\-overwrite
+.PP
+\-\-level 0..9
+.PP
+\-\-threads N
+.PP
+\-\-include/\-\-exclude and rule files
+.PP
+\-\-follow\-symlinks
+.PP
+\-\-one\-file\-system
+.SH "SEMANTICS"
+A short suffix selector is authoritative even when the destination has a conflicting recognized suffix. If the destination has no recognized suffix, the selector appends its represented suffix. Plain \-F/\-\-format keeps an explicitly supplied extensionless destination unless \-\-add\-extension is present.
+.SH "EXAMPLES"
+arc create backup src/ \-tzst
+.PP
+arcmk photos Photos/ \-7z \-\-level 8
+.PP
+arc create misleading.rar \-7z data/
+.SH "SEE ALSO"
+arc(1), arc\-formats(7), arc\-backends(7), arc\-remote(7)

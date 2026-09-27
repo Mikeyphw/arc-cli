@@ -1,30 +1,37 @@
 from __future__ import annotations
 
 import argparse
+import io
 import dataclasses
 import getpass
 import json
+import gzip
+import tarfile
+import zipfile
 import os
 import shlex
 import shutil
 import subprocess
 import sys
 import tempfile
-from contextlib import nullcontext
+import time
+from contextlib import nullcontext, redirect_stdout
 from pathlib import Path
 
 from rich.filesize import decimal
 from rich.table import Table
 from rich.text import Text
 
-from .backends import backend_inventory, resolve_backend, run_backend
+from .backends import backend_inventory, resolve_backend, run_backend, _compression_command, _decompression_command
 from .completion import FORMATS, completion_candidates, completion_mode, encode_candidates_nul, zsh_completion
+from .command_docs import COMMAND_DOCS, EXECUTABLE_ALIASES
+from .manpages import available_topics, show_manpage
 from .config import get_profile, load_config
 from .errors import ArcError, BackendUnavailable, ConflictError, CorruptArchive, PasswordError, UnsafeArchive, UnsupportedFormat, UsageError
 from .execution import begin_plan, emit_after, record_stage
 from .filtering import build_manifest, expand_rule_files, filter_members
 from . import __version__
-from .formats import CREATE_SUFFIX_SHORTCUTS, detect, extension_for, infer_from_name, parse_format, resolve_create_format
+from .formats import CREATE_SUFFIX_SHORTCUTS, detect, extension_for, infer_from_name, parse_format, resolve_create_format, strip_archive_suffix
 from .interactive import choose_auto, filesystem_candidates, rg_files, yazi_choose
 from .model import FilterRule, Member
 from .progress import ProgressReporter, console, progress_enabled, stdout_console
@@ -35,6 +42,7 @@ from .remote import (
     complete_remote,
     configured_remote_names,
     download_remote,
+    delete_remote,
     invalidate_remote_directory,
     invalidate_remote_parent,
     list_remote,
@@ -126,10 +134,10 @@ def add_common(
         p.add_argument("--preserve-xattrs", action="store_true")
 
 
-def _add_create_suffix_shortcuts(p: argparse.ArgumentParser) -> None:
+def _add_create_suffix_shortcuts(p: argparse.ArgumentParser, *, operation: str = "create") -> None:
     section = p.add_argument_group(
-        "create suffix shortcuts",
-        "select the create format explicitly; if ARCHIVE has no known archive suffix, append the selected suffix",
+        f"{operation} suffix shortcuts",
+        f"select the {operation} format explicitly; if the destination has no known archive suffix, append the selected suffix",
     )
     group = section.add_mutually_exclusive_group()
     group.add_argument("-F", "--format")
@@ -139,16 +147,16 @@ def _add_create_suffix_shortcuts(p: argparse.ArgumentParser) -> None:
             dest="format_shortcut",
             action="store_const",
             const=(fmt, suffix),
-            help=f"create {fmt} and use {suffix} when ARCHIVE has no recognized archive suffix",
+            help=f"select {fmt}; use {suffix} when the destination has no recognized archive suffix",
         )
 
 
 def parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="arc", description="Normalized archive CLI over native backends")
+    p = argparse.ArgumentParser(prog="arc", description="Safe, backend-aware archive and compression utility")
     p.add_argument("--version", action="version", version="arc 0.1.0")
     sub = p.add_subparsers(dest="command", required=True)
 
-    q = sub.add_parser("identify", help="identify archive format")
+    q = sub.add_parser("identify", help=COMMAND_DOCS["identify"].summary)
     q.add_argument("files", nargs="*")
     q.add_argument("-F", "--format")
     q.add_argument("--json", action="store_true")
@@ -158,19 +166,19 @@ def parser() -> argparse.ArgumentParser:
     q.add_argument("--execution", choices=["auto", "local", "remote"], default=None)
 
     for name in ["list", "test"]:
-        q = sub.add_parser(name)
+        q = sub.add_parser(name, help=COMMAND_DOCS[name].summary)
         q.add_argument("archive", nargs="?")
         if name == "list":
             q.add_argument("members", nargs="*")
         add_common(q, member_filter=True)
 
-    q = sub.add_parser("extract")
+    q = sub.add_parser("extract", help=COMMAND_DOCS["extract"].summary)
     q.add_argument("archive", nargs="?")
     q.add_argument("members", nargs="*")
     add_common(q, extract=True, member_filter=True)
 
     for name in ["create", "add", "update"]:
-        q = sub.add_parser(name)
+        q = sub.add_parser(name, help=COMMAND_DOCS[name].summary)
         q.add_argument("archive")
         q.add_argument("inputs", nargs="*")
         add_common(q, create=True, format_option=name != "create")
@@ -178,18 +186,60 @@ def parser() -> argparse.ArgumentParser:
             _add_create_suffix_shortcuts(q)
             q.add_argument("--overwrite", action="store_true")
 
-    q = sub.add_parser("remove")
+    q = sub.add_parser("remove", help=COMMAND_DOCS["remove"].summary)
     q.add_argument("archive", nargs="?")
     q.add_argument("members", nargs="*")
     add_common(q)
 
-    q = sub.add_parser("backends")
+    q = sub.add_parser("info", help=COMMAND_DOCS["info"].summary)
+    q.add_argument("archives", nargs="+")
+    q.add_argument("-F", "--format")
+    q.add_argument("--backend")
+    q.add_argument("--no-fallback", action="store_true")
+    q.add_argument("--profile")
+    q.add_argument("--password", nargs="?", const="__PROMPT__")
+    q.add_argument("--password-file")
+    q.add_argument("--password-env", metavar="NAME")
+    q.add_argument("--members", action="store_true", help="include compact member statistics")
+    q.add_argument("--verify", action="store_true", help="run a real integrity test")
+    q.add_argument("--technical", action="store_true", help="include backend-oriented technical metadata")
+    q.add_argument("--json", action="store_true")
+    q.add_argument("-q", "--quiet", action="store_true")
+    q.add_argument("-v", "--verbose", action="count", default=0)
+    q.add_argument("--progress", choices=["auto", "always", "never"], default=None)
+    q.add_argument("--show-command", action="store_true", help="show native commands used for verification/metadata probes when available")
+    q.add_argument("--show-native", nargs="?", const="after", choices=["before", "after", "both"], default=None)
+    q.add_argument("--native-style", choices=["exact", "reproducible"], default=None)
+    q.add_argument("--execution", choices=["auto", "local", "remote"], default=None)
+
+    q = sub.add_parser("convert", help=COMMAND_DOCS["convert"].summary)
+    q.add_argument("paths", nargs="+", help="SOURCE [DESTINATION], or multiple existing sources with an explicit target format")
+    add_common(q, create=True, format_option=False)
+    _add_create_suffix_shortcuts(q, operation="convert")
+    q.add_argument("-f", "--force", action="store_true", help="replace an existing destination")
+    q.add_argument("--replace-source", action="store_true", help="remove each source only after destination verification")
+    q.add_argument("--batch", action="store_true", help="treat every positional path as an independent source and derive each destination")
+    q.add_argument("--source-password", nargs="?", const="__PROMPT__")
+    q.add_argument("--source-password-file")
+    q.add_argument("--source-password-env", metavar="NAME")
+
+    q = sub.add_parser("backends", help=COMMAND_DOCS["backends"].summary)
     q.add_argument("--json", action="store_true")
     q.add_argument("--remote")
-    q = sub.add_parser("formats")
+    q = sub.add_parser("formats", help=COMMAND_DOCS["formats"].summary)
     q.add_argument("--json", action="store_true")
     q.add_argument("--remote")
-    c = sub.add_parser("completion")
+    q = sub.add_parser("profiles", help=COMMAND_DOCS["profiles"].summary)
+    q.add_argument("--json", action="store_true")
+    q = sub.add_parser("man", help=COMMAND_DOCS["man"].summary)
+    q.add_argument("topic", nargs="?", default="arc")
+    q.add_argument("--list", action="store_true", dest="list_topics")
+    q.add_argument("--plain", action="store_true", help="render bundled manual as plain text")
+    q = sub.add_parser("help", help=COMMAND_DOCS["help"].summary)
+    q.add_argument("topic", nargs="?", default="arc")
+    q.add_argument("--plain", action="store_true", default=True, help=argparse.SUPPRESS)
+    q.set_defaults(list_topics=False)
+    c = sub.add_parser("completion", help=COMMAND_DOCS["completion"].summary)
     c.add_argument("action", choices=["zsh", "cache", "refresh", "clear-cache"])
     c.add_argument("location", nargs="?")
     c.add_argument("--json", action="store_true")
@@ -200,7 +250,7 @@ def _create_format_options(args) -> tuple[str | None, bool, str | None]:
     shortcut = getattr(args, "format_shortcut", None)
     explicit = getattr(args, "format", None)
     if shortcut is not None and explicit:
-        raise UsageError("use either -F/--format or a create suffix shortcut, not both")
+        raise UsageError("use either -F/--format or a suffix shortcut, not both")
     if shortcut is not None:
         fmt, suffix = shortcut
         return fmt, True, suffix
@@ -213,7 +263,7 @@ def _resolve_create_target(args, path: str | Path) -> tuple[object, Path]:
 
 
 def _explicit_format(args) -> str | None:
-    if getattr(args, "command", None) == "create":
+    if getattr(args, "command", None) in {"create", "convert"}:
         explicit, _add, _suffix = _create_format_options(args)
         return explicit
     return getattr(args, "format", None)
@@ -226,17 +276,21 @@ def _display_invocation(argv: list[str], args) -> str:
     gone before Arc starts, so this is intentionally the received argv rather
     than a claim that we can reconstruct the literal shell input.
     """
-    words = ["arc", *argv]
-    secret = getattr(args, "password", None)
-    if secret and secret != "__PROMPT__":
-        words = ["***" if word == secret else word.replace(f"--password={secret}", "--password=***") for word in words]
+    words = [getattr(args, "_invoked_program", "arc"), *getattr(args, "_display_argv", argv)]
+    secrets = [getattr(args, "password", None), getattr(args, "source_password", None)]
+    for secret in secrets:
+        if secret and secret != "__PROMPT__":
+            words = [
+                "***" if word == secret else word.replace(f"--password={secret}", "--password=***").replace(f"--source-password={secret}", "--source-password=***")
+                for word in words
+            ]
     return shlex.join(words)
 
 
 def _show_invocation(argv: list[str], args) -> None:
     if getattr(args, "quiet", False) or getattr(args, "json", False):
         return
-    if getattr(args, "command", None) not in {"identify", "list", "extract", "create", "add", "update", "remove", "test"}:
+    if getattr(args, "command", None) not in {"identify", "list", "extract", "create", "add", "update", "remove", "test", "info", "convert"}:
         return
     # Keep redirected/scripted output clean. In an interactive terminal, emit
     # one logical line and let the terminal soft-wrap it visually. Rich table
@@ -422,6 +476,7 @@ def _validate_yazi_context(args) -> None:
         "add": {"inputs"},
         "update": {"inputs"},
         "remove": {"archive"},
+        "convert": {"inputs"},
     }.get(getattr(args, "command", ""), set())
     if value not in allowed:
         choices = ", ".join(sorted(allowed)) or "none"
@@ -1716,6 +1771,1004 @@ def _dispatch_remote_archive(args, extra: list[str], config: dict) -> int | None
             stdout_console.print(f"[green]OK[/] {operation}: {location.raw} (transport={location.kind})")
     return rc
 
+
+def _resolve_source_password(args) -> str | None:
+    names = ("source_password", "source_password_file", "source_password_env")
+    if sum(getattr(args, name, None) is not None for name in names) > 1:
+        raise UsageError("use only one of --source-password, --source-password-file, or --source-password-env")
+    if getattr(args, "source_password_file", None):
+        try:
+            return Path(args.source_password_file).expanduser().read_text(encoding="utf-8").splitlines()[0]
+        except (OSError, IndexError) as exc:
+            raise UsageError(f"cannot read source password file: {exc}") from exc
+    if getattr(args, "source_password_env", None):
+        value = os.environ.get(args.source_password_env)
+        if value is None:
+            raise UsageError(f"source password environment variable is not set: {args.source_password_env}")
+        return value
+    value = getattr(args, "source_password", None)
+    if value == "__PROMPT__":
+        if not sys.stdin.isatty():
+            raise UsageError("--source-password without a value requires an interactive TTY")
+        return getpass.getpass("Source archive password: ")
+    return value
+
+
+def _stream_original_size(path: Path, fmt) -> int | None:
+    # gzip stores the uncompressed size modulo 2**32 in the trailer. It is a
+    # cheap, truthful hint for normal-size files; other stream formats do not
+    # expose one uniformly without performing decompression.
+    if fmt.canonical != "gzip":
+        return None
+    try:
+        if path.stat().st_size < 4:
+            return None
+        with path.open("rb") as fh:
+            fh.seek(-4, os.SEEK_END)
+            return int.from_bytes(fh.read(4), "little")
+    except OSError:
+        return None
+
+
+def _gzip_original_filename(path: Path) -> str | None:
+    """Return gzip's optional original filename without decompressing data."""
+    try:
+        with path.open("rb") as fh:
+            header = fh.read(10)
+            if len(header) != 10 or header[:2] != b"\x1f\x8b":
+                return None
+            flags = header[3]
+            if flags & 0x04:  # FEXTRA
+                raw = fh.read(2)
+                if len(raw) != 2:
+                    return None
+                fh.seek(int.from_bytes(raw, "little"), os.SEEK_CUR)
+            if flags & 0x08:  # FNAME
+                name = bytearray()
+                while len(name) < 4096:
+                    ch = fh.read(1)
+                    if not ch or ch == b"\0":
+                        break
+                    name.extend(ch)
+                return os.fsdecode(bytes(name)) if name else None
+    except OSError:
+        return None
+    return None
+
+
+def _record_info_probe(backend, path: Path, password: str | None, args, *, description: str) -> None:
+    """Record/show one exact native info probe when the backend uses one."""
+    name = Path(backend.info.path).name
+    cmd: list[str] | None = None
+    if name in {"7z", "7zz"}:
+        cmd = [backend.info.path, "l", "-slt", f"-p{password}" if password else "-p-", "--", str(path)]
+    elif name in {"rar", "unrar"}:
+        cmd = [backend.info.path, "lt", f"-p{password}" if password else "-p-", "--", str(path)]
+    if not cmd:
+        return
+    redact = [password] if password else []
+    record_stage("metadata-index", cmd, description=description, redact=redact)
+    if getattr(args, "show_command", False):
+        shown = list(cmd)
+        if password:
+            shown = [part.replace(password, "<redacted>") for part in shown]
+        console.print("[dim]command:[/] " + shlex.join(shown))
+
+
+def _member_time_range(path: Path, fmt, members: list[Member] | None = None) -> tuple[str | None, str | None]:
+    # Prefer the normalized member model so 7z/RAR listings participate just
+    # like ZIP/TAR. Backends may expose fractional seconds; ISO-like native
+    # values remain lexically ordered by time.
+    values = sorted(member.mtime for member in (members or []) if member.mtime)
+    if values:
+        return values[0], values[-1]
+    try:
+        if fmt.container == "zip":
+            with zipfile.ZipFile(path) as zf:
+                stamps = [info.date_time for info in zf.infolist()]
+            if not stamps:
+                return None, None
+            rendered = [f"{y:04d}-{m:02d}-{d:02d} {hh:02d}:{mm:02d}:{ss:02d}" for y, m, d, hh, mm, ss in stamps]
+            return min(rendered), max(rendered)
+        if fmt.container == "tar":
+            mode = "r:*" if fmt.compression else "r:"
+            with tarfile.open(path, mode) as tf:
+                stamps = [member.mtime for member in tf.getmembers() if member.mtime is not None]
+            if not stamps:
+                return None, None
+            import datetime as _dt
+            rendered = [_dt.datetime.fromtimestamp(value).isoformat(sep=" ", timespec="seconds") for value in stamps]
+            return min(rendered), max(rendered)
+    except (OSError, tarfile.TarError, zipfile.BadZipFile, ValueError):
+        pass
+    return None, None
+
+
+def _technical_archive_metadata(path: Path, fmt, backend, password: str | None) -> dict:
+    data: dict[str, object] = {"encrypted": None, "header_encrypted": None, "solid": None, "volumes": None}
+    try:
+        if fmt.container == "zip":
+            with zipfile.ZipFile(path) as zf:
+                infos = zf.infolist()
+                data["encrypted"] = any(bool(info.flag_bits & 0x1) for info in infos)
+                data["header_encrypted"] = False
+                data["zip64"] = any(info.file_size > 0xFFFFFFFF or info.compress_size > 0xFFFFFFFF for info in infos)
+                methods = sorted({str(info.compress_type) for info in infos})
+                if methods:
+                    data["methods"] = methods
+                if zf.comment:
+                    data["comment"] = zf.comment.decode("utf-8", errors="replace")
+            return data
+        name = Path(backend.info.path).name
+        if name in {"7z", "7zz"}:
+            cmd = [backend.info.path, "l", "-slt", "-p-" if not password else f"-p{password}", "--", str(path)]
+            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=30, check=False)
+            text = (proc.stdout or "") + "\n" + (proc.stderr or "")
+            encrypted_values = [line.split("=", 1)[1].strip() for line in text.splitlines() if line.strip().startswith("Encrypted =")]
+            if encrypted_values:
+                data["encrypted"] = any(value == "+" for value in encrypted_values)
+            solid = next((line.split("=", 1)[1].strip() for line in text.splitlines() if line.strip().startswith("Solid =")), None)
+            if solid is not None:
+                data["solid"] = solid == "+"
+            method = next((line.split("=", 1)[1].strip() for line in text.splitlines() if line.strip().startswith("Method =")), None)
+            if method:
+                data["method"] = method
+            blocks = next((line.split("=", 1)[1].strip() for line in text.splitlines() if line.strip().startswith("Blocks =")), None)
+            if blocks and blocks.isdigit():
+                data["blocks"] = int(blocks)
+            volumes = next((line.split("=", 1)[1].strip() for line in text.splitlines() if line.strip().startswith("Volumes =")), None)
+            if volumes and volumes.isdigit():
+                data["volumes"] = int(volumes)
+            return data
+        if name in {"rar", "unrar"}:
+            cmd = [backend.info.path, "lt", f"-p{password}" if password else "-p-", "--", str(path)]
+            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=30, check=False)
+            text = (proc.stdout or "") + "\n" + (proc.stderr or "")
+            low = text.lower()
+            if "encrypted" in low:
+                data["encrypted"] = any(marker in low for marker in ("encrypted: +", "encrypted = +", "encrypted yes"))
+            if "solid" in low:
+                data["solid"] = any(marker in low for marker in ("solid: +", "solid = +", "solid yes"))
+            volume_lines = [line for line in text.splitlines() if line.strip().lower().startswith(("volume:", "volumes:"))]
+            if volume_lines:
+                raw = volume_lines[0].split(":", 1)[1].strip()
+                if raw.isdigit():
+                    data["volumes"] = int(raw)
+            return data
+    except (OSError, subprocess.SubprocessError, zipfile.BadZipFile):
+        pass
+    return data
+
+
+def _conversion_targets(config: dict) -> list[str]:
+    targets: list[str] = []
+    for name in FORMATS:
+        try:
+            fmt = parse_format(name)
+            resolve_backend(fmt, "create", config)
+        except ArcError:
+            continue
+        targets.append(name)
+    return targets
+
+
+def _verify_archive_path(path: Path, fmt, password: str | None, args, config: dict) -> tuple[bool, str, str | None]:
+    backend = resolve_backend(
+        fmt,
+        "test",
+        config,
+        getattr(args, "backend", None),
+        required_capabilities=_backend_requirements(args, fmt, "test", password),
+        no_fallback=bool(getattr(args, "no_fallback", False)),
+    )
+    cmd, meta = backend.command(
+        "test",
+        path,
+        fmt=fmt,
+        members=[],
+        extra=[],
+        config=config,
+        password=password,
+        dry_run=False,
+        no_fallback=bool(getattr(args, "no_fallback", False)),
+    )
+    rc = run_backend(
+        cmd,
+        meta,
+        None,
+        {},
+        show_command=bool(getattr(args, "show_command", False)),
+        dry_run=False,
+        verbose=int(getattr(args, "verbose", 0) or 0),
+    )
+    if rc == 0:
+        return True, backend.info.binary, None
+    try:
+        _raise_backend_failure(rc, meta, password=password, operation="test")
+    except ArcError as exc:
+        return False, backend.info.binary, str(exc)
+    return False, backend.info.binary, f"backend status {rc}"
+
+
+def _archive_info_local(path: Path, display: str, args, config: dict, password: str | None) -> tuple[dict, bool]:
+    fmt = detect(path, getattr(args, "format", None))
+    display_hint = display.split(":", 1)[-1] if ":" in display and not Path(display).exists() else display
+    hint = infer_from_name(Path(display_hint))
+    physical = path.stat().st_size
+    members: list[Member] = []
+    backend_name: str | None = None
+    technical: dict[str, object] = {"encrypted": None, "header_encrypted": None, "solid": None, "volumes": None}
+    unsafe = False
+    metadata_limited_reason: str | None = None
+    stream_filename: str | None = None
+    oldest = newest = None
+    original: int | None = None
+
+    if fmt.is_stream:
+        backend = resolve_backend(fmt, "test", config, getattr(args, "backend", None), no_fallback=bool(getattr(args, "no_fallback", False)))
+        backend_name = backend.info.binary
+        original = _stream_original_size(path, fmt)
+        stream_filename = _gzip_original_filename(path) if fmt.canonical == "gzip" else None
+    else:
+        backend = resolve_backend(fmt, "list", config, getattr(args, "backend", None), no_fallback=bool(getattr(args, "no_fallback", False)))
+        backend_name = backend.info.binary
+        _record_info_probe(backend, path, password, args, description="archive technical metadata probe")
+        technical = _technical_archive_metadata(path, fmt, backend, password)
+        _record_info_probe(backend, path, password, args, description="archive member index probe")
+        try:
+            members = backend.list_members(path, password=password)
+        except PasswordError:
+            # Header-encrypted archives still have useful outer metadata. `info`
+            # is an inspection command, so lack of a password limits the member
+            # view instead of making the whole command fail. Verification, when
+            # explicitly requested, still fails truthfully below.
+            metadata_limited_reason = "password-required"
+            technical["encrypted"] = True
+            technical["header_encrypted"] = True
+        else:
+            try:
+                validate_members(members)
+            except UnsafeArchive:
+                unsafe = True
+            original = sum(member.size for member in members if member.kind == "file")
+            oldest, newest = _member_time_range(path, fmt, members)
+
+    ratio = (original / physical) if original is not None and physical > 0 else None
+    reduction = ((1.0 - physical / original) * 100.0) if original not in {None, 0} else None
+    counts = {kind: sum(1 for member in members if member.kind == kind) for kind in ("file", "dir", "symlink", "hardlink", "special", "unknown")}
+    largest = max((member for member in members if member.kind == "file"), key=lambda member: member.size, default=None)
+    verified: bool | None = None
+    verify_error: str | None = None
+    verify_backend: str | None = None
+    failed = False
+    if getattr(args, "verify", False):
+        verified, verify_backend, verify_error = _verify_archive_path(path, fmt, password, args, config)
+        failed = not verified
+
+    # A mismatch means content detection beat the filename hint. A matching
+    # hint is still reported separately so callers do not confuse filename
+    # agreement with proof of integrity.
+    confidence = "explicit" if getattr(args, "format", None) else ("high" if hint is None or hint.canonical != fmt.canonical else "content+extension")
+    result = {
+        "path": display,
+        "format": fmt.canonical,
+        "container": fmt.container,
+        "compression": fmt.compression,
+        "physical_bytes": physical,
+        "compressed_bytes": physical,
+        "original_bytes": original,
+        "reduction_percent": reduction,
+        "ratio": ratio,
+        "stream_filename": stream_filename,
+        "extension_format": hint.canonical if hint else None,
+        "format_mismatch": bool(hint and hint.canonical != fmt.canonical),
+        "format_confidence": confidence,
+        "backend": backend_name,
+        "members": {
+            "total": len(members) if not fmt.is_stream and metadata_limited_reason is None else None,
+            "files": counts["file"] if not fmt.is_stream and metadata_limited_reason is None else None,
+            "directories": counts["dir"] if not fmt.is_stream and metadata_limited_reason is None else None,
+            "symlinks": counts["symlink"] if not fmt.is_stream and metadata_limited_reason is None else None,
+            "hardlinks": counts["hardlink"] if not fmt.is_stream and metadata_limited_reason is None else None,
+            "special": counts["special"] if not fmt.is_stream and metadata_limited_reason is None else None,
+            "unknown": counts["unknown"] if not fmt.is_stream and metadata_limited_reason is None else None,
+            "largest": {"name": largest.name, "bytes": largest.size} if largest else None,
+        },
+        "metadata_limited_reason": metadata_limited_reason,
+        "oldest": oldest,
+        "newest": newest,
+        "encrypted": technical.get("encrypted"),
+        "header_encrypted": technical.get("header_encrypted"),
+        "solid": technical.get("solid"),
+        "volumes": technical.get("volumes"),
+        "comment": technical.get("comment"),
+        "safe_paths": None if fmt.is_stream or metadata_limited_reason else not unsafe,
+        "verified": verified,
+        "verify_backend": verify_backend,
+        "verify_error": verify_error,
+        "technical": technical if getattr(args, "technical", False) else None,
+        "convert_targets": _conversion_targets(config),
+    }
+    return result, failed
+
+
+def _print_info_result(result: dict, *, members: bool = False, technical: bool = False) -> None:
+    title = "Compressed stream" if result["container"] is None else "Archive"
+    t = Table(title=f"{title}: {result['path']}", show_header=False, box=None, pad_edge=False)
+    t.add_column("Field", style="bold")
+    t.add_column("Value")
+    t.add_row("Format", str(result["format"]))
+    t.add_row("Confidence", str(result.get("format_confidence") or "unknown"))
+    t.add_row("Size", decimal(int(result["physical_bytes"])))
+    if result["original_bytes"] is not None:
+        t.add_row("Original", decimal(int(result["original_bytes"])))
+    if result["reduction_percent"] is not None:
+        value = float(result["reduction_percent"])
+        label = "Reduction" if value >= 0 else "Change"
+        shown = f"{value:.1f}%" if value >= 0 else f"+{-value:.1f}%"
+        t.add_row(label, shown)
+    if result["ratio"] is not None:
+        t.add_row("Ratio", f"{float(result['ratio']):.2f}:1")
+    if result.get("stream_filename"):
+        t.add_row("Filename", str(result["stream_filename"]))
+    member_data = result["members"]
+    if member_data["total"] is not None:
+        t.add_row("Members", f"{member_data['total']} ({member_data['files']} files, {member_data['directories']} directories)")
+        if members:
+            if member_data["largest"]:
+                largest = member_data["largest"]
+                t.add_row("Largest", f"{largest['name']} — {decimal(int(largest['bytes']))}")
+            kinds = []
+            for key in ("symlinks", "hardlinks", "special", "unknown"):
+                if member_data[key]:
+                    kinds.append(f"{key}={member_data[key]}")
+            if kinds:
+                t.add_row("Other kinds", ", ".join(kinds))
+    if result.get("metadata_limited_reason"):
+        t.add_row("Contents", f"unavailable — {result['metadata_limited_reason']}")
+    if result["encrypted"] is not None:
+        t.add_row("Encrypted", "yes" if result["encrypted"] else "no")
+    if result.get("header_encrypted") is not None:
+        t.add_row("Headers encrypted", "yes" if result["header_encrypted"] else "no")
+    if result.get("comment"):
+        t.add_row("Comment", str(result["comment"]))
+    if result["solid"] is not None:
+        t.add_row("Solid", "yes" if result["solid"] else "no")
+    if result.get("volumes") is not None:
+        t.add_row("Volumes", str(result["volumes"]))
+    if result.get("staged"):
+        t.add_row("Transport", f"{result.get('transport') or 'remote'} (staged locally for inspection)")
+    if result["oldest"]:
+        t.add_row("Oldest", str(result["oldest"]))
+    if result["newest"]:
+        t.add_row("Newest", str(result["newest"]))
+    if result["format_mismatch"]:
+        t.add_row("Extension", f"{result['extension_format']} (mismatch with content)")
+    elif result["extension_format"]:
+        t.add_row("Extension", str(result["extension_format"]))
+    if result["safe_paths"] is False:
+        t.add_row("Safety", "unsafe member paths detected")
+    t.add_row("Backend", str(result["backend"] or "unavailable"))
+    if result["verified"] is True:
+        t.add_row("Integrity", f"verified ({result['verify_backend']})")
+    elif result["verified"] is False:
+        t.add_row("Integrity", f"FAILED — {result['verify_error']}")
+    else:
+        t.add_row("Integrity", "not checked")
+    targets = result.get("convert_targets") or []
+    if targets:
+        t.add_row("Convert targets", " ".join(targets))
+    if technical and result.get("technical"):
+        for key, value in result["technical"].items():
+            if value is not None and key not in {"encrypted", "header_encrypted", "solid"}:
+                t.add_row(f"Technical/{key}", str(value))
+    stdout_console.print(t)
+
+
+def _info(args, config: dict) -> int:
+    password = _resolve_password(args)
+    results: list[dict] = []
+    failed = False
+    for raw in args.archives:
+        remote = parse_remote(str(raw), config, probe_rclone=True)
+        cleanup: Path | None = None
+        if remote is not None:
+            path, cleanup = stage_remote_for_read(
+                remote,
+                config,
+                progress=progress_enabled(getattr(args, "progress", "auto"), getattr(args, "json", False), getattr(args, "quiet", False)),
+            )
+            display = remote.raw
+        else:
+            path = Path(raw).expanduser()
+            display = str(path)
+        try:
+            result, item_failed = _archive_info_local(path, display, args, config, password)
+            if remote is not None:
+                result["transport"] = remote.kind
+                result["staged"] = True
+            else:
+                result["transport"] = "local"
+                result["staged"] = False
+            results.append(result)
+            failed = failed or item_failed
+        finally:
+            if cleanup:
+                cleanup.unlink(missing_ok=True)
+    if args.json:
+        payload: object = results[0] if len(results) == 1 else results
+        print(json.dumps(payload, ensure_ascii=False))
+    elif not args.quiet:
+        for result in results:
+            _print_info_result(result, members=args.members, technical=args.technical)
+    return 1 if failed else 0
+
+
+def _suffix_for_convert(args, fmt) -> str:
+    shortcut = getattr(args, "format_shortcut", None)
+    if shortcut is not None:
+        return shortcut[1]
+    return extension_for(fmt)
+
+
+def _render_default_destination(source: str, fmt, args, config: dict) -> str:
+    suffix = _suffix_for_convert(args, fmt)
+    remote = parse_remote(source, config, probe_rclone=not bool(getattr(args, "dry_run", False)))
+    if remote is not None:
+        base = strip_archive_suffix(remote.basename)
+        new_name = base + suffix
+        parent = remote.parent
+        new_path = f"{parent.rstrip('/')}/{new_name}" if parent else new_name
+        return remote.render(new_path)
+    path = Path(source).expanduser()
+    return str(path.with_name(strip_archive_suffix(path.name) + suffix))
+
+
+def _convert_destination(source: str, destination: str | None, args, config: dict) -> tuple[object, str]:
+    explicit, add_extension, selected_suffix = _create_format_options(args)
+    if explicit:
+        fmt = parse_format(explicit)
+        if destination is None:
+            destination = _render_default_destination(source, fmt, args, config)
+        else:
+            remote = parse_remote(destination, config, probe_rclone=not bool(getattr(args, "dry_run", False)))
+            name_for_hint = remote.path if remote else destination
+            # Match create semantics: a short selector carries its own suffix and
+            # appends it to an extensionless destination.  Plain -F/--format is
+            # authoritative for the encoding but only rewrites an extensionless
+            # path when --add-extension is explicit.  A conflicting recognized
+            # suffix is always preserved as the caller-supplied filename.
+            if infer_from_name(name_for_hint) is None and (selected_suffix is not None or add_extension):
+                destination += selected_suffix or extension_for(fmt)
+        return fmt, destination
+    if destination is None:
+        raise UsageError("convert without DESTINATION requires -F/--format or a format selector such as -tzst")
+    remote = parse_remote(destination, config, probe_rclone=not bool(getattr(args, "dry_run", False)))
+    hint_path = remote.path if remote else destination
+    fmt = infer_from_name(hint_path)
+    if not fmt:
+        raise UnsupportedFormat(f"cannot infer conversion format from {destination!r}; use -F/--format or a format selector")
+    return fmt, destination
+
+
+def _looks_existing_source(raw: str, config: dict, *, dry_run: bool = False) -> bool:
+    remote = parse_remote(raw, config, probe_rclone=not dry_run)
+    if remote is not None:
+        if dry_run:
+            return infer_from_name(remote.path) is not None
+        try:
+            return remote_exists(remote, config)
+        except ArcError:
+            return False
+    return Path(raw).expanduser().exists()
+
+
+def _resolve_convert_jobs(args, config: dict) -> list[dict]:
+    paths = list(args.paths)
+    explicit = _explicit_format(args)
+    batch = bool(getattr(args, "batch", False))
+    if len(paths) == 1:
+        sources, destination = paths, None
+    elif len(paths) == 2 and not batch:
+        # SOURCE DESTINATION remains the default. A shell-expanded two-source
+        # batch is recognized only when the second operand does not look like
+        # the explicitly selected target representation. For the truly
+        # ambiguous same-format case, --batch makes intent explicit.
+        second_hint = infer_from_name(paths[1])
+        explicit_fmt = parse_format(explicit) if explicit else None
+        looks_like_destination = bool(explicit_fmt and second_hint and second_hint.canonical == explicit_fmt.canonical)
+        if (
+            explicit
+            and not looks_like_destination
+            and all(_looks_existing_source(value, config, dry_run=bool(args.dry_run)) for value in paths)
+        ):
+            sources, destination = paths, None
+        else:
+            sources, destination = [paths[0]], paths[1]
+    else:
+        if not explicit:
+            raise UsageError("batch conversion requires an explicit target format")
+        sources, destination = paths, None
+    if batch and not explicit:
+        raise UsageError("--batch requires an explicit target format")
+    jobs: list[dict] = []
+    for source in sources:
+        fmt, dest = _convert_destination(source, destination, args, config)
+        jobs.append({"source": source, "destination": dest, "target_format": fmt})
+    identities: set[str] = set()
+    destinations: set[str] = set()
+    for job in jobs:
+        src_remote = parse_remote(job["source"], config, probe_rclone=not bool(args.dry_run))
+        dst_remote = parse_remote(job["destination"], config, probe_rclone=not bool(args.dry_run))
+        src_id = src_remote.raw if src_remote else os.fspath(Path(job["source"]).expanduser().resolve())
+        dst_id = dst_remote.raw if dst_remote else os.fspath(Path(job["destination"]).expanduser().resolve())
+        if src_id == dst_id:
+            raise ConflictError(f"conversion source and destination are the same: {job['source']}")
+        if dst_id in destinations:
+            raise ConflictError(f"multiple conversions resolve to the same destination: {job['destination']}")
+        identities.add(src_id)
+        destinations.add(dst_id)
+    for job in jobs:
+        if args.force or args.dry_run:
+            continue
+        dst_remote = parse_remote(job["destination"], config, probe_rclone=True)
+        exists = remote_exists(dst_remote, config) if dst_remote else Path(job["destination"]).expanduser().exists()
+        if exists:
+            raise ConflictError(f"conversion destination already exists: {job['destination']}; use --force")
+    return jobs
+
+
+def _convert_backend_summary(source_fmt, target_fmt, args, config: dict) -> str:
+    source_op = "extract" if source_fmt.is_stream else "list"
+    source_backend = resolve_backend(source_fmt, source_op, config, args.backend, no_fallback=args.no_fallback).info.binary
+    target_backend = resolve_backend(target_fmt, "create", config, args.backend, no_fallback=args.no_fallback).info.binary
+    try:
+        if source_fmt.compression:
+            decompressor = Path(_decompression_command(source_fmt.compression, config, Path("<source>"), no_fallback=args.no_fallback)[0]).name
+            if decompressor != source_backend:
+                source_backend = f"{source_backend}+{decompressor}"
+    except ArcError:
+        pass
+    try:
+        if target_fmt.compression:
+            compressor = Path(_compression_command(target_fmt.compression, config, args.level, args.threads, no_fallback=args.no_fallback)[0]).name
+            if compressor != target_backend:
+                target_backend = f"{target_backend}+{compressor}"
+    except ArcError:
+        pass
+    return f"{source_backend} -> {target_backend}"
+
+
+def _show_convert_plan(source: str, destination: str, source_fmt, target_fmt, strategy: str, args, config: dict) -> None:
+    if args.quiet or args.json:
+        return
+    t = Table(title="Convert", show_header=False, box=None, pad_edge=False)
+    t.add_column("Field", style="bold")
+    t.add_column("Value")
+    t.add_row("Source", source)
+    t.add_row("Detected", source_fmt.canonical)
+    t.add_row("Destination", destination)
+    t.add_row("Format", target_fmt.canonical + (" (explicit)" if _explicit_format(args) else ""))
+    t.add_row("Backend", _convert_backend_summary(source_fmt, target_fmt, args, config))
+    t.add_row("Strategy", strategy)
+    destination_remote = parse_remote(
+        destination, config, probe_rclone=not bool(getattr(args, "dry_run", False))
+    )
+    if destination_remote is None:
+        publication = "yes (local same-filesystem publish)"
+    else:
+        publication = "transport-dependent; remote re-read verified"
+    t.add_row("Atomic", publication)
+    t.add_row("Source kept", "no, after verified publish" if args.replace_source else "yes")
+    stdout_console.print(t)
+
+
+def _atomic_pipeline_convert(source: Path, destination: Path, source_fmt, target_fmt, args, config: dict) -> None:
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp_name = tempfile.mkstemp(prefix=f".{destination.name}.arc-convert-", suffix=extension_for(target_fmt), dir=destination.parent)
+    os.close(fd)
+    temp = Path(tmp_name)
+    temp.unlink(missing_ok=True)
+    try:
+        if source_fmt.container == "tar" and source_fmt.compression:
+            producer = _decompression_command(source_fmt.compression, config, source, no_fallback=args.no_fallback)
+        elif source_fmt.is_stream:
+            producer = _decompression_command(source_fmt.compression, config, source, no_fallback=args.no_fallback)
+        else:
+            producer = [shutil.which("cat") or "cat", "--", str(source)]
+        if target_fmt.container == "tar" and target_fmt.compression:
+            consumer = _compression_command(target_fmt.compression, config, args.level, args.threads, no_fallback=args.no_fallback)
+        elif target_fmt.is_stream:
+            consumer = _compression_command(target_fmt.compression, config, args.level, args.threads, no_fallback=args.no_fallback)
+        else:
+            consumer = None
+        meta: dict = {"stdout_file": temp, "cleanup": [], "progress_indeterminate": True}
+        if consumer:
+            meta["pipeline"] = consumer
+        with ProgressReporter("Converting", 0, 0, progress_enabled(args.progress, args.json, args.quiet)) as rep:
+            rc = run_backend(producer, meta, rep, {}, show_command=args.show_command, dry_run=False, verbose=args.verbose)
+        if rc != 0:
+            _raise_backend_failure(rc, meta, operation="convert")
+        _atomic_replace(temp, destination)
+    finally:
+        temp.unlink(missing_ok=True)
+
+
+
+def _convert_selected_members(members: list[Member], args) -> list[Member]:
+    rules = _filter_rules(args)
+    if not rules:
+        return list(members)
+    # For conversion, an include-only expression is naturally a selection
+    # request (especially when narrowing a container to one stream member).
+    # Preserve Arc's ordered last-match-wins matcher while seeding the
+    # conversion selection as excluded-by-default.
+    if any(rule.action == "include" for rule in rules) and not any(rule.action == "exclude" for rule in rules):
+        rules = [FilterRule("exclude", "*"), *rules]
+    return filter_members(members, rules)
+
+
+def _convert_stage_tree(source: Path, destination: Path, source_fmt, target_fmt, source_password: str | None, destination_password: str | None, args, config: dict) -> int:
+    list_backend = None
+    selected: list[Member] = []
+    if not source_fmt.is_stream:
+        list_backend = resolve_backend(
+            source_fmt, "list", config, args.backend,
+            required_capabilities=_backend_requirements(args, source_fmt, "list", source_password),
+            no_fallback=args.no_fallback,
+        )
+        selected = list_backend.list_members(source, password=source_password)
+        selected = _convert_selected_members(selected, args)
+        validate_members(selected)
+        if not selected:
+            raise UsageError("no source members remain after conversion filters")
+        if target_fmt.is_stream:
+            regular = [member for member in selected if member.kind == "file"]
+            if len(regular) != 1 or len([member for member in selected if member.kind != "dir"]) != 1:
+                raise UnsupportedFormat(
+                    f"cannot convert {len(selected)} selected archive members to single-stream {target_fmt.canonical}; select exactly one regular file or use a tar+compression target"
+                )
+            selected = regular
+    with tempfile.TemporaryDirectory(prefix="arc-convert-tree-") as td:
+        root = Path(td)
+        extract_args = _clone_args(
+            args,
+            command="extract",
+            archive=str(source),
+            members=[member.name for member in selected] if selected else [],
+            output=str(root),
+            format=source_fmt.canonical,
+            format_shortcut=None,
+            password=source_password,
+            password_file=None,
+            password_env=None,
+            filter_rules=[],
+            overwrite=True,
+            skip_existing=False,
+            rename_existing=False,
+            unsafe_paths=False,
+            stdout=False,
+            preserve_owner=False,
+            preserve_acls=False,
+            preserve_xattrs=False,
+            yazi=None,
+            quiet=True,
+            json=False,
+            dry_run=False,
+        )
+        stage_progress = progress_enabled(args.progress, args.json, args.quiet)
+        with ProgressReporter("Reading", 0, len(selected), stage_progress) as reading:
+            _extract(extract_args, [], config)
+            for member in selected:
+                reading.member_done(member.name, member.size)
+            reading.complete()
+        if target_fmt.is_stream:
+            if source_fmt.is_stream:
+                candidates = [path for path in root.rglob("*") if path.is_file()]
+                if len(candidates) != 1:
+                    raise UnsupportedFormat("stream conversion staging did not produce exactly one regular file")
+                chosen = candidates[0]
+            else:
+                member = selected[0]
+                chosen = root / member.name
+            create_cwd = chosen.parent
+            inputs = [chosen.name]
+        else:
+            create_cwd = root
+            inputs = [path.name for path in sorted(root.iterdir(), key=lambda path: path.name)]
+        if not inputs:
+            raise UsageError("conversion produced no inputs for the destination")
+        destination = destination.absolute()
+        create_args = _clone_args(
+            args,
+            command="create",
+            archive=str(destination),
+            inputs=inputs,
+            format=target_fmt.canonical,
+            format_shortcut=None,
+            password=destination_password,
+            password_file=None,
+            password_env=None,
+            add_extension=False,
+            overwrite=True,
+            filter_rules=[],
+            follow_symlinks=False,
+            one_file_system=False,
+            preserve_owner=False,
+            preserve_acls=False,
+            preserve_xattrs=False,
+            yazi=None,
+            quiet=True,
+            json=False,
+            dry_run=False,
+        )
+        previous_cwd = Path.cwd()
+        try:
+            os.chdir(create_cwd)
+            with ProgressReporter("Writing", 0, 0, stage_progress) as writing:
+                _create_like_local(create_args, [], config)
+                writing.complete()
+        finally:
+            os.chdir(previous_cwd)
+        return len(selected) if selected else 1
+
+
+def _remove_conversion_source(raw: str, config: dict) -> None:
+    remote = parse_remote(raw, config, probe_rclone=True)
+    if remote is not None:
+        delete_remote(remote, config)
+        return
+    path = Path(raw).expanduser()
+    if path.is_dir():
+        raise ConflictError(f"conversion source unexpectedly resolved to a directory: {path}")
+    path.unlink()
+
+
+def _conversion_strategy(source_fmt, target_fmt, args, *, transport_staged: bool = False) -> str:
+    if source_fmt.canonical == target_fmt.canonical and not _filter_rules(args):
+        strategy = "identity re-encode"
+    elif source_fmt.is_stream and target_fmt.is_stream:
+        strategy = "stream pipeline"
+    elif source_fmt.container == "tar" and target_fmt.container == "tar" and not _filter_rules(args):
+        strategy = "tar stream recompression"
+    else:
+        strategy = "isolated safe member pipeline"
+    return f"transport-staged {strategy}" if transport_staged else strategy
+
+
+def _local_conversion_candidate(destination: Path, target_fmt) -> Path:
+    """Allocate a same-filesystem unpublished conversion candidate path."""
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp_name = tempfile.mkstemp(
+        prefix=f".{destination.name}.arc-convert-candidate-",
+        suffix=extension_for(target_fmt),
+        dir=destination.parent,
+    )
+    os.close(fd)
+    candidate = Path(tmp_name)
+    # Creation backends expect to create/replace their output themselves.  The
+    # reserved name prevents collisions while keeping the eventual os.replace
+    # on the destination filesystem.
+    candidate.unlink(missing_ok=True)
+    return candidate
+
+
+def _convert_one(job: dict, args, config: dict, source_password: str | None, destination_password: str | None) -> dict:
+    started = time.monotonic()
+    source_raw = str(job["source"])
+    destination_raw = str(job["destination"])
+    target_fmt = job["target_format"]
+    source_remote = parse_remote(source_raw, config, probe_rclone=True)
+    destination_remote = parse_remote(destination_raw, config, probe_rclone=True)
+    transfer_progress = progress_enabled(args.progress, args.json, args.quiet)
+    unpublished_candidate: Path | None = None
+
+    try:
+        with tempfile.TemporaryDirectory(prefix="arc-convert-") as td:
+            work = Path(td)
+            if source_remote:
+                local_source = work / (source_remote.basename or "source.arc")
+                download_remote(source_remote, local_source, config, progress=transfer_progress)
+            else:
+                local_source = Path(source_raw).expanduser().absolute()
+            source_fmt = detect(local_source)
+            strategy = _conversion_strategy(
+                source_fmt,
+                target_fmt,
+                args,
+                transport_staged=bool(source_remote or destination_remote),
+            )
+            _show_convert_plan(source_raw, destination_raw, source_fmt, target_fmt, strategy, args, config)
+
+            final_local_destination: Path | None = None
+            if destination_remote:
+                local_destination = work / (destination_remote.basename or ("converted" + extension_for(target_fmt)))
+            else:
+                final_local_destination = Path(destination_raw).expanduser().absolute()
+                unpublished_candidate = _local_conversion_candidate(final_local_destination, target_fmt)
+                local_destination = unpublished_candidate
+
+            source_size = local_source.stat().st_size
+            member_count: int | None = 1 if source_fmt.is_stream else None
+            if source_fmt.container == "tar" and target_fmt.container == "tar" and not _filter_rules(args):
+                inspect_backend = resolve_backend(source_fmt, "list", config, args.backend, no_fallback=args.no_fallback)
+                inspected = inspect_backend.list_members(local_source, password=source_password)
+                validate_members(inspected)
+                member_count = len(inspected)
+
+            if source_fmt.is_stream and target_fmt.is_stream:
+                if source_password or destination_password:
+                    raise UnsupportedFormat("single-stream compression formats do not support archive passwords")
+                _atomic_pipeline_convert(local_source, local_destination, source_fmt, target_fmt, args, config)
+            elif source_fmt.container == "tar" and target_fmt.container == "tar" and not _filter_rules(args) and not source_password and not destination_password:
+                _atomic_pipeline_convert(local_source, local_destination, source_fmt, target_fmt, args, config)
+            else:
+                member_count = _convert_stage_tree(
+                    local_source,
+                    local_destination,
+                    source_fmt,
+                    target_fmt,
+                    source_password,
+                    destination_password,
+                    args,
+                    config,
+                )
+
+            # Verification happens against the unpublished local candidate.  A
+            # failed test therefore cannot leave a new/corrupt final local path
+            # or clobber an existing --force destination.
+            with ProgressReporter("Verifying", 0, 0, progress_enabled(args.progress, args.json, args.quiet)) as verification:
+                verified, verify_backend, verify_error = _verify_archive_path(
+                    local_destination, target_fmt, destination_password, args, config
+                )
+                verification.complete()
+            if not verified:
+                raise CorruptArchive(f"converted destination failed verification: {verify_error}")
+
+            if destination_remote:
+                upload_remote(local_destination, destination_remote, config, progress=transfer_progress)
+                # Verify the published remote object, not merely the pre-upload
+                # staging bytes.  Only a successful re-read can authorize source
+                # removal.
+                published = work / ("verify-" + (destination_remote.basename or "destination.arc"))
+                download_remote(destination_remote, published, config, progress=transfer_progress)
+                with ProgressReporter(
+                    "Verifying remote",
+                    0,
+                    0,
+                    progress_enabled(args.progress, args.json, args.quiet),
+                ) as remote_verification:
+                    verified, verify_backend, verify_error = _verify_archive_path(
+                        published, target_fmt, destination_password, args, config
+                    )
+                    remote_verification.complete()
+                if not verified:
+                    raise CorruptArchive(f"published remote destination failed verification: {verify_error}")
+                converted_size = published.stat().st_size
+            else:
+                assert final_local_destination is not None
+                converted_size = local_destination.stat().st_size
+                _atomic_replace(local_destination, final_local_destination)
+                unpublished_candidate = None
+
+            if args.replace_source:
+                _remove_conversion_source(source_raw, config)
+
+            size_change = ((converted_size - source_size) / source_size * 100.0) if source_size else None
+            ratio = (source_size / converted_size) if converted_size else None
+            return {
+                "operation": "convert",
+                "source": source_raw,
+                "destination": destination_raw,
+                "source_format": source_fmt.canonical,
+                "destination_format": target_fmt.canonical,
+                "strategy": strategy,
+                "original_bytes": source_size,
+                "converted_bytes": converted_size,
+                "size_change_bytes": converted_size - source_size,
+                "size_change_percent": size_change,
+                "ratio": ratio,
+                "members": member_count,
+                "verified": True,
+                "verify_backend": verify_backend,
+                "source_removed": bool(args.replace_source),
+                "transport": destination_remote.kind if destination_remote else (source_remote.kind if source_remote else "local"),
+                "duration_seconds": time.monotonic() - started,
+            }
+    finally:
+        if unpublished_candidate is not None:
+            unpublished_candidate.unlink(missing_ok=True)
+
+
+def _print_convert_success(result: dict) -> None:
+    t = Table(title="Conversion complete", show_header=False, box=None, pad_edge=False)
+    t.add_column("Field", style="bold")
+    t.add_column("Value")
+    t.add_row("Original", decimal(int(result["original_bytes"])))
+    t.add_row("Converted", decimal(int(result["converted_bytes"])))
+    change = result.get("size_change_percent")
+    if change is not None:
+        if change <= 0:
+            t.add_row("Reduction", f"{-float(change):.1f}%")
+        else:
+            t.add_row("Change", f"+{float(change):.1f}%")
+    if result.get("ratio") is not None:
+        t.add_row("Ratio", f"{float(result['ratio']):.2f}:1")
+    if result.get("members") is not None:
+        t.add_row("Members", str(result["members"]))
+    t.add_row("Output", str(result["destination"]))
+    t.add_row("Verified", f"yes ({result['verify_backend']})")
+    if result.get("duration_seconds") is not None:
+        t.add_row("Duration", f"{float(result['duration_seconds']):.2f}s")
+    if result.get("source_removed"):
+        t.add_row("Source", "removed after verification")
+    stdout_console.print(t)
+
+
+def _convert(args, config: dict) -> int:
+    jobs = _resolve_convert_jobs(args, config)
+    source_password = _resolve_source_password(args)
+    destination_password = _resolve_password(args)
+    if args.dry_run:
+        plans = []
+        for job in jobs:
+            source = job["source"]
+            remote = parse_remote(source, config, probe_rclone=False)
+            if remote is not None:
+                source_fmt = infer_from_name(remote.path)
+            else:
+                source_path = Path(source).expanduser()
+                source_fmt = detect(source_path) if source_path.exists() else infer_from_name(source_path)
+            if source_fmt is None:
+                raise UnsupportedFormat(f"cannot identify source format during dry-run: {source}")
+            destination_remote = parse_remote(job["destination"], config, probe_rclone=False)
+            strategy = _conversion_strategy(
+                source_fmt,
+                job["target_format"],
+                args,
+                transport_staged=bool(remote or destination_remote),
+            )
+            _show_convert_plan(source, job["destination"], source_fmt, job["target_format"], strategy, args, config)
+            plans.append({"source": source, "destination": job["destination"], "source_format": source_fmt.canonical, "destination_format": job["target_format"].canonical, "strategy": strategy, "dry_run": True})
+        if args.json:
+            print(json.dumps(plans[0] if len(plans) == 1 else plans, ensure_ascii=False))
+        return 0
+    results = [_convert_one(job, args, config, source_password, destination_password) for job in jobs]
+    if args.json:
+        print(json.dumps(results[0] if len(results) == 1 else results, ensure_ascii=False))
+    elif not args.quiet:
+        for result in results:
+            _print_convert_success(result)
+    return 0
+
+
+def _show_profiles(config: dict, *, json_mode: bool = False) -> int:
+    profiles = config.get("profiles", {})
+    if not isinstance(profiles, dict):
+        profiles = {}
+    if json_mode:
+        print(json.dumps(profiles, ensure_ascii=False, sort_keys=True))
+        return 0
+    t = Table(title="Arc profiles")
+    t.add_column("Profile")
+    t.add_column("Options")
+    for name in sorted(profiles):
+        value = profiles[name]
+        summary = ", ".join(sorted(value)) if isinstance(value, dict) else type(value).__name__
+        t.add_row(str(name), summary)
+    if not profiles:
+        t.add_row("—", "no configured profiles")
+    stdout_console.print(t)
+    return 0
+
+
+def _man_command(args) -> int:
+    if args.list_topics:
+        for topic in available_topics():
+            print(topic)
+        return 0
+    return show_manpage(args.topic, plain=args.plain)
+
 def _completion_command(args, config: dict) -> int:
     if args.action == "zsh":
         print(zsh_completion(), end="")
@@ -1815,8 +2868,76 @@ def _show_formats(json_mode: bool = False, remote: str | None = None, config: di
     return 0
 
 
+def _dispatch_command(args, extra: list[str], config: dict) -> int:
+    if args.command == "identify":
+        return _identify(args, config)
+    if args.command == "info":
+        return _info(args, config)
+    if args.command == "convert":
+        return _convert(args, config)
+    if args.command in {"create", "add", "update", "list", "test", "extract", "remove"}:
+        remote_rc = _dispatch_remote_archive(args, extra, config)
+        if remote_rc is not None:
+            return remote_rc
+        if args.command in {"create", "add", "update"}:
+            return _create_like(args, extra, config)
+        if args.command in {"list", "test"}:
+            return _list_or_test(args, extra, config)
+        if args.command == "extract":
+            return _extract(args, extra, config)
+        return _remove(args, extra, config)
+    if args.command == "backends":
+        return _show_backends(config, args.json, args.remote)
+    if args.command == "formats":
+        return _show_formats(args.json, args.remote, config)
+    if args.command == "profiles":
+        return _show_profiles(config, args.json)
+    if args.command in {"man", "help"}:
+        return _man_command(args)
+    if args.command == "completion":
+        return _completion_command(args, config)
+    raise UsageError(f"unknown command: {args.command}")
+
+
+def _alias_json_identity(args) -> dict[str, str]:
+    return {
+        "invocation": _display_invocation([], args),
+        "resolved_command": str(args.command),
+    }
+
+
+def _decorate_alias_json_output(text: str, args) -> str:
+    """Attach literal-vs-canonical identity to alias JSON without schema wrappers."""
+    if not text.strip():
+        return text
+    try:
+        payload = json.loads(text)
+    except json.JSONDecodeError:
+        return text
+    identity = _alias_json_identity(args)
+
+    def decorate(value):
+        if isinstance(value, dict):
+            for key, item in identity.items():
+                value.setdefault(key, item)
+        elif isinstance(value, list):
+            for item in value:
+                if isinstance(item, dict):
+                    for key, identity_value in identity.items():
+                        item.setdefault(key, identity_value)
+        return value
+
+    return json.dumps(decorate(payload), ensure_ascii=False) + "\n"
+
+
 def main(argv: list[str] | None = None) -> int:
+    explicit_argv = argv is not None
     argv = list(sys.argv[1:] if argv is None else argv)
+    invoked_program = Path(sys.argv[0]).name if not explicit_argv else "arc"
+    display_argv = list(argv)
+    implied_command = EXECUTABLE_ALIASES.get(invoked_program) if not explicit_argv else None
+    if implied_command:
+        argv = [implied_command, *argv]
     if argv and argv[0] in {"__complete", "__complete0", "__complete-mode"}:
         hidden = argv[0]
         words = argv[1:]
@@ -1831,12 +2952,14 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     wrapper_argv, extra = split_passthrough(argv)
     args = parser().parse_args(wrapper_argv)
+    args._invoked_program = invoked_program
+    args._display_argv = display_argv
     config = load_config()
     try:
         _apply_profile(args, config)
         _validate_yazi_context(args)
         _apply_defaults(args, config)
-        if args.command == "create":
+        if args.command in {"create", "convert"}:
             _create_format_options(args)
         _show_invocation(argv, args)
         begin_plan(
@@ -1844,29 +2967,14 @@ def main(argv: list[str] | None = None) -> int:
             mode=getattr(args, "show_native", None),
             style=getattr(args, "native_style", None) or "reproducible",
         )
-        rc: int
-        if args.command == "identify":
-            rc = _identify(args, config)
-        elif args.command in {"create", "add", "update", "list", "test", "extract", "remove"}:
-            remote_rc = _dispatch_remote_archive(args, extra, config)
-            if remote_rc is not None:
-                rc = remote_rc
-            elif args.command in {"create", "add", "update"}:
-                rc = _create_like(args, extra, config)
-            elif args.command in {"list", "test"}:
-                rc = _list_or_test(args, extra, config)
-            elif args.command == "extract":
-                rc = _extract(args, extra, config)
-            else:
-                rc = _remove(args, extra, config)
-        elif args.command == "backends":
-            rc = _show_backends(config, args.json, args.remote)
-        elif args.command == "formats":
-            rc = _show_formats(args.json, args.remote, config)
-        elif args.command == "completion":
-            rc = _completion_command(args, config)
+        capture_alias_json = bool(getattr(args, "json", False) and invoked_program in EXECUTABLE_ALIASES)
+        if capture_alias_json:
+            captured = io.StringIO()
+            with redirect_stdout(captured):
+                rc = _dispatch_command(args, extra, config)
+            sys.stdout.write(_decorate_alias_json_output(captured.getvalue(), args))
         else:
-            raise UsageError(f"unknown command: {args.command}")
+            rc = _dispatch_command(args, extra, config)
         if rc == 0:
             emit_after(json_mode=bool(getattr(args, "json", False)))
         return rc

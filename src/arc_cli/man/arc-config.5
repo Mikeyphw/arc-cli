@@ -1,0 +1,13 @@
+.TH "ARC-CONFIG" "5" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-config \- Arc TOML configuration
+.SH "DESCRIPTION"
+Arc reads ~/.config/arc/config.toml, or $XDG_CONFIG_HOME/arc/config.toml. Configuration supplies backend preference lists, UI defaults, remote definitions, completion cache policy, and named profiles.
+.SH "BACKENDS"
+[backends] keys correspond to normalized roles such as tar, zip_create, zip_extract, 7z, rar_create, rar_extract, gzip, bzip2, xz, and zstd. ARC_BACKEND_* environment variables override configured lists.
+.SH "REMOTES"
+[remotes.NAME] may define type='ssh' with host/user/port/identity_file/proxy_jump/ssh_args, or type='rclone' with a provider remote name.
+.SH "UI"
+[ui] may set progress, show_native, and native_command_style.
+.SH "SEE ALSO"
+arc(1), arc\-profiles(5), arc\-remote(7), arc\-backends(7)

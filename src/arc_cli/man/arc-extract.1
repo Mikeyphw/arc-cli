@@ -1,0 +1,31 @@
+.TH "ARC-EXTRACT" "1" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-extract \- extract an archive safely
+.SH "SYNOPSIS"
+arc extract ARCHIVE [MEMBER...] [OPTIONS]
+.PP
+arcx ...
+.PP
+arc\-extract ...
+.PP
+arcunpack ...
+.SH "DESCRIPTION"
+Safely extract selected archive members or a compressed stream. Arc indexes archive members first and enforces normalized traversal, link\-parent, conflict, and filtering rules.
+.SH "OPTIONS"
+\-o, \-\-output DIR
+.PP
+\-\-overwrite | \-\-skip\-existing | \-\-rename\-existing
+.PP
+\-\-stdout
+.PP
+\-\-unsafe\-paths
+.PP
+\-\-include/\-\-exclude and rule files
+.PP
+\-\-password/\-\-password\-file/\-\-password\-env
+.SH "EXAMPLES"
+arcx backup.zip \-o restored/
+.PP
+arc extract backup.7z docs/readme.txt \-\-stdout
+.SH "SEE ALSO"
+arc(1), arc\-formats(7), arc\-backends(7), arc\-remote(7)

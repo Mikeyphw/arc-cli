@@ -87,7 +87,9 @@ def zip_members(path: Path) -> list[Member]:
                     # explicit non-regular types are special.
                     if file_type and not (stat.S_ISREG(mode) or stat.S_ISDIR(mode)):
                         kind = "special"
-                out.append(Member(info.filename, info.file_size, kind, target))
+                y, m, d, hh, mm, ss = info.date_time
+                mtime = f"{y:04d}-{m:02d}-{d:02d} {hh:02d}:{mm:02d}:{ss:02d}"
+                out.append(Member(info.filename, info.file_size, kind, target, mtime))
     except zipfile.BadZipFile as exc:
         from .errors import CorruptArchive
         raise CorruptArchive(str(exc)) from exc
@@ -111,7 +113,9 @@ def _tar_member_from_info(info: tarfile.TarInfo) -> Member:
         kind = "file"
     else:
         kind = "special"
-    return Member(info.name, info.size, kind, info.linkname or None)
+    import datetime as _dt
+    mtime = _dt.datetime.fromtimestamp(info.mtime).isoformat(sep=" ", timespec="seconds") if info.mtime is not None else None
+    return Member(info.name, info.size, kind, info.linkname or None, mtime)
 
 
 def tar_members(path: Path) -> list[Member]:

@@ -1,0 +1,23 @@
+.TH "ARC-COMPLETION" "1" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-completion \- manage shell completion
+.SH "SYNOPSIS"
+arc completion ACTION [LOCATION]
+.SH "DESCRIPTION"
+Generate Zsh completion and inspect, refresh, or clear Arc's remote completion cache.
+.SH "OPTIONS"
+arc completion zsh
+.PP
+arc completion cache [\-\-json]
+.PP
+arc completion refresh LOCATION
+.PP
+arc completion clear\-cache [LOCATION] [\-\-json]
+.SH "SEMANTICS"
+The generated Zsh completion registers all installed executable aliases and resolves them to canonical Arc commands before asking the hidden completion protocol for candidates.
+.SH "EXAMPLES"
+arc completion zsh > completions/_arc
+.PP
+arc completion cache \-\-json
+.SH "SEE ALSO"
+arc(1), arc\-formats(7), arc\-backends(7), arc\-remote(7)

@@ -328,7 +328,7 @@ def parse_7z_slt(text: str, archive: Path | str | None = None) -> list[Member]:
             size = int(current.get("Size", "0") or 0)
         except ValueError:
             size = 0
-        out.append(Member(current["Path"], size, kind, target))
+        out.append(Member(current["Path"], size, kind, target, current.get("Modified") or current.get("MTime")))
         current = {}
 
     for line in text.splitlines() + [""]:
@@ -372,7 +372,7 @@ def parse_rar_lt(text: str) -> list[Member]:
             size = int((current.get("Size") or "0").replace(",", ""))
         except ValueError:
             size = 0
-        out.append(Member(name, size, kind, target))
+        out.append(Member(name, size, kind, target, current.get("Modified") or current.get("MTime")))
         current = {}
 
     for line in text.splitlines() + [""]:
@@ -384,10 +384,11 @@ def parse_rar_lt(text: str) -> list[Member]:
             continue
         key, value = stripped.split(":", 1)
         key = key.strip()
-        if key in {"Name", "Type", "Target", "Size", "Attributes"}:
-            if key == "Name" and current.get("Name"):
+        canonical_key = "Modified" if key.lower() in {"mtime", "modified"} else key
+        if canonical_key in {"Name", "Type", "Target", "Size", "Attributes", "Modified"}:
+            if canonical_key == "Name" and current.get("Name"):
                 flush()
-            current[key] = value.strip()
+            current[canonical_key] = value.strip()
     return out
 
 
@@ -395,9 +396,7 @@ class SevenZipBackend(Backend):
     name = "7z"
 
     def list_members(self, archive: Path, password: str | None = None) -> list[Member]:
-        cmd = [self.binary, "l", "-slt"]
-        if password:
-            cmd.append(f"-p{password}")
+        cmd = [self.binary, "l", "-slt", f"-p{password}" if password else "-p-"]
         cmd += ["--", str(archive)]
         proc = subprocess.run(cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if proc.returncode != 0:
@@ -460,14 +459,13 @@ class SevenZipBackend(Backend):
             else:
                 cmd.append(f"@{mf}")
         elif operation == "extract":
-            cmd = [self.binary, "x", str(archive), f"-o{output}", "-y", *common, *members]
+            read_common = [*common, f"-p{password}" if password else "-p-"] if not any(x.startswith("-p") for x in common) else common
+            cmd = [self.binary, "x", str(archive), f"-o{output}", "-y", *read_common, *members]
         elif operation == "list":
-            cmd = [self.binary, "l", str(archive)]
-            if password:
-                cmd.append(f"-p{password}")
-            cmd += list(members)
+            cmd = [self.binary, "l", str(archive), f"-p{password}" if password else "-p-", *members]
         elif operation == "test":
-            cmd = [self.binary, "t", str(archive), *common, *members]
+            read_common = [*common, f"-p{password}" if password else "-p-"] if not any(x.startswith("-p") for x in common) else common
+            cmd = [self.binary, "t", str(archive), *read_common, *members]
         elif operation == "remove":
             cmd = [self.binary, "d", str(archive), *members, *common]
         else:
@@ -507,13 +505,12 @@ class InfoZipBackend(Backend):
                     cmd.append("-o")
                 elif skip_existing:
                     cmd.append("-n")
-                if password:
-                    cmd += ["-P", password]
+                cmd += ["-P", password or ""]
                 cmd += [str(archive), *members, "-d", str(output)]
             elif operation == "list":
                 cmd = [self.binary, "-l", str(archive), *members]
             elif operation == "test":
-                cmd = [self.binary, "-t", str(archive), *members]
+                cmd = [self.binary, "-t", "-P", password or "", str(archive), *members]
             elif operation == "print-member":
                 cmd = [self.binary, "-p"]
                 if password:
@@ -577,20 +574,11 @@ class RarBackend(Backend):
         redact = [password] if password else []
         if self.mode == "unrar":
             if operation == "extract":
-                cmd = [self.binary, "x", "-y"]
-                if password:
-                    cmd.append(f"-p{password}")
-                cmd += [str(archive), *members, str(output) + os.sep]
+                cmd = [self.binary, "x", "-y", f"-p{password}" if password else "-p-", str(archive), *members, str(output) + os.sep]
             elif operation == "list":
-                cmd = [self.binary, "lt"]
-                if password:
-                    cmd.append(f"-p{password}")
-                cmd += [str(archive), *members]
+                cmd = [self.binary, "lt", f"-p{password}" if password else "-p-", str(archive), *members]
             elif operation == "test":
-                cmd = [self.binary, "t"]
-                if password:
-                    cmd.append(f"-p{password}")
-                cmd += [str(archive), *members]
+                cmd = [self.binary, "t", f"-p{password}" if password else "-p-", str(archive), *members]
             else:
                 raise UnsupportedFormat(f"unrar cannot {operation}")
         else:
@@ -619,20 +607,11 @@ class RarBackend(Backend):
                     cmd.append(f"-p{password}")
                 cmd += [str(archive), *members]
             elif operation == "extract":
-                cmd = [self.binary, "x", "-y"]
-                if password:
-                    cmd.append(f"-p{password}")
-                cmd += [str(archive), *members, str(output) + os.sep]
+                cmd = [self.binary, "x", "-y", f"-p{password}" if password else "-p-", str(archive), *members, str(output) + os.sep]
             elif operation == "list":
-                cmd = [self.binary, "lt"]
-                if password:
-                    cmd.append(f"-p{password}")
-                cmd += [str(archive), *members]
+                cmd = [self.binary, "lt", f"-p{password}" if password else "-p-", str(archive), *members]
             elif operation == "test":
-                cmd = [self.binary, "t"]
-                if password:
-                    cmd.append(f"-p{password}")
-                cmd += [str(archive), *members]
+                cmd = [self.binary, "t", f"-p{password}" if password else "-p-", str(archive), *members]
             else:
                 raise UnsupportedFormat(f"rar cannot {operation}")
         cmd += extra

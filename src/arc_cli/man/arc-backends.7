@@ -1,0 +1,11 @@
+.TH "ARC-BACKENDS" "7" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-backends \- native backend resolution and capabilities
+.SH "DESCRIPTION"
+Arc resolves a normalized operation to an installed compatible backend using format, operation, capability requirements, configured preference order, and \-\-no\-fallback policy.
+.SH "ROLES"
+TAR/bsdtar, ZIP create/extract, 7z/7zz, RAR create/extract, and compressor families gzip/bzip2/xz/zstd.
+.SH "DIAGNOSTICS"
+arc backends and arc backends \-\-json expose installed candidates/capabilities. \-\-show\-command shows immediate native argv; \-\-show\-native records the broader execution plan.
+.SH "SEE ALSO"
+arc(1), arc\-formats(7)

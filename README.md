@@ -26,6 +26,8 @@ Python 3.11+ and `rich` are required. Native backends are discovered at runtime.
 arc identify mystery.bin
 arc list backup.tar.zst
 arc extract backup.zip -o restored/
+arc info backup.zip
+arc convert backup.zip -tzst
 arc create backup.tar.zst src/ docs/ --exclude '.git/' --exclude '*.pyc' --level 8 --threads 4
 arc add files.zip new-file.txt
 arc update files.7z changed/
@@ -80,6 +82,94 @@ arc create payload file.bin -gzip    # -> payload.gzip
 ```
 
 The stdout sentinel stays special, so `arc create - src/ -zip` selects ZIP without rewriting `-` to a filename. The selector is authoritative. For example, `arc create odd.zip src/ -tarzst` creates a tar+zstd archive named `odd.zip` and emits the usual extension-mismatch warning instead of inferring ZIP from the filename. `-F/--format` and a suffix shortcut are mutually exclusive. Run `arc create --help` for the full shortcut set.
+
+
+## Archive information
+
+`arc info` is the fast summary/metadata surface; `arc list` enumerates members and `arc test` performs integrity verification. `info` never turns "not checked" into a failed or successful integrity claim:
+
+```bash
+arc info backup.7z
+arc info backup.zip --members
+arc info backup.zip --technical
+arc info backup.zip --verify
+arc info a.zip b.tar.zst --json
+```
+
+The JSON form reports `verified: null` unless `--verify` actually runs. Content detection is compared with the filename extension, so a ZIP renamed to `.rar` is reported as ZIP with an extension mismatch. Header-encrypted archives retain whatever outer metadata Arc can prove even when member metadata requires a password. Remote info uses the same SSH/rclone transport layer and reports whether random-access inspection required local staging.
+
+## Conversion
+
+`arc convert` transforms one archive/compressed stream into another without modifying the source by default:
+
+```bash
+arc convert archive.zip archive.tar.zst
+arc convert archive.zip -tzst
+arc convert database.sql.gz -zst
+arc convert archive.zip -zst --include video.mp4
+```
+
+The same authoritative suffix selectors used by `create` are accepted by `convert`. With no destination, Arc removes one recognized source archive suffix and appends the selected target suffix. With an explicit selector, a conflicting destination extension is only a filename; the selector still determines the bytes written.
+
+Compatible local single-stream and TAR recompression paths avoid an unnecessary extracted tree. Other container conversions use an isolated safe member pipeline. Local output is built at an unpublished same-filesystem candidate, verified there, and atomically published only after verification, so failed verification cannot leave a new corrupt final path or clobber an existing `--force` destination. `--replace-source` removes the source only after verified publication.
+
+Remote conversion intentionally reports `transport-staged ...` rather than pretending transport staging is a direct stream. A remote source is staged so Arc can retain content-first format classification (including the stream-vs-compressed-TAR distinction), normalized safety checks, and exact physical-size evidence. A remote destination is first produced and verified as a local candidate, then uploaded through Arc's temporary-target/finalize transport path, re-read, and verified again before source deletion is permitted; final rename/moveto atomicity depends on the transport/provider. The SSH/rclone transport layer can stream in other operations, but conversion does not trade those invariants for a lower-staging path.
+
+Source and destination credentials are independent:
+
+```bash
+arc convert private.rar rotated.7z -7z \
+  --source-password-env OLD_PASS \
+  --password-env NEW_PASS
+```
+
+Multiple sources with an explicit target are independent batch conversions, not a merged create operation:
+
+```bash
+arc convert a.zip b.zip c.zip -tzst
+arc convert a.zip b.zip -tzst --batch   # explicit disambiguation when needed
+```
+
+Arc preflights batch destination collisions before starting work. `--dry-run` shows the resolved conversion plan without writes/deletes. Human completion output reports Original, Converted, Reduction/Change, Ratio, member count when known, verification backend, and output; `--json` exposes the same physical size/change evidence numerically.
+
+## Installed command aliases
+
+Arc installs real dispatcher commands rather than requiring shell aliases. They preserve the executable name in Arc's displayed invocation while resolving to the same parser/implementation:
+
+```text
+arcmk / arc-create / arcpack       -> arc create
+arcx  / arc-extract / arcunpack    -> arc extract
+arcls / arc-list                   -> arc list
+arci  / arc-info                   -> arc info
+arct  / arc-test / arccheck        -> arc test
+arccv / arc-convert / arcconvert   -> arc convert
+arca  / arc-add                    -> arc add
+arcu  / arc-update                 -> arc update
+arcrm / arc-remove                 -> arc remove
+arcbe / arc-backends               -> arc backends
+arc-formats                        -> arc formats
+arcp  / arc-profiles               -> arc profiles
+```
+
+`arcc` is intentionally not installed because `c` would be ambiguous between create and convert. Generated Zsh completion is alias-aware and maps each executable back to its canonical Arc command before asking the Python completion engine for candidates. When a real alias is invoked with `--json`, Arc also adds a redacted `invocation` field plus `resolved_command`, so automation can distinguish the executable the user invoked from the canonical dispatcher operation.
+
+## Manual pages and detailed help
+
+Arc ships Unix manual pages plus an in-package fallback for Termux/minimal systems:
+
+```bash
+man arc
+man arc-create
+man arc-info
+man arc-convert
+
+arc man
+arc man convert
+arc help convert
+arc convert --help
+```
+
+`--help` stays compact. `arc man`/`arc help` render the detailed product documentation, including semantics, safety, edge cases and examples. Reference pages include `arc-formats(7)`, `arc-backends(7)`, `arc-remote(7)`, `arc-config(5)`, and `arc-profiles(5)`. Command names/aliases/summaries are centralized in `arc_cli.command_docs`; the structured manual model in `arc_cli.manual` consumes that identity model and generates both committed roff pages and `docs/COMMAND_REFERENCE.md`. Regenerate with `python3 scripts/generate_command_docs.py` and use `--check` in validation to fail on drift. Argparse help, alias dispatch, completion, manual-topic resolution, packaging and generated docs therefore share one command identity contract.
 
 ## Normalized exclusions and includes
 

@@ -1,0 +1,19 @@
+.TH "ARC-IDENTIFY" "1" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-identify \- identify archive format
+.SH "SYNOPSIS"
+arc identify FILE...
+.SH "DESCRIPTION"
+Detect archive/compression format using content first and the filename suffix only as a hint or fallback.
+.SH "OPTIONS"
+\-F, \-\-format FORMAT
+.PP
+\-\-json
+.PP
+\-\-execution MODE
+.SH "EXAMPLES"
+arc identify mystery.bin
+.PP
+arc identify a.zip b.tar.zst \-\-json
+.SH "SEE ALSO"
+arc(1), arc\-formats(7), arc\-backends(7), arc\-remote(7)

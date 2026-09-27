@@ -188,7 +188,12 @@ def emit_after(*, json_mode: bool = False) -> None:
         # still structured JSON, but remains diagnostic output on stderr.
         import json
 
-        console.print(json.dumps({"native_plan": plan.to_dict()}, ensure_ascii=False))
+        payload = json.dumps({"native_plan": plan.to_dict()}, ensure_ascii=False)
+        # Structured diagnostics must remain valid machine-readable JSON even
+        # on narrow Termux terminals. Rich rendering may hard-wrap strings and
+        # inject literal newlines inside JSON values, so bypass markup/layout.
+        console.file.write(payload + "\n")
+        console.file.flush()
         return
     console.print("[bold cyan]Native equivalent[/]")
     for stage in plan.stages:

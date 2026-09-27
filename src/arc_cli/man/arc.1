@@ -1,0 +1,224 @@
+.TH "ARC" "1" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc \- safe, backend\-aware archive and compression utility
+.SH "SYNOPSIS"
+arc COMMAND [COMMAND OPTIONS] ...
+.PP
+arc\-COMMAND ...
+.PP
+SHORT\-ALIAS ...
+.SH "DESCRIPTION"
+Arc provides one normalized interface over native archive and compression backends. It owns format detection, safe extraction, filtering, atomic publication, backend capability selection, progress, remote transport, conversion, inspection, completion, and machine\-readable output.
+.SH "COMMANDS"
+.nf
+identify     identify archive format
+.fi
+.nf
+create       create an archive or compressed stream
+.fi
+.nf
+extract      extract an archive safely
+.fi
+.nf
+list         list archive members
+.fi
+.nf
+info         show archive metadata and summary information
+.fi
+.nf
+test         verify archive integrity
+.fi
+.nf
+convert      convert an archive or compressed stream
+.fi
+.nf
+add          add new archive members
+.fi
+.nf
+update       update archive members
+.fi
+.nf
+remove       remove archive members
+.fi
+.nf
+backends     inspect native backend capabilities
+.fi
+.nf
+formats      show supported formats
+.fi
+.nf
+profiles     show configured profiles
+.fi
+.nf
+completion   manage shell completion
+.fi
+.nf
+help         open detailed bundled help
+.fi
+.nf
+man          open Arc manual pages
+.fi
+.SH "EXECUTABLE ALIASES"
+.nf
+arcmk          arc create
+.fi
+.nf
+arc\-create     arc create
+.fi
+.nf
+arcpack        arc create
+.fi
+.nf
+arcx           arc extract
+.fi
+.nf
+arc\-extract    arc extract
+.fi
+.nf
+arcunpack      arc extract
+.fi
+.nf
+arcls          arc list
+.fi
+.nf
+arc\-list       arc list
+.fi
+.nf
+arci           arc info
+.fi
+.nf
+arc\-info       arc info
+.fi
+.nf
+arct           arc test
+.fi
+.nf
+arc\-test       arc test
+.fi
+.nf
+arccheck       arc test
+.fi
+.nf
+arccv          arc convert
+.fi
+.nf
+arc\-convert    arc convert
+.fi
+.nf
+arcconvert     arc convert
+.fi
+.nf
+arca           arc add
+.fi
+.nf
+arc\-add        arc add
+.fi
+.nf
+arcu           arc update
+.fi
+.nf
+arc\-update     arc update
+.fi
+.nf
+arcrm          arc remove
+.fi
+.nf
+arc\-remove     arc remove
+.fi
+.nf
+arcbe          arc backends
+.fi
+.nf
+arc\-backends   arc backends
+.fi
+.nf
+arc\-formats    arc formats
+.fi
+.nf
+arcp           arc profiles
+.fi
+.nf
+arc\-profiles   arc profiles
+.fi
+.SH "FORMAT SELECTORS"
+.nf
+\-zip       zip        default suffix .zip
+.fi
+.nf
+\-7z        7z         default suffix .7z
+.fi
+.nf
+\-rar       rar        default suffix .rar
+.fi
+.nf
+\-tar       tar        default suffix .tar
+.fi
+.nf
+\-targz     tar.gz     default suffix .tar.gz
+.fi
+.nf
+\-tgz       tar.gz     default suffix .tgz
+.fi
+.nf
+\-tarbz2    tar.bz2    default suffix .tar.bz2
+.fi
+.nf
+\-tbz2      tar.bz2    default suffix .tbz2
+.fi
+.nf
+\-tbz       tar.bz2    default suffix .tbz
+.fi
+.nf
+\-tarxz     tar.xz     default suffix .tar.xz
+.fi
+.nf
+\-txz       tar.xz     default suffix .txz
+.fi
+.nf
+\-tarzst    tar.zstd   default suffix .tar.zst
+.fi
+.nf
+\-tzst      tar.zstd   default suffix .tzst
+.fi
+.nf
+\-tarzstd   tar.zstd   default suffix .tar.zstd
+.fi
+.nf
+\-gz        gzip       default suffix .gz
+.fi
+.nf
+\-gzip      gzip       default suffix .gzip
+.fi
+.nf
+\-bz2       bzip2      default suffix .bz2
+.fi
+.nf
+\-xz        xz         default suffix .xz
+.fi
+.nf
+\-zst       zstd       default suffix .zst
+.fi
+.nf
+\-zstd      zstd       default suffix .zstd
+.fi
+.PP
+.PP
+Create and convert short selectors are authoritative. When a caller supplies an extensionless destination, a short selector appends its represented suffix. Plain \-F/\-\-format only appends to an explicitly supplied extensionless path when \-\-add\-extension is requested. An omitted convert destination is always derived with the selected target suffix.
+.SH "MACHINE-READABLE IDENTITY"
+When a real installed executable alias such as arci or arccv is used with \-\-json, Arc preserves the redacted literal invocation and exposes the canonical resolved command so automation can distinguish what the user typed from what the dispatcher executed.
+.SH "SAFETY"
+Arc rejects traversal, absolute member paths, unsafe link parents, and special objects before normalized extraction. Conversion builds an unpublished destination candidate, verifies it, then publishes it atomically. \-\-replace\-source cannot remove the source until verified publication succeeds.
+.SH "REMOTE PATHS"
+SSH locations use ssh://NAME/path or configured NAME:path syntax. rclone locations use rclone://NAME/path or normal remote:path syntax. Operations that need random access or local safety inspection may stage data; diagnostic strategy labels say so instead of claiming a direct stream.
+.SH "ENVIRONMENT"
+ARC_PROGRESS, ARC_LEVEL, ARC_THREADS, ARC_BACKEND_*, ARC_CACHE_HOME, XDG_CONFIG_HOME, XDG_CACHE_HOME, RCLONE_CONFIG, PAGER, MANPAGER, NO_COLOR.
+.SH "FILES"
+~/.config/arc/config.toml
+.PP
+~/.cache/arc/
+.PP
+Installed manual pages under share/man.
+.SH "EXIT STATUS"
+0 means success. Usage, unsupported format/backend, conflict, password, corruption, and unsafe\-archive failures use Arc's typed non\-zero exit statuses.
+.SH "SEE ALSO"
+arc\-create(1), arc\-extract(1), arc\-list(1), arc\-info(1), arc\-test(1), arc\-convert(1), arc\-formats(7), arc\-backends(7), arc\-remote(7), arc\-config(5), arc\-profiles(5)

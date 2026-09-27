@@ -1,0 +1,25 @@
+.TH "ARC-LIST" "1" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-list \- list archive members
+.SH "SYNOPSIS"
+arc list ARCHIVE [MEMBER...] [OPTIONS]
+.PP
+arcls ...
+.PP
+arc\-list ...
+.SH "DESCRIPTION"
+List normalized archive member metadata. Stream\-only compressors have no member list.
+.SH "OPTIONS"
+\-\-json
+.PP
+\-\-include/\-\-exclude and rule files
+.PP
+\-\-password/\-\-password\-file/\-\-password\-env
+.PP
+\-\-backend NAME
+.SH "EXAMPLES"
+arcls backup.tar.zst
+.PP
+arc list private.7z \-\-password\-env ARCHIVE_PASS \-\-json
+.SH "SEE ALSO"
+arc\-info(1), arc\-test(1), arc\-extract(1)

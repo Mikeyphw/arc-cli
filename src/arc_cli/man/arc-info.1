@@ -1,0 +1,45 @@
+.TH "ARC-INFO" "1" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-info \- show archive metadata and summary information
+.SH "SYNOPSIS"
+arc info ARCHIVE... [OPTIONS]
+.PP
+arci ...
+.PP
+arc\-info ...
+.SH "DESCRIPTION"
+Show a compact archive\-level summary without silently performing a full integrity test. Local and remote inputs may be mixed. Unknown values remain null/unknown rather than being reported as false.
+.SH "OPTIONS"
+\-\-members        include compact member statistics
+.PP
+\-\-verify         run a real integrity test
+.PP
+\-\-technical      include backend\-oriented technical metadata
+.PP
+\-F, \-\-format FORMAT
+.PP
+\-\-backend NAME
+.PP
+\-\-no\-fallback
+.PP
+\-\-password/\-\-password\-file/\-\-password\-env
+.PP
+\-\-show\-command
+.PP
+\-\-show\-native[=before|after|both]
+.PP
+\-\-json
+.SH "SEMANTICS"
+Default info is metadata inspection, not verification: JSON uses verified=null unless \-\-verify was requested. Encrypted\-header archives still return outer metadata when member indexing needs a password. Content detection wins over a misleading extension and the mismatch is reported explicitly. Gzip inspection reports the trailer size hint and optional embedded original filename when present. Member\-backed summaries normalize oldest/newest timestamps and expose counts, largest\-member evidence with \-\-members, and encryption/solid/volume/comment\-like metadata when the selected backend can prove it. Remote random\-access inspection reports when it staged locally.
+.SH "EXAMPLES"
+arci backup.tar.zst
+.PP
+arci private.7z \-\-password\-env ARCHIVE_PASS
+.PP
+arci archive.zip \-\-technical
+.PP
+arci archive.zip \-\-verify
+.PP
+arc info a.zip b.7z \-\-json
+.SH "SEE ALSO"
+arc\-list(1), arc\-test(1), arc\-convert(1), arc\-remote(7)

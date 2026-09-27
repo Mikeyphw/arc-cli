@@ -96,6 +96,20 @@ def infer_from_name(path: str | Path) -> ArchiveFormat | None:
     return None
 
 
+
+def strip_archive_suffix(path: str | Path) -> str:
+    """Remove one recognized Arc archive/compression suffix from a path string."""
+    value = str(path)
+    lower = value.lower()
+    for suffix, _fmt in SUFFIXES:
+        if lower.endswith(suffix):
+            return value[:-len(suffix)]
+    return value
+
+
+def has_archive_suffix(path: str | Path) -> bool:
+    return infer_from_name(path) is not None
+
 def extension_for(fmt: ArchiveFormat) -> str:
     mapping = {
         "tar": ".tar",

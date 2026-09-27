@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
 
-Operation = Literal["identify", "list", "extract", "create", "add", "update", "remove", "test"]
+Operation = Literal["identify", "list", "extract", "create", "info", "test", "convert", "add", "update", "remove"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -29,6 +29,7 @@ class Member:
     size: int = 0
     kind: str = "file"  # file, dir, symlink, hardlink, special, unknown
     link_target: str | None = None
+    mtime: str | None = None
 
 
 @dataclass(slots=True)
