@@ -5,6 +5,7 @@ import dataclasses
 import getpass
 import json
 import os
+import shlex
 import shutil
 import subprocess
 import sys
@@ -14,6 +15,7 @@ from pathlib import Path
 
 from rich.filesize import decimal
 from rich.table import Table
+from rich.text import Text
 
 from .backends import backend_inventory, resolve_backend, run_backend
 from .completion import FORMATS, completion_candidates, completion_mode, encode_candidates_nul, zsh_completion
@@ -22,7 +24,7 @@ from .errors import ArcError, BackendUnavailable, ConflictError, CorruptArchive,
 from .execution import begin_plan, emit_after, record_stage
 from .filtering import build_manifest, expand_rule_files, filter_members
 from . import __version__
-from .formats import detect, extension_for, infer_from_name, parse_format, resolve_create_format
+from .formats import CREATE_SUFFIX_SHORTCUTS, detect, extension_for, infer_from_name, parse_format, resolve_create_format
 from .interactive import choose_auto, filesystem_candidates, rg_files, yazi_choose
 from .model import FilterRule, Member
 from .progress import ProgressReporter, console, progress_enabled, stdout_console
@@ -67,8 +69,16 @@ def split_passthrough(argv: list[str]) -> tuple[list[str], list[str]]:
     return argv[:idx], argv[idx + 1 :]
 
 
-def add_common(p: argparse.ArgumentParser, *, create: bool = False, extract: bool = False, member_filter: bool = False):
-    p.add_argument("-F", "--format")
+def add_common(
+    p: argparse.ArgumentParser,
+    *,
+    create: bool = False,
+    extract: bool = False,
+    member_filter: bool = False,
+    format_option: bool = True,
+):
+    if format_option:
+        p.add_argument("-F", "--format")
     p.add_argument("--backend")
     p.add_argument("--no-fallback", action="store_true", help="use only the first configured compatible backend preference")
     p.add_argument("--profile", help="apply a named config profile before explicit CLI overrides")
@@ -116,6 +126,23 @@ def add_common(p: argparse.ArgumentParser, *, create: bool = False, extract: boo
         p.add_argument("--preserve-xattrs", action="store_true")
 
 
+def _add_create_suffix_shortcuts(p: argparse.ArgumentParser) -> None:
+    section = p.add_argument_group(
+        "create suffix shortcuts",
+        "select the create format explicitly; if ARCHIVE has no known archive suffix, append the selected suffix",
+    )
+    group = section.add_mutually_exclusive_group()
+    group.add_argument("-F", "--format")
+    for flag, fmt, suffix in CREATE_SUFFIX_SHORTCUTS:
+        group.add_argument(
+            flag,
+            dest="format_shortcut",
+            action="store_const",
+            const=(fmt, suffix),
+            help=f"create {fmt} and use {suffix} when ARCHIVE has no recognized archive suffix",
+        )
+
+
 def parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="arc", description="Normalized archive CLI over native backends")
     p.add_argument("--version", action="version", version="arc 0.1.0")
@@ -146,8 +173,9 @@ def parser() -> argparse.ArgumentParser:
         q = sub.add_parser(name)
         q.add_argument("archive")
         q.add_argument("inputs", nargs="*")
-        add_common(q, create=True)
+        add_common(q, create=True, format_option=name != "create")
         if name == "create":
+            _add_create_suffix_shortcuts(q)
             q.add_argument("--overwrite", action="store_true")
 
     q = sub.add_parser("remove")
@@ -166,6 +194,147 @@ def parser() -> argparse.ArgumentParser:
     c.add_argument("location", nargs="?")
     c.add_argument("--json", action="store_true")
     return p
+
+
+def _create_format_options(args) -> tuple[str | None, bool, str | None]:
+    shortcut = getattr(args, "format_shortcut", None)
+    explicit = getattr(args, "format", None)
+    if shortcut is not None and explicit:
+        raise UsageError("use either -F/--format or a create suffix shortcut, not both")
+    if shortcut is not None:
+        fmt, suffix = shortcut
+        return fmt, True, suffix
+    return explicit, bool(getattr(args, "add_extension", False)), None
+
+
+def _resolve_create_target(args, path: str | Path) -> tuple[object, Path]:
+    explicit, add_extension, suffix = _create_format_options(args)
+    return resolve_create_format(path, explicit, add_extension, extension=suffix)
+
+
+def _explicit_format(args) -> str | None:
+    if getattr(args, "command", None) == "create":
+        explicit, _add, _suffix = _create_format_options(args)
+        return explicit
+    return getattr(args, "format", None)
+
+
+def _display_invocation(argv: list[str], args) -> str:
+    """Render the Arc argv we actually received, with credentials redacted.
+
+    Shell syntax such as ``~`` expansion or the user's original quote style is
+    gone before Arc starts, so this is intentionally the received argv rather
+    than a claim that we can reconstruct the literal shell input.
+    """
+    words = ["arc", *argv]
+    secret = getattr(args, "password", None)
+    if secret and secret != "__PROMPT__":
+        words = ["***" if word == secret else word.replace(f"--password={secret}", "--password=***") for word in words]
+    return shlex.join(words)
+
+
+def _show_invocation(argv: list[str], args) -> None:
+    if getattr(args, "quiet", False) or getattr(args, "json", False):
+        return
+    if getattr(args, "command", None) not in {"identify", "list", "extract", "create", "add", "update", "remove", "test"}:
+        return
+    # Keep redirected/scripted output clean. In an interactive terminal, emit
+    # one logical line and let the terminal soft-wrap it visually. Rich table
+    # folding would insert real newlines/indentation, making a copied command
+    # no longer directly pasteable on narrow Termux screens.
+    if not console.is_terminal:
+        return
+    line = Text.assemble(
+        ("Command  ", "bold cyan"),
+        (_display_invocation(argv, args), "dim"),
+    )
+    console.print(line, soft_wrap=True)
+
+
+def _scan_status_text(visited: int, selected_count: int, selected_bytes: int, width: int) -> str:
+    if width < 36:
+        return f"[bold]Scanning…[/] {visited} · {selected_count} sel"
+    if width < 46:
+        return f"[bold]Scanning…[/] {visited} seen · {selected_count} selected"
+    if width < 72:
+        return f"[bold]Scanning…[/] {selected_count} selected · {decimal(selected_bytes)}"
+    return f"[bold]Scanning inputs…[/] {visited} visited, {selected_count} selected, {decimal(selected_bytes)}"
+
+
+def _plural_files(count: int) -> str:
+    return f"{count} file" if count == 1 else f"{count} files"
+
+
+def _backend_display(backend, meta: dict) -> str:
+    names = [backend.info.binary]
+    pipeline = meta.get("pipeline")
+    if pipeline:
+        binary = Path(str(pipeline[0])).name
+        if binary and binary != names[-1]:
+            names.append(binary)
+    return " → ".join(names)
+
+
+def _show_create_plan(path: Path, fmt, backend, meta: dict, files: int, original_bytes: int) -> None:
+    if not console.is_terminal:
+        return
+    grid = Table.grid(expand=True, padding=(0, 1))
+    grid.add_column(width=8, no_wrap=True)
+    grid.add_column(ratio=1, overflow="fold")
+    grid.add_row(Text("Create", style="bold cyan"), Text(str(path), style="bold"))
+    grid.add_row("", Text(f"{_plural_files(files)} · {decimal(original_bytes)}", style="dim"))
+    grid.add_row("", Text(f"{fmt.canonical} · backend {_backend_display(backend, meta)}", style="dim"))
+    console.print(grid)
+
+
+def _compression_metrics(original_bytes: int, compressed_bytes: int) -> dict[str, float | None]:
+    if original_bytes <= 0:
+        return {"compressed_percent": None, "saved_percent": None, "ratio": None}
+    compressed_percent = (compressed_bytes / original_bytes) * 100.0
+    saved = 100.0 - compressed_percent
+    ratio = (original_bytes / compressed_bytes) if compressed_bytes > 0 else None
+    return {"compressed_percent": compressed_percent, "saved_percent": saved, "ratio": ratio}
+
+
+def _format_percent(value: float) -> str:
+    """Format percentages without rounding tiny/non-total values to 0%/100%."""
+    for digits in range(1, 5):
+        rounded = round(value, digits)
+        if value != 0 and rounded == 0:
+            continue
+        if 0 < value < 100 and rounded >= 100:
+            continue
+        return f"{value:.{digits}f}%"
+    return f"{value:.4f}%"
+
+
+def _print_create_success(path: Path, original_bytes: int, compressed_bytes: int, backend_name: str) -> None:
+    metrics = _compression_metrics(original_bytes, compressed_bytes)
+    stdout_console.print(Text.assemble(("✓ ", "bold green"), ("Created  ", "bold"), (str(path), "")))
+
+    compressed_percent = metrics["compressed_percent"]
+    saved = metrics["saved_percent"]
+    ratio = metrics["ratio"]
+    if saved is None:
+        rate = "n/a (empty input)"
+        savings = "n/a"
+    elif saved >= 0:
+        rate = f"{_format_percent(compressed_percent)} of original"
+        savings = f"{_format_percent(saved)} saved"
+    else:
+        rate = f"{_format_percent(compressed_percent)} of original"
+        savings = f"{_format_percent(abs(saved))} larger"
+    grid = Table.grid(expand=True, padding=(0, 1))
+    grid.add_column(width=13, no_wrap=True, style="dim")
+    grid.add_column(ratio=1, overflow="fold")
+    grid.add_row("Original", decimal(original_bytes))
+    grid.add_row("Compressed", decimal(compressed_bytes))
+    grid.add_row("Compression", rate)
+    grid.add_row("Saved", savings)
+    if ratio is not None:
+        grid.add_row("Ratio", f"{ratio:.2f}×")
+    grid.add_row("Backend", backend_name)
+    stdout_console.print(grid)
 
 
 def _apply_profile(args, config: dict) -> None:
@@ -702,7 +871,7 @@ def _create_like_local(args, extra: list[str], config: dict) -> int:
         raise UsageError("archive stdout and --json cannot be used together")
     password = _resolve_password(args)
     if operation == "create":
-        fmt, archive = resolve_create_format(args.archive, args.format, args.add_extension)
+        fmt, archive = _resolve_create_target(args, args.archive)
         _warn_extension_mismatch(archive, fmt, args)
         if not stdout_archive and archive.exists() and not args.overwrite:
             raise ConflictError(f"archive already exists: {archive}; use --overwrite")
@@ -719,7 +888,7 @@ def _create_like_local(args, extra: list[str], config: dict) -> int:
         with console.status("[bold]Scanning inputs…[/]") as status:
             def on_scan(visited: int, selected_count: int, selected_bytes: int) -> None:
                 if visited == 1 or visited % 128 == 0:
-                    status.update(f"[bold]Scanning inputs…[/] {visited} visited, {selected_count} selected, {decimal(selected_bytes)}")
+                    status.update(_scan_status_text(visited, selected_count, selected_bytes, console.size.width))
             manifest = build_manifest(
                 inputs, rules, follow_symlinks=args.follow_symlinks,
                 one_file_system=args.one_file_system, on_scan=on_scan,
@@ -773,9 +942,14 @@ def _create_like_local(args, extra: list[str], config: dict) -> int:
         no_fallback=args.no_fallback,
     )
     sizes = {e.member_name: e.size for e in manifest if not e.is_dir}
+    original_bytes = sum(sizes.values())
     enabled = progress_enabled(args.progress, args.json, args.quiet) and not stdout_archive
+    if operation == "create" and not args.quiet and not args.json and not stdout_archive:
+        _show_create_plan(final_archive, fmt, backend, meta, len(sizes), original_bytes)
+
+    compressed_bytes: int | None = None
     try:
-        progress_total = 0 if meta.get("progress_indeterminate") else sum(sizes.values())
+        progress_total = 0 if meta.get("progress_indeterminate") else original_bytes
         progress_files = 0 if meta.get("progress_indeterminate") else len(sizes)
         with ProgressReporter("Archiving" if operation == "create" else operation.capitalize(), progress_total, progress_files, enabled) as rep:
             rc = run_backend(cmd, meta, rep, sizes, show_command=args.show_command, dry_run=args.dry_run, verbose=args.verbose)
@@ -787,13 +961,38 @@ def _create_like_local(args, extra: list[str], config: dict) -> int:
                     shutil.copyfileobj(fh, sys.stdout.buffer)
             else:
                 _atomic_replace(temp_archive, final_archive)
+                compressed_bytes = final_archive.stat().st_size
+        elif operation == "create" and not args.dry_run and not stdout_archive and final_archive.exists():
+            compressed_bytes = final_archive.stat().st_size
     finally:
         if temp_archive and temp_archive.exists():
             temp_archive.unlink(missing_ok=True)
+
     if args.json and not stdout_archive:
-        print(json.dumps({"operation": operation, "archive": str(final_archive), "format": fmt.canonical, "files": len(sizes), "bytes": sum(sizes.values()), "backend": backend.info.binary}))
+        payload = {
+            "operation": operation,
+            "archive": str(final_archive),
+            "format": fmt.canonical,
+            "files": len(sizes),
+            "bytes": original_bytes,
+            "backend": backend.info.binary,
+        }
+        if operation == "create":
+            payload["original_bytes"] = original_bytes
+            if compressed_bytes is not None:
+                metrics = _compression_metrics(original_bytes, compressed_bytes)
+                payload["compressed_bytes"] = compressed_bytes
+                payload["compression_percent_of_original"] = metrics["compressed_percent"]
+                payload["compression_saved_percent"] = metrics["saved_percent"]
+                payload["compression_ratio"] = metrics["ratio"]
+        print(json.dumps(payload))
     elif not args.quiet and not stdout_archive:
-        stdout_console.print(f"[green]OK[/] {operation}: {final_archive} ({len(sizes)} files, backend={backend.info.binary})")
+        if operation == "create" and not args.dry_run and compressed_bytes is not None:
+            _print_create_success(final_archive, original_bytes, compressed_bytes, _backend_display(backend, meta))
+        elif args.dry_run:
+            stdout_console.print(f"[cyan]DRY RUN[/] {operation}: {final_archive} ({_plural_files(len(sizes))})")
+        else:
+            stdout_console.print(f"[green]OK[/] {operation}: {final_archive} ({_plural_files(len(sizes))}, backend={backend.info.binary})")
     return 0
 
 
@@ -993,7 +1192,6 @@ def _identify(args, config: dict) -> int:
     return 0
 
 
-
 def _remote_name_location(value: str, config: dict) -> RemoteLocation:
     candidate = value if ":" in value or value.startswith(("ssh://", "rclone://")) else value + ":"
     location = parse_remote(candidate, config, probe_rclone=True)
@@ -1018,6 +1216,24 @@ def _clone_args(args, **changes):
     values = vars(args).copy()
     values.update(changes)
     return argparse.Namespace(**values)
+
+
+def _clone_create_for_staging(args, archive: str | Path, **changes):
+    """Clone create args for an Arc-owned staging path.
+
+    Suffix shortcuts are a user-facing naming decision.  Once the final target
+    is resolved, staging must keep the selected format without appending that
+    user suffix to Arc's temporary filename.
+    """
+    explicit = _explicit_format(args)
+    return _clone_args(
+        args,
+        archive=os.fspath(archive),
+        format=explicit,
+        format_shortcut=None,
+        add_extension=False,
+        **changes,
+    )
 
 
 def _parsed_arc_version(value: str | None) -> tuple[int, ...] | None:
@@ -1068,8 +1284,9 @@ def _remote_filter_args(args) -> list[str]:
 
 def _remote_common_native_args(args) -> list[str]:
     out: list[str] = []
-    if getattr(args, "format", None):
-        out += ["--format", args.format]
+    explicit_format = _explicit_format(args)
+    if explicit_format:
+        out += ["--format", explicit_format]
     if getattr(args, "backend", None):
         out += ["--backend", args.backend]
     if getattr(args, "no_fallback", False):
@@ -1164,6 +1381,9 @@ def _remote_native_execution(args, extra: list[str], config: dict, location: Rem
         raise UnsupportedFormat(f"--execution=remote is not available for {operation}")
     dry_run = bool(getattr(args, "dry_run", False))
 
+    if operation == "create":
+        _fmt, location = _remote_create_target(args, location)
+
     remote_argv = ["arc", operation, location.path]
     remote_argv += _remote_common_native_args(args)
 
@@ -1217,7 +1437,7 @@ def _remote_native_execution(args, extra: list[str], config: dict, location: Rem
 
 
 def _remote_create_target(args, location: RemoteLocation):
-    fmt, resolved = resolve_create_format(location.path, args.format, args.add_extension)
+    fmt, resolved = _resolve_create_target(args, location.path)
     resolved_text = os.fspath(resolved)
     if resolved_text != location.path:
         location = dataclasses.replace(location, path=resolved_text, raw=location.render(resolved_text))
@@ -1424,7 +1644,8 @@ def _dispatch_remote_archive(args, extra: list[str], config: dict) -> int | None
 
     operation = args.command
     dry_run = bool(getattr(args, "dry_run", False))
-    remote_hint = parse_format(args.format) if getattr(args, "format", None) else infer_from_name(Path(location.path))
+    explicit_format = _explicit_format(args)
+    remote_hint = parse_format(explicit_format) if explicit_format else infer_from_name(Path(location.path))
     if remote_hint is not None and remote_hint.is_stream:
         if operation in {"extract", "test"}:
             return _stream_remote_read(args, extra, config, location, remote_hint)
@@ -1448,7 +1669,7 @@ def _dispatch_remote_archive(args, extra: list[str], config: dict) -> int | None
         # transport stage is still recorded so --show-native remains useful.
         if operation == "create":
             fake = Path(tempfile.gettempdir()) / (location.basename or "archive.arc")
-            local_args = _clone_args(args, archive=str(fake), quiet=True, json=False, add_extension=False)
+            local_args = _clone_create_for_staging(args, fake, quiet=True, json=False)
             rc = _create_like(local_args, extra, config)
             if rc == 0:
                 upload_remote(fake, location, config, dry_run=True)
@@ -1464,7 +1685,7 @@ def _dispatch_remote_archive(args, extra: list[str], config: dict) -> int | None
     with tempfile.TemporaryDirectory(prefix="arc-remote-stage-") as td:
         stage = Path(td) / (location.basename or "archive.arc")
         if operation == "create":
-            local_args = _clone_args(args, archive=str(stage), quiet=True, json=False, add_extension=False)
+            local_args = _clone_create_for_staging(args, stage, quiet=True, json=False)
             rc = _create_like(local_args, extra, config)
             if rc == 0:
                 upload_remote(stage, location, config, **({"progress": True} if transfer_progress else {}))
@@ -1615,6 +1836,9 @@ def main(argv: list[str] | None = None) -> int:
         _apply_profile(args, config)
         _validate_yazi_context(args)
         _apply_defaults(args, config)
+        if args.command == "create":
+            _create_format_options(args)
+        _show_invocation(argv, args)
         begin_plan(
             args.command,
             mode=getattr(args, "show_native", None),

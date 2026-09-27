@@ -5,6 +5,7 @@ import shutil
 from pathlib import Path
 
 from .config import load_config, profile_names
+from .formats import CREATE_SUFFIX_SHORTCUTS
 from .interactive import filesystem_candidates, rg_files
 from .remote import complete_remote, configured_remote_names, parse_remote
 
@@ -26,6 +27,7 @@ BASE = {
 }
 FILTERS = {"--exclude", "--include", "--exclude-from", "--include-from"}
 CREATE = {"--level", "--threads", "--add-extension", "--follow-symlinks", "--one-file-system", "--preserve-owner", "--preserve-acls", "--preserve-xattrs"}
+CREATE_SUFFIX_FLAGS = {flag for flag, _fmt, _suffix in CREATE_SUFFIX_SHORTCUTS}
 EXTRACT = {"-o", "--output", "--overwrite", "--skip-existing", "--rename-existing", "--unsafe-paths", "--stdout", "--preserve-owner", "--preserve-acls", "--preserve-xattrs"}
 
 COMMAND_OPTIONS: dict[str, set[str]] = {
@@ -33,7 +35,7 @@ COMMAND_OPTIONS: dict[str, set[str]] = {
     "list": BASE | FILTERS,
     "test": BASE | FILTERS,
     "extract": BASE | FILTERS | EXTRACT,
-    "create": BASE | FILTERS | CREATE | {"--overwrite"},
+    "create": BASE | FILTERS | CREATE | CREATE_SUFFIX_FLAGS | {"--overwrite"},
     "add": BASE | FILTERS | CREATE,
     "update": BASE | FILTERS | CREATE,
     "remove": BASE,
@@ -89,8 +91,20 @@ def _archive_members(path: str) -> list[str]:
         return []
 
 
-def _option_candidates(op: str, prefix: str) -> list[str]:
-    return sorted(x for x in COMMAND_OPTIONS.get(op, set()) if x.startswith(prefix))
+def _option_candidates(op: str, prefix: str, prior_tokens: list[str] | None = None) -> list[str]:
+    options = set(COMMAND_OPTIONS.get(op, set()))
+    prior = prior_tokens or []
+    if op == "create":
+        has_shortcut = any(token in CREATE_SUFFIX_FLAGS for token in prior)
+        has_format = any(
+            token in {"-F", "--format"} or token.startswith("--format=")
+            for token in prior
+        )
+        if has_shortcut:
+            options -= CREATE_SUFFIX_FLAGS | {"-F", "--format"}
+        elif has_format:
+            options -= CREATE_SUFFIX_FLAGS | {"-F", "--format"}
+    return sorted(x for x in options if x.startswith(prefix))
 
 
 def _path_candidates(prefix: str, *, op: str, refresh: bool = False, dirs_only: bool = False) -> list[str]:
@@ -210,7 +224,7 @@ def completion_candidates(words: list[str]) -> list[str]:
     if prev in {"--password-file", "--exclude-from", "--include-from"}:
         return [x for x in rg_files() if x.startswith(prefix)]
     if cur.startswith("-"):
-        return _option_candidates(op, prefix)
+        return _option_candidates(op, prefix, before_current)
 
     pos = _positionals(before_current)
     if op in {"extract", "list", "remove"}:

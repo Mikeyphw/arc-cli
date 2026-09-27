@@ -16,11 +16,74 @@ from rich.progress import (
     TimeRemainingColumn,
     TransferSpeedColumn,
 )
+from rich.table import Column
 
 console = Console(stderr=True)
 stdout_console = Console(stderr=False)
 
 _PERCENT = re.compile(r"(?:^|\s)(\d{1,3})%")
+
+
+def _current_column(max_width: int) -> TextColumn:
+    # Filenames are data, not Rich markup. Keep them on one line so a long
+    # member cannot blow up a phone-sized terminal.
+    return TextColumn(
+        "{task.fields[current]}",
+        style="dim",
+        markup=False,
+        table_column=Column(max_width=max_width, overflow="ellipsis", no_wrap=True),
+    )
+
+
+def _progress_columns(kind: str, width: int):
+    """Return a density-aware column set for the current terminal width.
+
+    The previous layout tried to show bytes, speed, file count, current member,
+    elapsed time and ETA simultaneously. On a narrow Termux terminal that made
+    Rich collapse/truncate several fields into unreadable fragments. Prefer a
+    stable core and progressively add detail as width becomes available.
+    """
+    core = [
+        SpinnerColumn(finished_text="[green]✓[/]"),
+        TextColumn("[progress.description]{task.description}"),
+    ]
+
+    if kind == "indeterminate":
+        columns = [*core, _current_column(22 if width < 46 else (28 if width < 100 else 48))]
+        if width >= 46:
+            columns.append(TimeElapsedColumn())
+        return columns
+
+    columns = [
+        *core,
+        BarColumn(bar_width=None),
+        TaskProgressColumn(),
+    ]
+
+    if kind == "bytes":
+        if width >= 78:
+            columns.append(DownloadColumn())
+        columns.append(TextColumn("{task.fields[files_done]}/{task.fields[files_total]}"))
+        if width >= 108:
+            columns.append(TransferSpeedColumn())
+        if width >= 126:
+            columns.append(_current_column(32))
+        if width >= 46:
+            columns.append(TimeElapsedColumn())
+        if width >= 146:
+            columns.append(TimeRemainingColumn())
+        return columns
+
+    # File-count progress follows the same density rules but doesn't waste
+    # horizontal space on a byte counter that doesn't exist.
+    columns.append(TextColumn("{task.completed:.0f}/{task.total:.0f}"))
+    if width >= 104:
+        columns.append(_current_column(36))
+    if width >= 46:
+        columns.append(TimeElapsedColumn())
+    if width >= 132:
+        columns.append(TimeRemainingColumn())
+    return columns
 
 
 @dataclass
@@ -29,6 +92,7 @@ class ProgressReporter:
     total_bytes: int
     total_files: int
     enabled: bool = True
+    terminal_width: int | None = None
 
     def __post_init__(self) -> None:
         self._seen: set[str] = set()
@@ -40,21 +104,11 @@ class ProgressReporter:
     def __enter__(self):
         if not self.enabled:
             return self
+        width = self.terminal_width or console.size.width
+        cols = _progress_columns(self.kind, width)
+        self._progress = Progress(*cols, console=console, transient=False, expand=True)
+        self._progress.start()
         if self.kind == "bytes":
-            cols = [
-                SpinnerColumn(),
-                TextColumn("[progress.description]{task.description}"),
-                BarColumn(),
-                TaskProgressColumn(),
-                DownloadColumn(),
-                TransferSpeedColumn(),
-                TextColumn("{task.fields[files_done]}/{task.fields[files_total]} files"),
-                TextColumn("[dim]{task.fields[current]}[/]"),
-                TimeElapsedColumn(),
-                TimeRemainingColumn(),
-            ]
-            self._progress = Progress(*cols, console=console, transient=False)
-            self._progress.start()
             self._task = self._progress.add_task(
                 self.description,
                 total=self.total_bytes,
@@ -63,30 +117,10 @@ class ProgressReporter:
                 current="",
             )
         elif self.kind == "files":
-            cols = [
-                SpinnerColumn(),
-                TextColumn("[progress.description]{task.description}"),
-                BarColumn(),
-                TaskProgressColumn(),
-                TextColumn("{task.completed:.0f}/{task.total:.0f} files"),
-                TextColumn("[dim]{task.fields[current]}[/]"),
-                TimeElapsedColumn(),
-                TimeRemainingColumn(),
-            ]
-            self._progress = Progress(*cols, console=console, transient=False)
-            self._progress.start()
             self._task = self._progress.add_task(self.description, total=self.total_files, current="")
         else:
             # Never fabricate a percentage when the selected backend does not
             # expose totals or usable per-member telemetry.
-            cols = [
-                SpinnerColumn(),
-                TextColumn("[progress.description]{task.description}"),
-                TextColumn("[dim]{task.fields[current]}[/]"),
-                TimeElapsedColumn(),
-            ]
-            self._progress = Progress(*cols, console=console, transient=False)
-            self._progress.start()
             self._task = self._progress.add_task(self.description, total=None, current="")
         return self
 
@@ -110,7 +144,7 @@ class ProgressReporter:
             return
         text = line.strip()
         if text:
-            self._progress.update(self._task, current=text[:120])
+            self._progress.update(self._task, current=text[:160])
         self.parse_percent(line)
 
     def advance_bytes(self, amount: int, *, current: str = "") -> None:

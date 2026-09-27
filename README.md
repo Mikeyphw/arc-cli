@@ -69,6 +69,18 @@ arc create backup --format zip src/
 
 This creates exactly `backup`. Add `--add-extension` if you want `arc` to append the canonical suffix.
 
+For interactive create commands, single-dash suffix shortcuts select the format explicitly and append that exact suffix when the archive name has no recognized archive suffix:
+
+```bash
+arc create backup src/ -zip          # -> backup.zip
+arc create backup src/ -tarzst       # -> backup.tar.zst
+arc create backup src/ -tgz          # -> backup.tgz
+arc create payload file.bin -zst     # -> payload.zst
+arc create payload file.bin -gzip    # -> payload.gzip
+```
+
+The stdout sentinel stays special, so `arc create - src/ -zip` selects ZIP without rewriting `-` to a filename. The selector is authoritative. For example, `arc create odd.zip src/ -tarzst` creates a tar+zstd archive named `odd.zip` and emits the usual extension-mismatch warning instead of inferring ZIP from the filename. `-F/--format` and a suffix shortcut are mutually exclusive. Run `arc create --help` for the full shortcut set.
+
 ## Normalized exclusions and includes
 
 ```bash
@@ -88,16 +100,16 @@ arc create backup.zip project/ --exclude-from ~/.config/arc/backup.ignore
 
 A line beginning with `!` in a rule file re-includes a path. Selection happens in Python before the backend runs, and native backend recursion is disabled for explicit manifests so exclusions are consistent across TAR, ZIP, 7z, and RAR backends.
 
-## Rich progress
+## Rich progress and create summary
 
-Rich is used for human-facing status and detailed progress on stderr. Creation first shows a live scan status with visited paths, selected entries, and selected bytes. Native create/extract/test/add/update/remove work then shows member/byte progress, transfer rate, elapsed time, and ETA when reliable telemetry is available.
+Rich is used for human-facing status and detailed progress on stderr. Interactive commands echo the copyable Arc invocation before work starts as one logical line; the terminal may soft-wrap it visually without Arc inserting continuation newlines. Creation then shows the resolved destination/format/backend and a live scan status that compacts itself on narrow terminals. Progress density adapts to terminal width so phone-sized Termux sessions keep the essential bar, percentage, and file count, adding elapsed time and secondary telemetry only when space permits.
 
 ```bash
 arc create big.tar.zst data/ --progress always
 arc extract big.zip -o out --progress never
 ```
 
-`--json` disables animated progress and keeps stdout machine-readable.
+Successful local creates end with original size, compressed/archive size, percentage of the original size, space saved, and compression ratio. `--json` disables animated progress, keeps stdout machine-readable, and exposes the same create metrics as numeric fields.
 
 ## Automatic fzf integration
 

@@ -34,6 +34,33 @@ SUFFIXES: list[tuple[str, ArchiveFormat]] = [
     (".zstd", ArchiveFormat(None, "zstd")),
 ]
 
+
+# Single-dash create suffix selectors. Each entry is (flag, format, suffix).
+# The selector is authoritative for format resolution and the suffix is only
+# appended when the requested archive path has no recognized archive suffix.
+CREATE_SUFFIX_SHORTCUTS: tuple[tuple[str, str, str], ...] = (
+    ("-zip", "zip", ".zip"),
+    ("-7z", "7z", ".7z"),
+    ("-rar", "rar", ".rar"),
+    ("-tar", "tar", ".tar"),
+    ("-targz", "tar.gz", ".tar.gz"),
+    ("-tgz", "tar.gz", ".tgz"),
+    ("-tarbz2", "tar.bz2", ".tar.bz2"),
+    ("-tbz2", "tar.bz2", ".tbz2"),
+    ("-tbz", "tar.bz2", ".tbz"),
+    ("-tarxz", "tar.xz", ".tar.xz"),
+    ("-txz", "tar.xz", ".txz"),
+    ("-tarzst", "tar.zstd", ".tar.zst"),
+    ("-tzst", "tar.zstd", ".tzst"),
+    ("-tarzstd", "tar.zstd", ".tar.zstd"),
+    ("-gz", "gzip", ".gz"),
+    ("-gzip", "gzip", ".gzip"),
+    ("-bz2", "bzip2", ".bz2"),
+    ("-xz", "xz", ".xz"),
+    ("-zst", "zstd", ".zst"),
+    ("-zstd", "zstd", ".zstd"),
+)
+
 ALIASES = {
     "tgz": "tar.gz",
     "tbz": "tar.bz2",
@@ -234,11 +261,30 @@ def detect(path: str | Path, explicit: str | None = None) -> ArchiveFormat:
     raise UnsupportedFormat(f"could not identify archive format: {p}")
 
 
-def resolve_create_format(path: str | Path, explicit: str | None, add_extension: bool = False) -> tuple[ArchiveFormat, Path]:
+def resolve_create_format(
+    path: str | Path,
+    explicit: str | None,
+    add_extension: bool = False,
+    *,
+    extension: str | None = None,
+) -> tuple[ArchiveFormat, Path]:
+    """Resolve a create target without letting an explicit selector be overridden.
+
+    ``extension`` is used by create's suffix shortcuts (for example ``-tgz``
+    or ``-tarzst``).  A shortcut is authoritative for the format and, when the
+    destination has no recognized archive suffix, appends exactly the suffix
+    represented by that shortcut.  ``--format`` keeps its existing behavior:
+    it only appends an extension when ``--add-extension`` is requested.
+    """
     fmt = parse_format(explicit) if explicit else infer_from_name(path)
     if not fmt:
-        raise UnsupportedFormat(f"cannot infer archive format from {path!s}; use --format")
+        raise UnsupportedFormat(f"cannot infer archive format from {path!s}; use --format or a create format shortcut")
     out = Path(path)
-    if explicit and add_extension and infer_from_name(out) is None:
-        out = Path(str(out) + extension_for(fmt))
+    if (
+        explicit
+        and str(out) != "-"
+        and (add_extension or extension is not None)
+        and infer_from_name(out) is None
+    ):
+        out = Path(str(out) + (extension or extension_for(fmt)))
     return fmt, out

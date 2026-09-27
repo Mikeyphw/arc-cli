@@ -16,6 +16,10 @@
 
 ## Unreleased
 - Final seal verification is now scoped to the exact authoritative ARC source/config/docs/test set, so unrelated Devtool transaction/runtime files cannot perturb the content root while authoritative additions or byte changes still fail closed.
+- Improve the Termux create UX with a copyable/redacted Arc invocation, width-aware progress columns, a resolved create header, and a compact final size/compression summary.
+- Add create-only single-dash suffix selectors such as `-zip`, `-tgz`, `-tarzst`, and `-zst`; selectors override filename inference and append their exact suffix when the destination has no recognized archive suffix.
+- Extend create JSON output with original bytes, final archive bytes, percent-of-original, saved percentage, and compression ratio.
+- Audit-loop closure: preserve the `-` stdout sentinel when a create suffix selector is used, add the missing `.gzip` selector alias, keep the displayed invocation as one copyable logical line on narrow terminals, compact scan/progress/result rows further at very small widths, and stop completion from suggesting mutually exclusive format selectors after one has already been chosen.
 ## ARC final gate and content seal
 
 - Add a content-addressed repository seal covering the complete R01–R05 source/config/test/documentation/completion tree.
