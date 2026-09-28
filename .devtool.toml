@@ -353,6 +353,20 @@ pytest_tests = [
 pytest_args = ["--maxfail=1"]
 pytest_include_defaults = false
 
+[test_profiles.r11a]
+pytest_tests = [
+  "tests/test_r11a_config_diagnostic_convergence.py",
+  "tests/test_r11_config_provenance.py",
+  "tests/test_r08_machine_capability_verification.py",
+  "tests/test_r06_runtime_install_truth.py",
+  "tests/test_cli_integration.py",
+  "tests/test_completion.py",
+  "tests/test_manpages.py",
+  "tests/test_distribution_contract.py",
+]
+pytest_args = ["--maxfail=1"]
+pytest_include_defaults = false
+
 [[test]]
 id = "arc-r09b-remote-capability-publication"
 name = "ARC-R09B remote capability, cache provenance, and publication truth"
@@ -494,6 +508,23 @@ runner = "pytest"
 command = [
   "python3", "-m", "pytest", "-q",
   "--junitxml=.devtool/reports/roadmap/arc-r11-config-provenance.xml",
+  "tests/test_r11_config_provenance.py",
+  "tests/test_r08_machine_capability_verification.py",
+  "tests/test_r06_runtime_install_truth.py",
+  "tests/test_cli_integration.py",
+  "tests/test_completion.py",
+  "tests/test_manpages.py",
+  "tests/test_distribution_contract.py",
+]
+
+[[test]]
+id = "arc-r11a-config-diagnostic-convergence"
+name = "ARC-R11A configuration diagnostic convergence and strict typed inputs"
+runner = "pytest"
+command = [
+  "python3", "-m", "pytest", "-q",
+  "--junitxml=.devtool/reports/roadmap/arc-r11a-config-diagnostic-convergence.xml",
+  "tests/test_r11a_config_diagnostic_convergence.py",
   "tests/test_r11_config_provenance.py",
   "tests/test_r08_machine_capability_verification.py",
   "tests/test_r06_runtime_install_truth.py",
@@ -849,6 +880,16 @@ r11 = [
   { id = "r11", ref = "test:arc-r11-config-provenance", depends_on = ["machine-contract", "config-contract", "docs", "completion", "devtool-contract"] },
 ]
 
+r11a = [
+  { id = "syntax", ref = "job:syntax", depends_on = [] },
+  { id = "machine-contract", ref = "job:machine-contract", depends_on = ["syntax"] },
+  { id = "config-contract", ref = "job:config-contract", depends_on = ["syntax"] },
+  { id = "docs", ref = "job:command-docs-contract", depends_on = ["syntax"] },
+  { id = "completion", ref = "job:completion-contract", depends_on = ["syntax"] },
+  { id = "devtool-contract", ref = "job:devtool-contract", depends_on = ["syntax"] },
+  { id = "r11a", ref = "test:arc-r11a-config-diagnostic-convergence", depends_on = ["machine-contract", "config-contract", "docs", "completion", "devtool-contract"] },
+]
+
 refresh_install = [
   { id = "alias-contract", ref = "job:alias-contract", depends_on = [] },
   { id = "refresh", ref = "job:refresh-install", depends_on = ["alias-contract"] },
@@ -951,7 +992,7 @@ aliases = ["t"]
 [wrapper.commands.test.options.profile]
 type = "choice"
 description = "Select a repository test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "r10c", "r10_gate", "r11", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "r10c", "r10_gate", "r11", "r11a", "final_gate", "full"]
 command_argv = ["--profile", "{value}"]
 
 [wrapper.commands.test.options.node]
@@ -1003,7 +1044,7 @@ aliases = ["val"]
 [wrapper.commands.validate.options.profile]
 type = "choice"
 description = "Select the validation test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "r10c", "r10_gate", "r11", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "r10c", "r10_gate", "r11", "r11a", "final_gate", "full"]
 command_argv = ["--test-profile", "{value}"]
 
 [wrapper.commands.validate.options.affected]
@@ -1133,6 +1174,11 @@ target = "arc"
 [wrapper.commands.r11]
 description = "Run ARC-R11 configuration provenance and explainability validation"
 workflow = "r11"
+target = "arc"
+
+[wrapper.commands.r11a]
+description = "Run ARC-R11A configuration diagnostic convergence validation"
+workflow = "r11a"
 target = "arc"
 
 [wrapper.commands.refresh-install]

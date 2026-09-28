@@ -508,7 +508,7 @@ for page in (
         "ARC-CONFIG",
         (
             ("NAME", "arc-config - Arc TOML configuration"),
-            ("DESCRIPTION", "Arc reads ~/.config/arc/config.toml, or $XDG_CONFIG_HOME/arc/config.toml. Configuration supplies backend preference lists, UI defaults, remote definitions, completion cache policy, and named profiles. arc config show/explain/profile exposes effective values and provenance; invalid TOML/types remain visible to config and doctor instead of silently becoming an empty configuration."),
+            ("DESCRIPTION", "Arc reads ~/.config/arc/config.toml, or $XDG_CONFIG_HOME/arc/config.toml. Configuration supplies backend preference lists, UI defaults, remote definitions, completion cache policy, and named profiles. arc config show/explain/profile exposes effective values and provenance; invalid TOML/types and invalid supported environment overrides remain visible to config and doctor instead of silently becoming an empty/default configuration. TOML/profile integer fields require actual integers rather than float/boolean coercion."),
             ("BACKENDS", "[backends] keys correspond to normalized roles such as tar, zip_create, zip_extract, 7z, rar_create, rar_extract, gzip, bzip2, xz, and zstd. ARC_BACKEND_* environment variables override configured lists."),
             ("REMOTES", "[remotes.NAME] may define type='ssh' with host/user/port/identity_file/proxy_jump/ssh_args, or type='rclone' with a provider remote name."),
             ("UI", "[ui] may set progress, show_native, and native_command_style."),

@@ -111,6 +111,12 @@ def _validate_table(data: Mapping[str, Any], key: str, issues: list[ConfigIssue]
     return value
 
 
+def _toml_integer(value: Any) -> bool:
+    # bool is an int subclass in Python but TOML booleans are not integer
+    # configuration values. File/profile validation must not coerce them.
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
 def validate_config(data: Mapping[str, Any]) -> tuple[ConfigIssue, ...]:
     issues: list[ConfigIssue] = []
     allowed_top = {"backends", "completion", "create", "profiles", "remote", "remotes", "ui"}
@@ -131,21 +137,15 @@ def validate_config(data: Mapping[str, Any]) -> tuple[ConfigIssue, ...]:
     for key in sorted(set(create) - {"level", "threads"}):
         issues.append(_issue("warning", "unknown_key", f"create.{key}", f"unknown create configuration key create.{key}"))
     if "level" in create:
-        try:
-            level = int(create["level"])
-        except (TypeError, ValueError):
+        if not _toml_integer(create["level"]):
             issues.append(_issue("error", "invalid_type", "create.level", "create.level must be an integer from 0 to 9"))
-        else:
-            if not 0 <= level <= 9:
-                issues.append(_issue("error", "invalid_value", "create.level", "create.level must be between 0 and 9"))
+        elif not 0 <= create["level"] <= 9:
+            issues.append(_issue("error", "invalid_value", "create.level", "create.level must be between 0 and 9"))
     if "threads" in create:
-        try:
-            threads = int(create["threads"])
-        except (TypeError, ValueError):
+        if not _toml_integer(create["threads"]):
             issues.append(_issue("error", "invalid_type", "create.threads", "create.threads must be an integer"))
-        else:
-            if threads < 0:
-                issues.append(_issue("error", "invalid_value", "create.threads", "create.threads must be zero or greater"))
+        elif create["threads"] < 0:
+            issues.append(_issue("error", "invalid_value", "create.threads", "create.threads must be zero or greater"))
 
     remote = _validate_table(data, "remote", issues)
     for key in sorted(set(remote) - {"execution"}):
@@ -169,13 +169,11 @@ def validate_config(data: Mapping[str, Any]) -> tuple[ConfigIssue, ...]:
         issues.append(_issue("warning", "unknown_key", f"completion.{key}", f"unknown completion configuration key completion.{key}"))
     for key in ("remote_ttl_seconds", "capability_ttl_seconds"):
         if key in completion:
-            try:
-                value = int(completion[key])
-            except (TypeError, ValueError):
+            value = completion[key]
+            if not _toml_integer(value):
                 issues.append(_issue("error", "invalid_type", f"completion.{key}", f"completion.{key} must be an integer"))
-            else:
-                if value < 0:
-                    issues.append(_issue("error", "invalid_value", f"completion.{key}", f"completion.{key} must be zero or greater"))
+            elif value < 0:
+                issues.append(_issue("error", "invalid_value", f"completion.{key}", f"completion.{key} must be zero or greater"))
 
     profiles = _validate_table(data, "profiles", issues)
     allowed_profile = {
@@ -194,21 +192,17 @@ def validate_config(data: Mapping[str, Any]) -> tuple[ConfigIssue, ...]:
         if "progress" in value and value["progress"] not in {"auto", "always", "never"}:
             issues.append(_issue("error", "invalid_value", f"{prefix}.progress", f"profile {name!r} progress must be auto, always, or never"))
         if "level" in value:
-            try:
-                level = int(value["level"])
-            except (TypeError, ValueError):
+            level = value["level"]
+            if not _toml_integer(level):
                 issues.append(_issue("error", "invalid_type", f"{prefix}.level", f"profile {name!r} level must be an integer from 0 to 9"))
-            else:
-                if not 0 <= level <= 9:
-                    issues.append(_issue("error", "invalid_value", f"{prefix}.level", f"profile {name!r} level must be between 0 and 9"))
+            elif not 0 <= level <= 9:
+                issues.append(_issue("error", "invalid_value", f"{prefix}.level", f"profile {name!r} level must be between 0 and 9"))
         if "threads" in value:
-            try:
-                threads = int(value["threads"])
-            except (TypeError, ValueError):
+            threads = value["threads"]
+            if not _toml_integer(threads):
                 issues.append(_issue("error", "invalid_type", f"{prefix}.threads", f"profile {name!r} threads must be an integer"))
-            else:
-                if threads < 0:
-                    issues.append(_issue("error", "invalid_value", f"{prefix}.threads", f"profile {name!r} threads must be zero or greater"))
+            elif threads < 0:
+                issues.append(_issue("error", "invalid_value", f"{prefix}.threads", f"profile {name!r} threads must be zero or greater"))
         for option, allowed in (("yazi", {"auto", "archive", "inputs", "output"}), ("show_native", {"before", "after", "both"}), ("native_style", {"exact", "reproducible"}), ("execution", {"auto", "local", "remote"})):
             if option in value and value[option] not in allowed:
                 issues.append(_issue("error", "invalid_value", f"{prefix}.{option}", f"profile {name!r} {option} is invalid"))
@@ -236,43 +230,49 @@ def validate_config(data: Mapping[str, Any]) -> tuple[ConfigIssue, ...]:
         if kind not in {"ssh", "rclone"}:
             issues.append(_issue("error", "invalid_value", f"{prefix}.type", f"remote {name!r} type must be ssh or rclone"))
         if "port" in value:
-            try:
-                port = int(value["port"])
-            except (TypeError, ValueError):
+            port = value["port"]
+            if not _toml_integer(port):
                 issues.append(_issue("error", "invalid_type", f"{prefix}.port", f"remote {name!r} port must be an integer"))
-            else:
-                if not 1 <= port <= 65535:
-                    issues.append(_issue("error", "invalid_value", f"{prefix}.port", f"remote {name!r} port must be between 1 and 65535"))
+            elif not 1 <= port <= 65535:
+                issues.append(_issue("error", "invalid_value", f"{prefix}.port", f"remote {name!r} port must be between 1 and 65535"))
         if "ssh_args" in value and (not isinstance(value["ssh_args"], list) or not all(isinstance(item, str) for item in value["ssh_args"])):
             issues.append(_issue("error", "invalid_type", f"{prefix}.ssh_args", f"remote {name!r} ssh_args must be a list of strings"))
         for ttl_key in ("completion_ttl_seconds", "capability_ttl_seconds"):
             if ttl_key in value:
-                try:
-                    ttl = int(value[ttl_key])
-                except (TypeError, ValueError):
+                ttl = value[ttl_key]
+                if not _toml_integer(ttl):
                     issues.append(_issue("error", "invalid_type", f"{prefix}.{ttl_key}", f"remote {name!r} {ttl_key} must be an integer"))
-                else:
-                    if ttl < 0:
-                        issues.append(_issue("error", "invalid_value", f"{prefix}.{ttl_key}", f"remote {name!r} {ttl_key} must be zero or greater"))
+                elif ttl < 0:
+                    issues.append(_issue("error", "invalid_value", f"{prefix}.{ttl_key}", f"remote {name!r} {ttl_key} must be zero or greater"))
 
     return tuple(issues)
 
 
 def load_config_result() -> ConfigLoadResult:
     path = config_path()
+    environment_issues = validate_environment()
     if not path.is_file():
-        return ConfigLoadResult(path, False, {}, ())
+        return ConfigLoadResult(path, False, {}, environment_issues)
     try:
         with path.open("rb") as fh:
             raw = tomllib.load(fh)
     except tomllib.TOMLDecodeError as exc:
-        return ConfigLoadResult(path, True, {}, (_issue("error", "toml_decode", "", f"invalid TOML in {path}: {exc}"),))
+        return ConfigLoadResult(
+            path, True, {},
+            (_issue("error", "toml_decode", "", f"invalid TOML in {path}: {exc}"), *environment_issues),
+        )
     except OSError as exc:
-        return ConfigLoadResult(path, True, {}, (_issue("error", "read_error", "", f"cannot read {path}: {exc}"),))
+        return ConfigLoadResult(
+            path, True, {},
+            (_issue("error", "read_error", "", f"cannot read {path}: {exc}"), *environment_issues),
+        )
     if not isinstance(raw, dict):
-        return ConfigLoadResult(path, True, {}, (_issue("error", "invalid_root", "", f"configuration root in {path} must be a table"),))
+        return ConfigLoadResult(
+            path, True, {},
+            (_issue("error", "invalid_root", "", f"configuration root in {path} must be a table"), *environment_issues),
+        )
     data = dict(raw)
-    return ConfigLoadResult(path, True, data, validate_config(data))
+    return ConfigLoadResult(path, True, data, (*validate_config(data), *environment_issues))
 
 
 def load_config(*, strict: bool = False) -> dict:
@@ -357,6 +357,35 @@ SETTING_SPECS: dict[str, _SettingSpec] = {
     "command.backend": _SettingSpec("command.backend", None, (), None, "backend", "backend", _identity),
 }
 
+def _backend_environment_value(role: str, raw: str) -> list[str]:
+    values = [item.strip() for item in str(raw).replace(os.pathsep, ",").split(",") if item.strip()]
+    if not values:
+        env_key = "ARC_BACKEND_" + role.upper().replace("-", "_")
+        raise UsageError(f"{env_key} must contain at least one backend executable name")
+    return values
+
+
+def validate_environment(environ: Mapping[str, str] | None = None) -> tuple[ConfigIssue, ...]:
+    env = os.environ if environ is None else environ
+    issues: list[ConfigIssue] = []
+    for key, spec in SETTING_SPECS.items():
+        if not spec.env or spec.env not in env or env[spec.env] == "":
+            continue
+        try:
+            spec.normalize(env[spec.env], key)
+        except UsageError as exc:
+            issues.append(_issue("error", "invalid_environment", f"environment.{spec.env}", f"{spec.env}: {exc}"))
+    for role in DEFAULT_BACKENDS:
+        env_key = "ARC_BACKEND_" + role.upper().replace("-", "_")
+        if env_key not in env or env[env_key] == "":
+            continue
+        try:
+            _backend_environment_value(role, env[env_key])
+        except UsageError as exc:
+            issues.append(_issue("error", "invalid_environment", f"environment.{env_key}", str(exc)))
+    return tuple(issues)
+
+
 
 def configuration_keys() -> tuple[str, ...]:
     backend_keys = tuple(f"backends.{name}" for name in sorted(DEFAULT_BACKENDS))
@@ -401,8 +430,7 @@ def resolve_config_value(
             candidates.append(("config", normalized, str(config_path())))
         env_key = "ARC_BACKEND_" + role.upper().replace("-", "_")
         if env.get(env_key):
-            normalized = [x.strip() for x in str(env[env_key]).replace(os.pathsep, ",").split(",") if x.strip()]
-            candidates.append(("environment", normalized, env_key))
+            candidates.append(("environment", _backend_environment_value(role, env[env_key]), env_key))
         selected = len(candidates) - 1
         for index, (source, value, detail) in enumerate(candidates):
             layers.append(ConfigLayer(source, key, value, index == selected, detail))
@@ -478,6 +506,12 @@ def config_inspection_payload(
         "profile": profile,
         "cli_overrides": dict(cli or {}),
     }
+    # Diagnostic surfaces must remain usable even when a file or supported
+    # environment override is invalid. In that state the issue list is the
+    # authority and Arc intentionally does not manufacture an effective value
+    # that the runtime itself would refuse to execute.
+    if not config_result.valid:
+        return payload
     if key is not None:
         payload["resolution"] = resolve_config_value(key, config_result.data, profile=profile, cli=cli).as_dict()
     else:

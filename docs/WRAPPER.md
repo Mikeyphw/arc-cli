@@ -208,3 +208,5 @@ This resolves to the `r09b_gate` EXO workflow. It rechecks machine, provenance, 
 ## ARC-R11 configuration provenance
 
 `./devtoolw r11` runs the repository-owned R11 configuration provenance workflow: syntax, machine/config contracts, generated documentation/completion parity, Devtool contract, and focused R11 regression tests. The separate R11 gate remains a later artifact.
+
+`./devtoolw r11a` runs the R11A diagnostic-convergence workflow added by the gate audit: invalid supported environment overrides, strict TOML integer typing, doctor parity, machine/config contracts, and cumulative R11 compatibility.

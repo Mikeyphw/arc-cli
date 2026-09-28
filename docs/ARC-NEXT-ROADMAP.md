@@ -110,7 +110,11 @@ The next artifact remains the separate widened R10 gate, now auditing R10 + R10A
 
 R11 implementation owns one typed load/validation/result model, one effective-setting resolver, `arc.config-inspection/v1`, raw/effective/explain/profile inspection, runtime fail-closed behavior for invalid configuration, warning-level unknown-key diagnostics, doctor parity, backend environment provenance, generated command/docs/completion parity, and first-class Devtool workflow/test ownership. Precedence is built-in → config → supported environment → selected profile → explicit CLI.
 
-**Separate R11 gate:** audit the full provenance/diagnostic promise ledger and cumulative compatibility surface before R12 begins.
+### R11A — Diagnostic convergence and strict typed inputs
+
+The first R11 gate audit found an implementation gap inside the existing R11 boundary: supported environment overrides were explainable when valid but invalid values were not part of the typed load/diagnostic result, allowing doctor to report a healthy default configuration when no TOML file existed. It also found TOML integer fields accepting float/boolean coercion through Python `int(...)`. R11A closes both gaps without changing the R12 boundary: supported environment failures are typed and fail closed across runtime/config/doctor/machine surfaces, invalid effective inspection remains structured, backend environment lists cannot normalize to empty, and TOML/profile integer fields require actual integers.
+
+**Separate R11 gate:** audit R11 + R11A across the full provenance/diagnostic promise ledger and cumulative compatibility surface before R12 begins.
 
 ## R12 — Advisory intelligence, benchmarking, and support evidence
 

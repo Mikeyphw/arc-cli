@@ -179,6 +179,12 @@ All notable changes to this project will be documented here.
 
 ### Added
 
+### ARC-R11A configuration diagnostic convergence
+
+- Validate supported `ARC_PROGRESS`, `ARC_LEVEL`, `ARC_THREADS`, and `ARC_BACKEND_*` overrides in the same typed configuration result consumed by runtime, `arc config`, and doctor.
+- Keep invalid effective configuration inspection structured and machine-readable while refusing to manufacture values the runtime would reject.
+- Reject float/boolean coercion for TOML/profile integer fields, remote ports/TTLs, and completion TTLs.
+
 - First-class Devtool repository contract for the `arc` Python target.
 - Native-Termux host-Python execution policy with a Devtool-managed host venv.
 - Generated `devtoolw`/`devtoolw.cmd` launchers and typed wrapper commands.

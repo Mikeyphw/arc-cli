@@ -947,7 +947,7 @@ arc-config - Arc TOML configuration
 
 ### Description
 
-Arc reads ~/.config/arc/config.toml, or $XDG_CONFIG_HOME/arc/config.toml. Configuration supplies backend preference lists, UI defaults, remote definitions, completion cache policy, and named profiles. arc config show/explain/profile exposes effective values and provenance; invalid TOML/types remain visible to config and doctor instead of silently becoming an empty configuration.
+Arc reads ~/.config/arc/config.toml, or $XDG_CONFIG_HOME/arc/config.toml. Configuration supplies backend preference lists, UI defaults, remote definitions, completion cache policy, and named profiles. arc config show/explain/profile exposes effective values and provenance; invalid TOML/types and invalid supported environment overrides remain visible to config and doctor instead of silently becoming an empty/default configuration. TOML/profile integer fields require actual integers rather than float/boolean coercion.
 
 ### Backends
 

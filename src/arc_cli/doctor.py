@@ -114,8 +114,6 @@ def alias_status_rows(which: Callable[[str], str | None] = shutil.which) -> list
 
 def _config_check(result=None) -> DoctorCheck:
     result = result or load_config_result()
-    if not result.exists:
-        return DoctorCheck("config", "pass", "configuration", f"no config file; defaults active ({result.path})")
     errors = [issue for issue in result.issues if issue.severity == "error"]
     warnings = [issue for issue in result.issues if issue.severity == "warning"]
     if errors:
@@ -124,6 +122,8 @@ def _config_check(result=None) -> DoctorCheck:
     if warnings:
         detail = "; ".join(issue.message for issue in warnings)
         return DoctorCheck("config", "warn", "configuration", f"{result.path}: {detail}")
+    if not result.exists:
+        return DoctorCheck("config", "pass", "configuration", f"no config file; defaults active ({result.path})")
     return DoctorCheck("config", "pass", "configuration", f"parsed and validated {result.path}")
 
 

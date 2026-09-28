@@ -3888,6 +3888,9 @@ def _config_command(args) -> int:
 
     stdout_console.print(f"Config: {result.path} · {'present' if result.exists else 'not present'} · {'valid' if result.valid else 'invalid'}")
     _print_config_issues(result)
+    if not result.valid and not (action == "show" and not args.effective):
+        stdout_console.print("[dim]Effective resolution is unavailable until configuration diagnostics are fixed.[/]")
+        return 2
     if action == "show" and not args.effective:
         if result.data:
             stdout_console.print_json(json.dumps(result.data, ensure_ascii=False))

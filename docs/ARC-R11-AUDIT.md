@@ -31,6 +31,12 @@ The pre-R11 loader caught TOML/read failures and returned `{}`. That erased the 
 - Secret-bearing password variables are not configuration-provenance keys and are never surfaced by this contract.
 - R12 diagnostics bundles may consume this evidence but do not become configuration authority.
 
+## R11A completion findings
+
+The first gate audit found two R11-owned gaps before qualification. Supported environment overrides were part of the declared precedence chain but were not part of the typed diagnostic result, so `ARC_LEVEL=bogus` could make effective resolution fail while `arc doctor` still reported configuration healthy when no TOML file existed. The same audit found file/profile integer validation coercing TOML floats/booleans through `int(...)` despite the contract describing typed integers.
+
+R11A closes those gaps by validating supported environment overrides in the shared result model, keeping invalid effective inspection machine-readable without manufacturing an effective value, ordering doctor diagnostics before the no-file fast path, rejecting empty backend environment preference lists, and requiring actual TOML integers for integer-valued file/profile/remote/cache fields.
+
 ## Gate obligations
 
-The separate R11 gate must re-audit invalid TOML, invalid typed values, unknown keys, all five precedence layers, backend environment overrides, profile resolution, JSON/machine/schema parity, doctor/runtime behavior, generated docs/completion/package inclusion, and cumulative R10 compatibility.
+The separate R11 gate must re-audit invalid TOML, invalid typed values, invalid supported environment values with and without a TOML file, unknown keys, all five precedence layers, backend environment overrides, profile resolution, JSON/machine/schema parity, doctor/runtime behavior, generated docs/completion/package inclusion, and cumulative R10 compatibility.
