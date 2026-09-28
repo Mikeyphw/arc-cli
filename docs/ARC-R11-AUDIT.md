@@ -45,4 +45,7 @@ The separate R11 gate must re-audit invalid TOML, invalid typed values, invalid 
 The widened gate audit found one final doctor-only split-brain after R11A: an invalid `ARC_BACKEND_*` value was correctly represented as an `invalid_environment` configuration issue, but `collect_doctor_report()` then called backend inventory with an empty config while still inheriting the process environment. Backend preference resolution re-read the same invalid override and raised, so doctor crashed after already diagnosing the configuration failure.
 
 R11B makes backend inventory environment-explicit. Runtime and ordinary inventory behavior still inherit the process environment, while doctor passes an empty environment mapping only after the shared configuration result is invalid. That preserves the original failure evidence and lets downstream backend/install/generated-surface checks finish using safe built-in preferences. The R11 gate must prove the full invalid environment matrix, including invalid backend overrides, cannot re-enter a failing resolver after the configuration check.
+## R11 gate result: QUALIFIED
+
+The separate cumulative R11 gate re-audits R11, R11A, and R11B together. It proves runtime-vs-explain parity, valid/invalid `arc.config-inspection/v1` shape, every supported invalid environment override through doctor, strict typed input behavior, generated/package parity, and cumulative R10 compatibility. No additional runtime remediation was required after R11B. R12 remains outside this configuration-authority boundary.
 

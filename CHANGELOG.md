@@ -1,3 +1,9 @@
+## ARC-R11 cumulative gate
+
+- Qualify R11 through R11B with a separate 134-test gate spanning five-layer provenance, strict typed config/environment diagnostics, doctor isolation, machine/schema parity, cumulative R10 compatibility, generated surfaces, and packaging.
+- Add gate-only runtime-vs-explain parity, valid/invalid config-inspection shape, exhaustive invalid environment, unknown-warning, and first-class ownership probes.
+- Add `arc-r11-gate` / `r11_gate` / `./devtoolw r11-gate` ownership and close R11 before R12 advisory intelligence begins.
+
 ## ARC-R10 cumulative gate
 
 ### ARC-R11 — configuration provenance and explainability

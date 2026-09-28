@@ -120,6 +120,8 @@ The widened R11 gate audit found one final convergence gap: after diagnosing an 
 
 **Separate R11 gate:** audit R11 + R11A + R11B across the full provenance/diagnostic promise ledger and cumulative compatibility surface before R12 begins.
 
+**R11 gate: QUALIFIED.** The separate cumulative gate closes R11 through R11B with first-class `arc-r11-gate` / `r11_gate` Devtool ownership and a 134-test provenance/diagnostic/runtime/docs/package matrix. R12 is now the final implementation boundary.
+
 ## R12 — Advisory intelligence, benchmarking, and support evidence
 
 Merge window: inspect items 16–18 before implementation.
