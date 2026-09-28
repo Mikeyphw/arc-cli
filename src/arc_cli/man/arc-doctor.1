@@ -1,0 +1,23 @@
+.TH "ARC-DOCTOR" "1" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-doctor \- audit Arc installation and runtime health
+.SH "SYNOPSIS"
+arc doctor [\-\-json] [\-\-fix] [\-\-source PATH]
+.SH "DESCRIPTION"
+Audit the active Arc package, source checkout, installed console entry points, PATH aliases, configuration, native backends, optional integrations, and generated documentation/completion surfaces.
+.SH "OPTIONS"
+\-\-json
+.PP
+\-\-fix
+.PP
+\-\-source PATH
+.SH "SEMANTICS"
+Doctor reports repository/package/runtime drift explicitly. \-\-fix is deliberately bounded: it refreshes generated registry/documentation/completion surfaces and reinstalls the selected source checkout editable; it does not silently install operating\-system backends or rewrite user configuration.
+.SH "EXAMPLES"
+arc doctor
+.PP
+arc doctor \-\-json
+.PP
+arc doctor \-\-fix \-\-source ~/Code/arc\-cli
+.SH "SEE ALSO"
+arc\-aliases(1), arc\-backends(1), arc\-config(5)

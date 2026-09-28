@@ -35,6 +35,8 @@ Arc provides one normalized interface over native archive and compression backen
   backends     inspect native backend capabilities
   formats      show supported formats
   profiles     show configured profiles
+  aliases      inspect installed executable aliases
+  doctor       audit Arc installation and runtime health
   completion   manage shell completion
   help         open detailed bundled help
   man          open Arc manual pages
@@ -147,6 +149,39 @@ arca files.zip new.txt
 ### See Also
 
 arc-create(1), arc-update(1), arc-remove(1)
+
+## arc-aliases(1)
+
+### Name
+
+arc-aliases - inspect installed executable aliases
+
+### Synopsis
+
+arc aliases [--json] [--missing]
+
+### Description
+
+Inspect the executable aliases declared by Arc's canonical alias registry and whether each alias currently resolves on PATH.
+
+### Options
+
+--json
+--missing
+
+### Semantics
+
+The alias registry is the source of truth for package console entry points, Devtool packaging expectations, completion registration, documentation, and executable dispatch. A missing alias on PATH can therefore be distinguished from a missing registry declaration.
+
+### Examples
+
+arc aliases
+arc aliases --missing
+arc aliases --json
+
+### See Also
+
+arc-doctor(1), arc-completion(1)
 
 ## arc-backends(1)
 
@@ -357,6 +392,40 @@ arc create misleading.rar -7z data/
 ### See Also
 
 arc(1), arc-formats(7), arc-backends(7), arc-remote(7)
+
+## arc-doctor(1)
+
+### Name
+
+arc-doctor - audit Arc installation and runtime health
+
+### Synopsis
+
+arc doctor [--json] [--fix] [--source PATH]
+
+### Description
+
+Audit the active Arc package, source checkout, installed console entry points, PATH aliases, configuration, native backends, optional integrations, and generated documentation/completion surfaces.
+
+### Options
+
+--json
+--fix
+--source PATH
+
+### Semantics
+
+Doctor reports repository/package/runtime drift explicitly. --fix is deliberately bounded: it refreshes generated registry/documentation/completion surfaces and reinstalls the selected source checkout editable; it does not silently install operating-system backends or rewrite user configuration.
+
+### Examples
+
+arc doctor
+arc doctor --json
+arc doctor --fix --source ~/Code/arc-cli
+
+### See Also
+
+arc-aliases(1), arc-backends(1), arc-config(5)
 
 ## arc-extract(1)
 

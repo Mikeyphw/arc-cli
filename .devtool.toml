@@ -101,6 +101,31 @@ pytest_tests = [
 pytest_args = ["--maxfail=1"]
 pytest_include_defaults = false
 
+[test_profiles.r06]
+pytest_tests = [
+  "tests/test_r06_runtime_install_truth.py",
+  "tests/test_command_aliases.py",
+  "tests/test_completion.py",
+  "tests/test_manpages.py",
+  "tests/test_distribution_contract.py",
+]
+pytest_args = ["--maxfail=1"]
+pytest_include_defaults = false
+
+[[test]]
+id = "arc-r06-runtime-install-truth"
+name = "ARC-R06 runtime, alias, and installation truth"
+runner = "pytest"
+command = [
+  "python3", "-m", "pytest", "-q",
+  "--junitxml=.devtool/reports/roadmap/arc-r06-runtime-install-truth.xml",
+  "tests/test_r06_runtime_install_truth.py",
+  "tests/test_command_aliases.py",
+  "tests/test_completion.py",
+  "tests/test_manpages.py",
+  "tests/test_distribution_contract.py",
+]
+
 [ui.profiles.arc]
 extends = "developer"
 density = "compact"
@@ -212,6 +237,18 @@ inputs = [
 ]
 metadata = { read_only = true, purpose = "arc-r05-targeted-tests", contract = "arc-r05" }
 
+[targets.arc.jobs.alias-contract]
+runner = "command"
+command = ["python3", "scripts/sync_alias_registry.py", "--check"]
+inputs = ["src/arc_cli/command_docs.py", "scripts/sync_alias_registry.py", "pyproject.toml", ".devtool.toml"]
+metadata = { read_only = true, purpose = "canonical-alias-registry", contract = "arc-r06" }
+
+[targets.arc.jobs.refresh-install]
+runner = "command"
+command = ["python3", "scripts/refresh_dev_install.py", "--source", ".", "--no-generate"]
+inputs = ["src/**", "scripts/**", "pyproject.toml", ".devtool.toml", "completions/**", "docs/**"]
+metadata = { read_only = true, purpose = "editable-install-refresh", contract = "arc-r06", external_side_effect = "python-environment" }
+
 [targets.arc.jobs.ruff-toolchain]
 runner = "command"
 command = ["python3", "scripts/check_system_ruff.py"]
@@ -277,6 +314,17 @@ outputs = [".devtool/evidence/release-contract.json"]
 metadata = { read_only = false, purpose = "release-evidence", contract = "arc-devtool-v2" }
 
 [targets.arc.workflows]
+r06 = [
+  { id = "syntax", ref = "job:syntax", depends_on = [] },
+  { id = "alias-contract", ref = "job:alias-contract", depends_on = ["syntax"] },
+  { id = "r06-contract", ref = "test:arc-r06-runtime-install-truth", depends_on = ["alias-contract"] },
+]
+
+refresh_install = [
+  { id = "alias-contract", ref = "job:alias-contract", depends_on = [] },
+  { id = "refresh", ref = "job:refresh-install", depends_on = ["alias-contract"] },
+]
+
 lint = [
   { id = "ruff-toolchain", ref = "job:ruff-toolchain", depends_on = [] },
   { id = "ruff-check", ref = "job:ruff-check", depends_on = ["ruff-toolchain"] },
@@ -374,7 +422,7 @@ aliases = ["t"]
 [wrapper.commands.test.options.profile]
 type = "choice"
 description = "Select a repository test profile"
-choices = ["quick", "integration", "r04", "r05", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "final_gate", "full"]
 command_argv = ["--profile", "{value}"]
 
 [wrapper.commands.test.options.node]
@@ -426,7 +474,7 @@ aliases = ["val"]
 [wrapper.commands.validate.options.profile]
 type = "choice"
 description = "Select the validation test profile"
-choices = ["quick", "integration", "r04", "r05", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "final_gate", "full"]
 command_argv = ["--test-profile", "{value}"]
 
 [wrapper.commands.validate.options.affected]
@@ -497,6 +545,17 @@ description = "Run the final ARC gate, Devtool wrapper seal, content seal, and S
 workflow = "final_seal"
 target = "arc"
 aliases = ["s"]
+
+[wrapper.commands.r06]
+description = "Run ARC-R06 runtime, alias, and installation truth qualification"
+workflow = "r06"
+target = "arc"
+
+[wrapper.commands.refresh-install]
+description = "Regenerate Arc metadata surfaces and refresh the active editable install"
+workflow = "refresh_install"
+target = "arc"
+aliases = ["refresh"]
 
 [wrapper.commands.release]
 description = "Run validation, verified packaging, smoke, SBOM, and release evidence"

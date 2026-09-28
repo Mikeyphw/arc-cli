@@ -1,0 +1,21 @@
+.TH "ARC-ALIASES" "1" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-aliases \- inspect installed executable aliases
+.SH "SYNOPSIS"
+arc aliases [\-\-json] [\-\-missing]
+.SH "DESCRIPTION"
+Inspect the executable aliases declared by Arc's canonical alias registry and whether each alias currently resolves on PATH.
+.SH "OPTIONS"
+\-\-json
+.PP
+\-\-missing
+.SH "SEMANTICS"
+The alias registry is the source of truth for package console entry points, Devtool packaging expectations, completion registration, documentation, and executable dispatch. A missing alias on PATH can therefore be distinguished from a missing registry declaration.
+.SH "EXAMPLES"
+arc aliases
+.PP
+arc aliases \-\-missing
+.PP
+arc aliases \-\-json
+.SH "SEE ALSO"
+arc\-doctor(1), arc\-completion(1)

@@ -312,6 +312,34 @@ _add(
 )
 _add(
     _command_page(
+        "aliases",
+        "Inspect the executable aliases declared by Arc's canonical alias registry and whether each alias currently resolves on PATH.",
+        options="--json\n--missing",
+        semantics=(
+            "The alias registry is the source of truth for package console entry points, Devtool packaging expectations, "
+            "completion registration, documentation, and executable dispatch. A missing alias on PATH can therefore be "
+            "distinguished from a missing registry declaration."
+        ),
+        examples="arc aliases\narc aliases --missing\narc aliases --json",
+        see_also="arc-doctor(1), arc-completion(1)",
+    )
+)
+_add(
+    _command_page(
+        "doctor",
+        "Audit the active Arc package, source checkout, installed console entry points, PATH aliases, configuration, native backends, optional integrations, and generated documentation/completion surfaces.",
+        options="--json\n--fix\n--source PATH",
+        semantics=(
+            "Doctor reports repository/package/runtime drift explicitly. --fix is deliberately bounded: it refreshes "
+            "generated registry/documentation/completion surfaces and reinstalls the selected source checkout editable; "
+            "it does not silently install operating-system backends or rewrite user configuration."
+        ),
+        examples="arc doctor\narc doctor --json\narc doctor --fix --source ~/Code/arc-cli",
+        see_also="arc-aliases(1), arc-backends(1), arc-config(5)",
+    )
+)
+_add(
+    _command_page(
         "completion",
         "Generate Zsh completion and inspect, refresh, or clear Arc's remote completion cache.",
         options="arc completion zsh\narc completion cache [--json]\narc completion refresh LOCATION\narc completion clear-cache [LOCATION] [--json]",
@@ -402,6 +430,8 @@ DEFAULT_TOPIC_SECTIONS: dict[str, int] = {
     "update": 1,
     "remove": 1,
     "backends": 1,
+    "aliases": 1,
+    "doctor": 1,
     "completion": 1,
     "formats": 7,
     "remote": 7,

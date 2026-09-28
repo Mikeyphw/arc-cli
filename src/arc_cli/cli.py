@@ -25,6 +25,7 @@ from rich.text import Text
 from .backends import backend_inventory, resolve_backend, run_backend, _compression_command, _decompression_command
 from .completion import FORMATS, completion_candidates, completion_mode, encode_candidates_nul, zsh_completion
 from .command_docs import COMMAND_DOCS, EXECUTABLE_ALIASES
+from .doctor import alias_status_rows, collect_doctor_report, fix_and_recheck
 from .manpages import available_topics, show_manpage
 from .config import get_profile, load_config
 from .errors import ArcError, BackendUnavailable, ConflictError, CorruptArchive, PasswordError, UnsafeArchive, UnsupportedFormat, UsageError
@@ -231,6 +232,13 @@ def parser() -> argparse.ArgumentParser:
     q.add_argument("--remote")
     q = sub.add_parser("profiles", help=COMMAND_DOCS["profiles"].summary)
     q.add_argument("--json", action="store_true")
+    q = sub.add_parser("aliases", help=COMMAND_DOCS["aliases"].summary)
+    q.add_argument("--json", action="store_true")
+    q.add_argument("--missing", action="store_true", help="show only aliases missing from PATH")
+    q = sub.add_parser("doctor", help=COMMAND_DOCS["doctor"].summary)
+    q.add_argument("--json", action="store_true")
+    q.add_argument("--fix", action="store_true", help="refresh generated surfaces and editable install, then re-check")
+    q.add_argument("--source", type=Path, help="explicit arc-cli source checkout")
     q = sub.add_parser("man", help=COMMAND_DOCS["man"].summary)
     q.add_argument("topic", nargs="?", default="arc")
     q.add_argument("--list", action="store_true", dest="list_topics")
@@ -2868,6 +2876,49 @@ def _show_formats(json_mode: bool = False, remote: str | None = None, config: di
     return 0
 
 
+def _aliases_command(args) -> int:
+    rows = alias_status_rows()
+    if args.missing:
+        rows = [row for row in rows if not row["available"]]
+    if args.json:
+        print(json.dumps({"schema_version": 1, "aliases": rows}, sort_keys=True))
+        return 0
+    t = Table(title="Arc executable aliases")
+    t.add_column("Executable")
+    t.add_column("Command")
+    t.add_column("Installed")
+    t.add_column("Path")
+    for row in rows:
+        installed = "yes" if row["available"] else "no"
+        t.add_row(str(row["executable"]), str(row["command"]), installed, str(row["path"] or "—"))
+    stdout_console.print(t)
+    return 0
+
+
+def _doctor_command(args) -> int:
+    if args.fix:
+        report, _result = fix_and_recheck(source=args.source)
+    else:
+        report = collect_doctor_report(source=args.source)
+    if args.json:
+        print(json.dumps(report, sort_keys=True))
+    else:
+        t = Table(title="Arc doctor")
+        t.add_column("Status")
+        t.add_column("Check")
+        t.add_column("Detail")
+        for check in report["checks"]:
+            t.add_row(str(check["status"]).upper(), str(check["summary"]), str(check["detail"]))
+        stdout_console.print(t)
+        summary = report["summary"]
+        stdout_console.print(
+            f"[bold]Summary:[/bold] {summary['pass']} pass · {summary['warn']} warn · {summary['fail']} fail"
+        )
+        if summary["warn"] or summary["fail"]:
+            stdout_console.print("Run [bold]arc doctor --fix[/bold] to refresh generated surfaces and the editable install when a source checkout is available.")
+    return 1 if report["summary"]["fail"] else 0
+
+
 def _dispatch_command(args, extra: list[str], config: dict) -> int:
     if args.command == "identify":
         return _identify(args, config)
@@ -2892,6 +2943,10 @@ def _dispatch_command(args, extra: list[str], config: dict) -> int:
         return _show_formats(args.json, args.remote, config)
     if args.command == "profiles":
         return _show_profiles(config, args.json)
+    if args.command == "aliases":
+        return _aliases_command(args)
+    if args.command == "doctor":
+        return _doctor_command(args)
     if args.command in {"man", "help"}:
         return _man_command(args)
     if args.command == "completion":

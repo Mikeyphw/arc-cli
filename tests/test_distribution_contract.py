@@ -87,7 +87,10 @@ def test_built_wheel_and_sdist_rebuild_preserve_alias_and_manual_contract(tmp_pa
         names = set(tf.getnames())
         top = next(iter(sorted({Path(name).parts[0] for name in names if name})))
         assert f"{top}/scripts/generate_command_docs.py" in names
+        assert f"{top}/scripts/sync_alias_registry.py" in names
+        assert f"{top}/scripts/refresh_dev_install.py" in names
         assert f"{top}/docs/COMMAND_REFERENCE.md" in names
+        assert f"{top}/docs/ARC-NEXT-ROADMAP.md" in names
         assert f"{top}/src/arc_cli/manual.py" in names
         tf.extractall(tmp_path / "sdist-tree", filter="data")
 

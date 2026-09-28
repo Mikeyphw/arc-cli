@@ -6,18 +6,18 @@ from pathlib import Path
 
 from .config import load_config, profile_names
 from .formats import CREATE_SUFFIX_SHORTCUTS
-from .command_docs import EXECUTABLE_ALIASES
+from .command_docs import COMMAND_DOCS, EXECUTABLE_ALIASES
 from .interactive import filesystem_candidates, rg_files
 from .remote import complete_remote, configured_remote_names, parse_remote
 
-OPERATIONS = ["identify", "list", "extract", "create", "info", "test", "convert", "add", "update", "remove", "backends", "formats", "profiles", "man", "help", "completion"]
+OPERATIONS = list(COMMAND_DOCS)
 FORMATS = ["tar", "tar.gz", "tar.bz2", "tar.xz", "tar.zstd", "zip", "7z", "rar", "gzip", "bzip2", "xz", "zstd"]
 BACKEND_NAMES = ["tar", "bsdtar", "7z", "7zz", "zip", "unzip", "rar", "unrar", "gzip", "pigz", "bzip2", "pbzip2", "xz", "pixz", "zstd", "pzstd"]
 
 VALUE_OPTIONS = {
     "--format", "-F", "--backend", "-o", "--output", "--level", "--threads", "--exclude", "--include",
     "--exclude-from", "--include-from", "--progress", "--password-file", "--password-env", "--profile",
-    "--show-native", "--native-style", "--execution", "--source-password-file", "--source-password-env",
+    "--show-native", "--native-style", "--execution", "--source-password-file", "--source-password-env", "--source",
 }
 OPTIONAL_VALUE_OPTIONS = {"--password", "--source-password", "--yazi"}
 
@@ -47,6 +47,8 @@ COMMAND_OPTIONS: dict[str, set[str]] = {
     "backends": {"--json", "--remote"},
     "formats": {"--json", "--remote"},
     "profiles": {"--json"},
+    "aliases": {"--json", "--missing"},
+    "doctor": {"--json", "--fix", "--source"},
     "man": {"--list", "--plain"},
     "help": set(),
     "completion": set(),
@@ -228,6 +230,8 @@ def completion_candidates(words: list[str]) -> list[str]:
     if prev == "--remote":
         config = load_config()
         return [x for x in configured_remote_names(config) if x.startswith(prefix)]
+    if prev == "--source":
+        return _path_candidates(prefix, op=op, refresh=refresh_remote, dirs_only=True)
     if prev in {"-o", "--output"}:
         return _path_candidates(prefix, op=op, refresh=refresh_remote, dirs_only=True)
     if prev in {"--password-file", "--source-password-file", "--exclude-from", "--include-from"}:
@@ -251,7 +255,7 @@ def completion_candidates(words: list[str]) -> list[str]:
     if op == "convert":
         return _path_candidates(prefix, op=op, refresh=refresh_remote)
     if op in {"man", "help"}:
-        topics = ["arc", "create", "extract", "list", "info", "test", "convert", "add", "update", "remove", "backends", "formats", "remote", "config", "profiles"]
+        topics = ["arc", *COMMAND_DOCS, "remote", "config"]
         topics.extend(sorted(EXECUTABLE_ALIASES))
         return [x for x in sorted(set(topics)) if x.startswith(prefix)]
     if op == "completion":

@@ -21,6 +21,13 @@ class CommandDoc:
         return f"{stem}.{self.section}"
 
 
+@dataclass(frozen=True, slots=True)
+class AliasSpec:
+    executable: str
+    command: str
+    summary: str
+
+
 # Shared command metadata. argparse help, executable alias dispatch, completion,
 # man-topic resolution, packaging-contract tests, and documentation checks all
 # consume this table so those surfaces cannot silently invent their own names.
@@ -38,6 +45,8 @@ COMMAND_DOCS: dict[str, CommandDoc] = {
     "backends": CommandDoc("backends", "inspect native backend capabilities", ("arcbe", "arc-backends"), synopsis="arc backends [OPTIONS]"),
     "formats": CommandDoc("formats", "show supported formats", ("arc-formats",), synopsis="arc formats [OPTIONS]"),
     "profiles": CommandDoc("profiles", "show configured profiles", ("arcp", "arc-profiles"), synopsis="arc profiles [OPTIONS]"),
+    "aliases": CommandDoc("aliases", "inspect installed executable aliases", synopsis="arc aliases [--json] [--missing]"),
+    "doctor": CommandDoc("doctor", "audit Arc installation and runtime health", synopsis="arc doctor [--json] [--fix] [--source PATH]"),
     "completion": CommandDoc("completion", "manage shell completion", synopsis="arc completion ACTION [LOCATION]"),
     "man": CommandDoc("man", "open Arc manual pages", synopsis="arc man [TOPIC]"),
     "help": CommandDoc("help", "open detailed help for an Arc command", synopsis="arc help [TOPIC]"),
@@ -51,15 +60,31 @@ REFERENCE_DOCS: dict[str, CommandDoc] = {
     # resolution defaults to the reference page for the noun itself.
 }
 
-ALIAS_TO_COMMAND: dict[str, str] = {
-    alias: name
+ALIAS_SPECS: tuple[AliasSpec, ...] = tuple(
+    AliasSpec(alias, name, doc.summary)
     for name, doc in COMMAND_DOCS.items()
     for alias in doc.aliases
-}
+)
 
-# Names installed as console scripts. Keep this mapping authoritative for the
-# dispatcher, completion docs, packaging tests, and man-page alias lookup.
+ALIAS_TO_COMMAND: dict[str, str] = {spec.executable: spec.command for spec in ALIAS_SPECS}
+
+# Names installed as console scripts. This compatibility mapping is derived
+# from the canonical alias registry rather than maintained independently.
 EXECUTABLE_ALIASES: dict[str, str] = dict(ALIAS_TO_COMMAND)
+
+
+def console_script_mapping() -> dict[str, str]:
+    """Return the canonical installed console-script contract."""
+    target = "arc_cli.cli:main"
+    return {"arc": target, **{spec.executable: target for spec in ALIAS_SPECS}}
+
+
+def console_script_names() -> tuple[str, ...]:
+    return tuple(console_script_mapping())
+
+
+def alias_specs() -> tuple[AliasSpec, ...]:
+    return ALIAS_SPECS
 
 
 def resolve_topic(value: str) -> str:

@@ -20,15 +20,19 @@ DEFAULT_BACKENDS = {
 }
 
 
-def _config_path() -> Path:
+def config_path() -> Path:
     root = os.environ.get("XDG_CONFIG_HOME")
     if root:
         return Path(root) / "arc" / "config.toml"
     return Path.home() / ".config" / "arc" / "config.toml"
 
 
+# Retained for callers from early Arc revisions; new code should use config_path().
+_config_path = config_path
+
+
 def load_config() -> dict:
-    path = _config_path()
+    path = config_path()
     if not path.is_file():
         return {}
     try:

@@ -153,6 +153,26 @@ arcp  / arc-profiles               -> arc profiles
 
 `arcc` is intentionally not installed because `c` would be ambiguous between create and convert. Generated Zsh completion is alias-aware and maps each executable back to its canonical Arc command before asking the Python completion engine for candidates. When a real alias is invoked with `--json`, Arc also adds a redacted `invocation` field plus `resolved_command`, so automation can distinguish the executable the user invoked from the canonical dispatcher operation.
 
+The alias list is now a typed registry rather than duplicated package metadata. Inspect registry/runtime agreement with:
+
+```bash
+arc aliases
+arc aliases --missing
+arc aliases --json
+```
+
+## Runtime and installation health
+
+`arc doctor` distinguishes source truth from installed-runtime truth. In particular, it detects the case where an alias is declared by the repository/package contract but the currently active editable installation has not created that executable on `PATH`:
+
+```bash
+arc doctor
+arc doctor --json
+arc doctor --fix --source ~/Code/arc-cli
+```
+
+`--fix` is bounded: it synchronizes the canonical alias registry into package/Devtool metadata, regenerates command docs/completion, checks those surfaces, and refreshes the selected source checkout with `pip install --no-build-isolation --no-deps -e`. It does not silently install native archive backends or rewrite user configuration. Repository development can invoke the same lifecycle through `./devtoolw refresh-install`.
+
 ## Manual pages and detailed help
 
 Arc ships Unix manual pages plus an in-package fallback for Termux/minimal systems:
