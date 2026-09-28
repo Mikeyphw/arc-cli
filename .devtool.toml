@@ -143,6 +143,7 @@ pytest_include_defaults = false
 [test_profiles.r09a]
 pytest_tests = [
   "tests/test_r09a_provenance_diff.py",
+  "tests/test_r06_runtime_install_truth.py",
   "tests/test_r08_machine_capability_verification.py",
   "tests/test_info_command.py",
   "tests/test_convert_command.py",
@@ -213,6 +214,7 @@ command = [
   "python3", "-m", "pytest", "-q",
   "--junitxml=.devtool/reports/roadmap/arc-r09a-provenance-diff.xml",
   "tests/test_r09a_provenance_diff.py",
+  "tests/test_r06_runtime_install_truth.py",
   "tests/test_r08_machine_capability_verification.py",
   "tests/test_info_command.py",
   "tests/test_convert_command.py",

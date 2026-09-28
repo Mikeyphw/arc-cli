@@ -152,3 +152,69 @@ def test_roadmap_preserves_merge_window_and_all_eighteen_items() -> None:
     for number in range(1, 19):
         assert f"{number}." in text
     assert "Separate R06 gate" in text
+
+
+def test_refresh_helper_rebinds_candidate_editable_to_persistent_checkout(monkeypatch, tmp_path: Path) -> None:
+    path = ROOT / "scripts" / "refresh_dev_install.py"
+    spec = importlib.util.spec_from_file_location("arc_refresh_rebind", path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    stable = tmp_path / "stable" / "arc-cli"
+    candidate = tmp_path / "transaction" / "arc-cli"
+    (stable / "src").mkdir(parents=True)
+    (candidate / "src").mkdir(parents=True)
+    prefix = tmp_path / "prefix"
+    monkeypatch.setenv("PIP_PREFIX", str(prefix))
+    purelib = module._purelib_path()
+    purelib.mkdir(parents=True)
+    pth = purelib / "__editable__.arc_cli-0.1.0.pth"
+    pth.write_text(str((candidate / "src").resolve()) + "\n", encoding="utf-8")
+    dist = purelib / "arc_cli-0.1.0.dist-info"
+    dist.mkdir()
+    direct = dist / "direct_url.json"
+    direct.write_text(json.dumps({"dir_info": {"editable": True}, "url": candidate.resolve().as_uri()}), encoding="utf-8")
+    (dist / "RECORD").write_text(
+        "__editable__.arc_cli-0.1.0.pth,,\narc_cli-0.1.0.dist-info/direct_url.json,,\narc_cli-0.1.0.dist-info/RECORD,,\n",
+        encoding="utf-8",
+    )
+
+    result = module._rebind_editable_install(candidate, stable)
+    assert result["rebound"] is True
+    assert pth.read_text(encoding="utf-8").strip() == str((stable / "src").resolve())
+    payload = json.loads(direct.read_text(encoding="utf-8"))
+    assert payload["dir_info"]["editable"] is True
+    assert payload["url"] == stable.resolve().as_uri()
+    record = (dist / "RECORD").read_text(encoding="utf-8")
+    assert "sha256=" in record
+
+
+def test_refresh_helper_dry_run_exposes_candidate_rebind_plan(tmp_path: Path) -> None:
+    candidate = tmp_path / "candidate"
+    candidate.mkdir()
+    for name in ("pyproject.toml",):
+        (candidate / name).write_text((ROOT / name).read_text(encoding="utf-8"), encoding="utf-8")
+    proc = subprocess.run(
+        [
+            sys.executable,
+            "scripts/refresh_dev_install.py",
+            "--source",
+            str(ROOT),
+            "--candidate-source",
+            str(candidate),
+            "--dry-run",
+            "--json",
+        ],
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    assert proc.returncode == 0, proc.stderr
+    payload = json.loads(proc.stdout)
+    assert payload["source"] == str(ROOT)
+    assert payload["candidate_source"] == str(candidate.resolve())
+    assert payload["will_rebind"] is True
+    assert payload["install"][-1] == str(candidate.resolve())
