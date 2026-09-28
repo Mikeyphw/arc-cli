@@ -53,6 +53,7 @@ from .remote import (
     list_remote,
     parse_remote,
     remote_capabilities,
+    remote_publication_guarantee,
     remote_exists,
     same_remote,
     ssh_command_prefix,
@@ -326,6 +327,7 @@ def parser() -> argparse.ArgumentParser:
     _add_json_option(q)
     q.add_argument("--verbose", action="store_true", help="show typed normalized capability profiles")
     q.add_argument("--remote")
+    q.add_argument("--refresh", action="store_true", help="refresh remote capability evidence instead of using a fresh cache entry")
     q = sub.add_parser("formats", help=COMMAND_DOCS["formats"].summary)
     _add_json_option(q)
     q.add_argument("--remote")
@@ -2856,6 +2858,17 @@ def _show_convert_plan(source: str, destination: str, source_fmt, target_fmt, st
     verification_plan = _verification_plan(target_fmt, args, config)
     verification_enabled = verification_plan["selected"] != VerificationLevel.NONE.value
     equivalence_enabled = bool(getattr(args, "prove_equivalent", False))
+    publication_guarantee = (
+        {
+            "strategy": "same-parent-temporary-file+os.replace",
+            "scope": "local-filesystem",
+            "atomicity": "same-filesystem-replace",
+            "guaranteed_atomic": True,
+            "replace_semantics": "replace",
+        }
+        if destination_remote is None
+        else remote_publication_guarantee(destination_remote, config, allow_probe=False)
+    )
     if destination_remote is None:
         publication = "local-same-filesystem-atomic-replace"
     elif verification_enabled and equivalence_enabled:
@@ -2870,7 +2883,12 @@ def _show_convert_plan(source: str, destination: str, source_fmt, target_fmt, st
     record_decision("destination_format", target_fmt.canonical, reason="explicit selector or destination suffix")
     record_decision("backend_chain", _convert_backend_summary(source_fmt, target_fmt, args, config), reason="compatible source/target backend resolution")
     record_decision("strategy", strategy, reason="selected from source/target representation and filters")
-    record_decision("publication", publication, reason="locality determines publication guarantees")
+    record_decision("publication", publication, reason="locality determines publication sequence")
+    record_decision(
+        "publication_guarantee",
+        publication_guarantee,
+        reason="typed R09B transport evidence; cache is consumed without adding a dry-run/network preflight",
+    )
     record_decision("verification", "verify-unpublished-candidate-then-published-remote-reread" if destination_remote and verification_enabled else ("verification-disabled" if not verification_enabled else "verify-unpublished-candidate-before-publish"), reason="publication verification sequence")
     record_decision("verification_policy", verification_plan, reason="typed verification policy negotiated against the selected test backend")
     record_decision(
@@ -2891,17 +2909,18 @@ def _show_convert_plan(source: str, destination: str, source_fmt, target_fmt, st
     t.add_row("Format", target_fmt.canonical + (" (explicit)" if _explicit_format(args) else ""))
     t.add_row("Backend", _convert_backend_summary(source_fmt, target_fmt, args, config))
     t.add_row("Strategy", strategy)
+    guarantee_label = str(publication_guarantee.get("atomicity", "unproven"))
     if destination_remote is None:
-        publication_label = "yes (local same-filesystem publish)"
+        publication_label = guarantee_label + "; local same-filesystem publish"
     elif verification_enabled and equivalence_enabled:
-        publication_label = "transport-dependent; remote re-read verified and logical equivalence proven"
+        publication_label = "transport-dependent; remote re-read verified and logical equivalence proven; atomicity=" + guarantee_label
     elif verification_enabled:
-        publication_label = "transport-dependent; remote re-read verified"
+        publication_label = "transport-dependent; remote re-read verified; atomicity=" + guarantee_label
     elif equivalence_enabled:
-        publication_label = "transport-dependent; remote re-read logical equivalence proven"
+        publication_label = "transport-dependent; remote re-read logical equivalence proven; atomicity=" + guarantee_label
     else:
-        publication_label = "transport-dependent; verification disabled"
-    t.add_row("Atomic", publication_label)
+        publication_label = "transport-dependent; verification disabled; atomicity=" + guarantee_label
+    t.add_row("Publication", publication_label)
     verify_label = str(verification_plan["selected"])
     if verification_plan.get("downgraded"):
         verify_label += " (downgraded)"
@@ -3115,6 +3134,7 @@ def _convert_one(job: dict, args, config: dict, source_password: str | None, des
     source_remote = parse_remote(source_raw, config, probe_rclone=True)
     destination_remote = parse_remote(destination_raw, config, probe_rclone=True)
     transfer_progress = progress_enabled(args.progress, args.json, args.quiet)
+    publication_guarantee: dict | None = None
     unpublished_candidate: Path | None = None
 
     try:
@@ -3215,7 +3235,7 @@ def _convert_one(job: dict, args, config: dict, source_password: str | None, des
 
             if destination_remote:
                 tx_event("remote-transfer", direction="upload", destination=destination_raw)
-                upload_remote(local_destination, destination_remote, config, progress=transfer_progress)
+                publication_guarantee = upload_remote(local_destination, destination_remote, config, progress=transfer_progress)
                 tx_event("remote-transfer-complete", direction="upload", destination=destination_raw)
                 # Verification and equivalence proof both require evidence from
                 # the published remote object rather than merely the local
@@ -3261,17 +3281,34 @@ def _convert_one(job: dict, args, config: dict, source_password: str | None, des
                         if verification_evidence.achieved is not VerificationLevel.NONE
                         else "transport-dependent-equivalence-reread"
                     )
-                    tx_event("publish", destination=destination_raw, publication=publication)
+                    tx_event("publish", destination=destination_raw, publication=publication, publication_guarantee=publication_guarantee)
                     converted_size = published.stat().st_size
                 else:
-                    tx_event("publish", destination=destination_raw, publication="transport-dependent-unverified")
+                    tx_event(
+                        "publish",
+                        destination=destination_raw,
+                        publication="transport-dependent-unverified",
+                        publication_guarantee=publication_guarantee,
+                    )
                     converted_size = local_destination.stat().st_size
             else:
                 assert final_local_destination is not None
                 converted_size = local_destination.stat().st_size
                 _atomic_replace(local_destination, final_local_destination)
                 tx_cleanup_done(local_destination)
-                tx_event("publish", destination=os.fspath(final_local_destination), publication="local-same-filesystem-atomic-replace")
+                publication_guarantee = {
+                    "strategy": "same-parent-temporary-file+os.replace",
+                    "scope": "local-filesystem",
+                    "atomicity": "same-filesystem-replace",
+                    "guaranteed_atomic": True,
+                    "replace_semantics": "replace",
+                }
+                tx_event(
+                    "publish",
+                    destination=os.fspath(final_local_destination),
+                    publication="local-same-filesystem-atomic-replace",
+                    publication_guarantee=publication_guarantee,
+                )
                 unpublished_candidate = None
 
             if args.replace_source:
@@ -3298,6 +3335,7 @@ def _convert_one(job: dict, args, config: dict, source_password: str | None, des
                 "verify_backend": verify_backend,
                 "verification": verification_evidence.to_dict(),
                 "equivalence": equivalence_proof,
+                "publication_guarantee": publication_guarantee,
                 "source_removed": bool(args.replace_source),
                 "transport": destination_remote.kind if destination_remote else (source_remote.kind if source_remote else "local"),
                 "duration_seconds": time.monotonic() - started,
@@ -3662,10 +3700,10 @@ def _parse_machine_result(text: str):
         return values
 
 
-def _show_backends(config: dict, json_mode: bool = False, remote: str | None = None, verbose: bool = False) -> int:
+def _show_backends(config: dict, json_mode: bool = False, remote: str | None = None, verbose: bool = False, refresh: bool = False) -> int:
     if remote:
         location = _remote_name_location(remote, config)
-        data = remote_capabilities(location, config)
+        data = remote_capabilities(location, config, refresh=refresh)
         if json_mode:
             print(json.dumps(data, ensure_ascii=False))
         else:
@@ -3935,7 +3973,7 @@ def _dispatch_command(args, extra: list[str], config: dict) -> int:
                 return rc
         return run_archive_command()
     if args.command == "backends":
-        return _show_backends(config, args.json, args.remote, args.verbose)
+        return _show_backends(config, args.json, args.remote, args.verbose, args.refresh)
     if args.command == "formats":
         return _show_formats(args.json, args.remote, config)
     if args.command == "profiles":

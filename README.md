@@ -242,6 +242,12 @@ arc extract big.zip -o out --progress never
 
 Successful local creates end with original size, compressed/archive size, percentage of the original size, space saved, and compression ratio. `--json` disables animated progress, keeps stdout machine-readable, and exposes the same create metrics as numeric fields.
 
+## Remote capability and publication truth
+
+`arc backends --remote NAME --json` exposes typed `arc.remote-capability/v1` evidence for SSH/rclone locality, staging requirements, publication semantics, and capability-probe provenance. Fresh cached evidence identifies itself as cache-derived with age/TTL/provider-generation metadata; add `--refresh` to force a live capability probe.
+
+Arc does not treat every remote finalizer as equivalent to local `os.replace`. SSH uploads use a same-parent temporary file and `mv`, and Arc only claims same-filesystem rename atomicity when the required tools were actually proven. rclone uploads use a temporary object plus `moveto`, but publication remains `provider-dependent` even when rclone reports server-side `Move=true`.
+
 ## Automatic fzf integration
 
 There is intentionally no `--fzf` switch. When an operand naturally needs choosing and the command is interactive, `arc` automatically invokes fzf if installed:

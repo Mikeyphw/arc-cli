@@ -130,6 +130,7 @@ SCHEMA_FILES = {
     "verification-evidence-v1": "verification-evidence-v1.schema.json",
     "logical-fingerprint-v1": "logical-fingerprint-v1.schema.json",
     "archive-diff-v1": "archive-diff-v1.schema.json",
+    "remote-capability-v1": "remote-capability-v1.schema.json",
 }
 
 

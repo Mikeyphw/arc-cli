@@ -49,7 +49,7 @@ COMMAND_OPTIONS: dict[str, set[str]] = {
     "info": INFO,
     "diff": {"--backend", "--no-fallback", "--password", "--password-file", "--password-env", "--left-password", "--left-password-file", "--left-password-env", "--right-password", "--right-password-file", "--right-password-env", "--json", "-q", "--quiet", "-v", "--verbose", "--progress", "--show-command", "--show-native", "--native-style"},
     "convert": BASE | CONVERT,
-    "backends": {"--json", "--remote", "--verbose"},
+    "backends": {"--json", "--remote", "--verbose", "--refresh"},
     "formats": {"--json", "--remote"},
     "profiles": {"--json"},
     "aliases": {"--json", "--missing"},

@@ -10,11 +10,12 @@ import subprocess
 import tempfile
 import time
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any
 
 from .errors import BackendUnavailable, UsageError
-from .execution import record_stage
+from .execution import record_decision, record_stage
 from .progress import ProgressReporter, console
 
 
@@ -57,6 +58,13 @@ class RemoteEntry:
 
 
 DEFAULT_REMOTE_TTL = 60
+REMOTE_CAPABILITY_SCHEMA = "arc.remote-capability/v1"
+REMOTE_CAPABILITY_SCHEMA_VERSION = 1
+REMOTE_CAPABILITY_CACHE_VERSION = 3
+
+
+def _utc_iso(epoch: float) -> str:
+    return datetime.fromtimestamp(epoch, tz=timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def _cache_root() -> Path:
@@ -629,7 +637,13 @@ def download_remote(location: RemoteLocation, destination: Path, config: dict, *
     _copy_stream([*base, remote_cmd], destination=destination, dry_run=dry_run, kind="ssh-download", description=f"download {location.raw}", progress=progress)
 
 
-def upload_remote(source: Path, location: RemoteLocation, config: dict, *, dry_run: bool = False, progress: bool = False) -> None:
+def upload_remote(source: Path, location: RemoteLocation, config: dict, *, dry_run: bool = False, progress: bool = False) -> dict[str, Any]:
+    publication = remote_publication_guarantee(location, config, allow_probe=False)
+    record_decision(
+        "remote_publication",
+        publication,
+        reason="transport-owned publication guarantee; atomicity is only claimed when provider evidence supports it",
+    )
     if location.kind == "rclone":
         exe = shutil.which("rclone") or "rclone"
         final_target = _rclone_target(location)
@@ -638,7 +652,7 @@ def upload_remote(source: Path, location: RemoteLocation, config: dict, *, dry_r
         try:
             _copy_stream([exe, "rcat", temp_target], source=source, dry_run=dry_run, kind="rclone-upload", description=f"stage upload {location.raw}", progress=progress)
             move_argv = [exe, "moveto", temp_target, final_target]
-            record_stage("rclone-finalize", move_argv, description=f"atomically finalize {location.raw}")
+            record_stage("rclone-finalize", move_argv, description=f"finalize {location.raw} via provider move")
             if not dry_run:
                 proc = subprocess.run(move_argv, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=30, check=False)
                 if proc.returncode != 0:
@@ -659,6 +673,7 @@ def upload_remote(source: Path, location: RemoteLocation, config: dict, *, dry_r
         _copy_stream([*base, remote_cmd], source=source, dry_run=dry_run, kind="ssh-upload", description=f"upload {location.raw}", progress=progress)
     if not dry_run:
         invalidate_remote_parent(location, config)
+    return publication
 
 
 def _stream_sink(location: RemoteLocation, config: dict, *, dry_run: bool = False) -> tuple[list[str], list[str] | None, list[str] | None]:
@@ -692,8 +707,14 @@ def stream_pipeline_to_remote(
     redact: list[str] | None = None,
     implementation_paths: list[str | os.PathLike[str]] | None = None,
     show_command: bool = False,
-) -> None:
-    """Stream producer stdout through optional transforms into an atomic remote destination."""
+) -> dict[str, Any]:
+    """Stream producer stdout through optional transforms into a remote destination."""
+    publication = remote_publication_guarantee(location, config, allow_probe=False)
+    record_decision(
+        "remote_publication",
+        publication,
+        reason="transport-owned publication guarantee; rclone moveto is provider-dependent rather than assumed atomic",
+    )
     sink, finalize, cleanup = _stream_sink(location, config, dry_run=dry_run)
     commands = [producer, *(pipeline or []), sink]
     stage = record_stage(
@@ -707,9 +728,9 @@ def stream_pipeline_to_remote(
     if show_command or dry_run:
         console.print("[bold cyan]$[/] " + stage.display(reproducible=False))
     if finalize:
-        record_stage("rclone-finalize", finalize, description=f"atomically finalize {location.raw}")
+        record_stage("rclone-finalize", finalize, description=f"finalize {location.raw} via provider move")
     if dry_run:
-        return
+        return publication
 
     processes: list[subprocess.Popen] = []
     stderr_files = [tempfile.TemporaryFile() for _ in commands]
@@ -746,6 +767,7 @@ def stream_pipeline_to_remote(
                 detail = proc.stderr.decode(errors="replace").strip() if isinstance(proc.stderr, bytes) else str(proc.stderr or "").strip()
                 raise BackendUnavailable(f"rclone finalization failed ({proc.returncode}): {detail}")
         invalidate_remote_parent(location, config)
+        return publication
     except (KeyboardInterrupt, BaseException):
         for proc in reversed(processes):
             if proc.poll() is None:
@@ -864,9 +886,9 @@ def stage_remote_for_read(location: RemoteLocation, config: dict, *, dry_run: bo
 
 def _capability_cache_file(location: RemoteLocation, config: dict) -> Path:
     generation = _provider_generation(location, config)
-    # v2 adds remote Arc version/capability negotiation. Use a new cache key so
-    # pre-R05 capability records cannot hide the newly probed metadata.
-    return _cache_root().parent / "capabilities" / location.kind / f"{location.alias or location.name}-{generation}-v2.json"
+    # v3 makes transport capability/cache provenance explicit and invalidates
+    # the pre-R09B cache shape that could not report age/source/atomicity truth.
+    return _cache_root().parent / "capabilities" / location.kind / f"{location.alias or location.name}-{generation}-v3.json"
 
 
 def _capability_ttl(location: RemoteLocation, config: dict) -> int:
@@ -884,42 +906,310 @@ def _load_capability_cache(location: RemoteLocation, config: dict) -> dict[str, 
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return None
-    if time.time() - float(data.get("fetched_at", 0)) > _capability_ttl(location, config):
+    fetched_at = float(data.get("fetched_at", 0) or 0)
+    ttl = _capability_ttl(location, config)
+    generation = _provider_generation(location, config)
+    if data.get("provider_generation") not in {None, generation}:
+        return None
+    if time.time() - fetched_at > ttl:
         return None
     value = data.get("value")
-    return value if isinstance(value, dict) else None
+    if not isinstance(value, dict):
+        return None
+    return {
+        "value": value,
+        "fetched_at": fetched_at,
+        "ttl_seconds": ttl,
+        "provider_generation": generation,
+        "provider": str(data.get("provider") or "cache"),
+    }
 
 
-def _store_capability_cache(location: RemoteLocation, config: dict, value: dict[str, Any]) -> None:
+def _store_capability_cache(
+    location: RemoteLocation,
+    config: dict,
+    value: dict[str, Any],
+    *,
+    provider: str,
+    fetched_at: float,
+) -> None:
     path = _capability_cache_file(location, config)
     path.parent.mkdir(parents=True, exist_ok=True)
     temp = path.with_suffix(".tmp")
-    temp.write_text(json.dumps({"fetched_at": time.time(), "value": value}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    temp.write_text(
+        json.dumps(
+            {
+                "schema_version": REMOTE_CAPABILITY_CACHE_VERSION,
+                "fetched_at": fetched_at,
+                "ttl_seconds": _capability_ttl(location, config),
+                "provider_generation": _provider_generation(location, config),
+                "provider": provider,
+                "value": value,
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     os.replace(temp, path)
+
+
+def _rclone_provider_features(exe: str, location: RemoteLocation) -> dict[str, Any]:
+    argv = [exe, "backend", "features", _rclone_target(location, "")]
+    record_stage("rclone-capabilities", argv, description=f"probe rclone provider features for {location.alias or location.name}")
+    try:
+        proc = subprocess.run(argv, capture_output=True, text=True, timeout=10, check=False)
+    except (OSError, subprocess.TimeoutExpired):
+        return {}
+    if proc.returncode != 0:
+        return {}
+    try:
+        data = json.loads(getattr(proc, "stdout", "") or "")
+    except (json.JSONDecodeError, TypeError):
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    raw = data.get("Features") if isinstance(data.get("Features"), dict) else data
+    if not isinstance(raw, dict):
+        return {}
+    # Keep the stable transport-relevant subset. Provider-specific details can
+    # vary dramatically and do not become Arc's transport-policy authority.
+    keys = ("Move", "DirMove", "Copy", "PutStream", "ListR", "About")
+    return {key: raw.get(key) for key in keys if key in raw and isinstance(raw.get(key), (bool, int, str, type(None)))}
+
+
+def _normalize_remote_backend_inventory(data: Any) -> list[dict[str, Any]] | None:
+    if not isinstance(data, list):
+        return None
+    rows: list[dict[str, Any]] = []
+    for row in data:
+        if not isinstance(row, dict):
+            continue
+        candidates = row.get("candidates")
+        if not isinstance(candidates, list):
+            continue
+        typed = []
+        for candidate in candidates:
+            if not isinstance(candidate, dict):
+                continue
+            profile = candidate.get("capability_profile")
+            if isinstance(profile, dict):
+                typed.append({
+                    "binary": candidate.get("binary"),
+                    "path": candidate.get("path"),
+                    "capability_profile": profile,
+                })
+        if typed:
+            rows.append({"role": row.get("role"), "candidates": typed})
+    return rows or None
+
+
+def _publication_guarantee(location: RemoteLocation, facts: dict[str, Any], *, probed: bool) -> dict[str, Any]:
+    if location.kind == "ssh":
+        tools = set(str(x) for x in facts.get("tools", []) if x)
+        required = {"sh", "cat", "mkdir", "mv", "rm"}
+        supported = required.issubset(tools) if probed else False
+        return {
+            "strategy": "same-parent-temporary-file+rename",
+            "scope": "remote-filesystem",
+            "finalizer": "mv",
+            "temporary_object": True,
+            "atomicity": "same-filesystem-rename" if supported else "unproven",
+            "guaranteed_atomic": supported,
+            "replace_semantics": "rename-replace" if supported else "unproven",
+            "evidence": (
+                sorted(required)
+                if supported
+                else (["provider-not-probed"] if not probed else [f"missing:{name}" for name in sorted(required - tools)])
+            ),
+        }
+    provider = facts.get("provider_features") if isinstance(facts.get("provider_features"), dict) else {}
+    move = provider.get("Move")
+    evidence = []
+    if move is True:
+        evidence.append("rclone-provider:Move=true")
+    elif move is False:
+        evidence.append("rclone-provider:Move=false")
+    else:
+        evidence.append("rclone-provider:Move=unknown")
+    if not probed:
+        evidence.append("provider-not-probed")
+    return {
+        "strategy": "temporary-object+rclone-moveto",
+        "scope": "remote-provider",
+        "finalizer": "rclone moveto",
+        "temporary_object": True,
+        # rclone's moveto may be a provider-side move or copy+delete fallback.
+        # Even Move=true does not prove cross-provider atomic replacement.
+        "atomicity": "provider-dependent",
+        "guaranteed_atomic": False,
+        "replace_semantics": "provider-dependent",
+        "server_side_move": move if isinstance(move, bool) else None,
+        "evidence": evidence,
+    }
+
+
+def _transport_profile(location: RemoteLocation, facts: dict[str, Any], *, probed: bool) -> dict[str, Any]:
+    if location.kind == "ssh":
+        tools = set(str(x) for x in facts.get("tools", []) if x)
+        features = set(str(x) for x in facts.get("features", []) if x)
+        remote_arc = "arc" in tools
+        return {
+            "locality": {
+                "transport": "ssh",
+                "read_execution": "local-consumer-over-ssh",
+                "write_execution": "local-producer-over-ssh",
+                "remote_arc_execution": remote_arc,
+            },
+            "staging": {
+                "file_read": True,
+                "directory_read": "tar" in tools,
+                "random_access_requires_local_stage": True,
+                "stream_read": "cat" in tools if probed else None,
+                "stream_write": "cat" in tools if probed else None,
+                "machine_safe_listing": bool({"python-scandir", "find-print0"} & features),
+            },
+            "publication": _publication_guarantee(location, facts, probed=probed),
+        }
+    provider = facts.get("provider_features") if isinstance(facts.get("provider_features"), dict) else {}
+    return {
+        "locality": {
+            "transport": "rclone",
+            "read_execution": "local-consumer-over-rclone",
+            "write_execution": "local-producer-over-rclone",
+            "remote_arc_execution": False,
+        },
+        "staging": {
+            "file_read": True,
+            "directory_read": True,
+            "random_access_requires_local_stage": True,
+            "stream_read": True,
+            "stream_write": True,
+            "provider_put_stream": provider.get("PutStream") if probed else None,
+        },
+        "publication": _publication_guarantee(location, facts, probed=probed),
+    }
+
+
+def _decorate_capabilities(
+    location: RemoteLocation,
+    config: dict,
+    facts: dict[str, Any],
+    *,
+    source: str,
+    fetched_at: float | None,
+    provider: str,
+    probed: bool,
+) -> dict[str, Any]:
+    now = time.time()
+    generation = _provider_generation(location, config)
+    live = source == "live"
+    ttl = _capability_ttl(location, config)
+    transport = _transport_profile(location, facts, probed=probed)
+    result = dict(facts)
+    result.update({
+        "schema": REMOTE_CAPABILITY_SCHEMA,
+        "schema_version": REMOTE_CAPABILITY_SCHEMA_VERSION,
+        "transport": location.kind,
+        **transport,
+        "probe": {
+            "source": source,
+            "provider": provider,
+            "fetched_at": _utc_iso(fetched_at) if fetched_at else None,
+            # Live evidence is current by definition. Cache age begins when the
+            # provider probe completed, not when it started.
+            "age_seconds": 0 if live else (max(0, int(now - fetched_at)) if fetched_at else None),
+            "ttl_seconds": ttl,
+            "provider_generation": generation,
+            "fresh": True if live else bool(fetched_at is not None and now - fetched_at <= ttl),
+        },
+    })
+    return result
+
+
+def remote_publication_guarantee(
+    location: RemoteLocation,
+    config: dict,
+    *,
+    capabilities: dict[str, Any] | None = None,
+    refresh: bool = False,
+    allow_probe: bool = True,
+) -> dict[str, Any]:
+    """Return the transport-owned publication guarantee for one destination.
+
+    Dry-run callers set ``allow_probe=False`` so planning remains zero-network;
+    the result then stays deliberately unproven instead of claiming atomicity.
+    """
+    caps = capabilities
+    if caps is None and allow_probe:
+        try:
+            caps = remote_capabilities(location, config, refresh=refresh)
+        except BackendUnavailable:
+            caps = None
+    elif caps is None and hasattr(location, "name"):
+        # Normal RemoteLocation instances may reuse already-probed evidence.
+        # Lightweight adapters/test doubles with only kind/raw semantics stay
+        # zero-I/O and simply receive the fail-closed unproven guarantee.
+        cached = _load_capability_cache(location, config)
+        if cached is not None:
+            caps = _decorate_capabilities(
+                location,
+                config,
+                cached["value"],
+                source="cache",
+                fetched_at=float(cached["fetched_at"]),
+                provider=str(cached["provider"]),
+                probed=True,
+            )
+    if caps is not None and isinstance(caps.get("publication"), dict):
+        result = dict(caps["publication"])
+        if isinstance(caps.get("probe"), dict):
+            result["probe"] = dict(caps["probe"])
+        return result
+    facts: dict[str, Any] = {"type": location.kind}
+    return _publication_guarantee(location, facts, probed=False)
 
 
 def remote_capabilities(location: RemoteLocation, config: dict, *, refresh: bool = False) -> dict[str, Any]:
     if not refresh:
         cached = _load_capability_cache(location, config)
         if cached is not None:
-            return cached
+            return _decorate_capabilities(
+                location,
+                config,
+                cached["value"],
+                source="cache",
+                fetched_at=float(cached["fetched_at"]),
+                provider=str(cached["provider"]),
+                probed=True,
+            )
+
     if location.kind == "rclone":
         exe = shutil.which("rclone")
         if not exe:
             raise BackendUnavailable("rclone is not installed")
-        value = {
+        provider_features = _rclone_provider_features(exe, location)
+        facts = {
             "remote": location.alias or location.name,
             "provider_remote": location.name,
             "type": "rclone",
             "rclone": exe,
             "config": _rclone_config_identity(),
-            "capabilities": ["cat", "rcat", "lsjson", "staging", "completion", "atomic-moveto"],
+            "provider_features": provider_features,
+            # Compatibility projection retained for existing integrations.
+            "capabilities": ["cat", "rcat", "lsjson", "staging", "completion", "moveto"],
         }
-        _store_capability_cache(location, config, value)
-        return value
+        provider = "rclone-local+backend-features"
+        fetched_at = time.time()
+        _store_capability_cache(location, config, facts, provider=provider, fetched_at=fetched_at)
+        return _decorate_capabilities(
+            location, config, facts, source="live", fetched_at=fetched_at, provider=provider, probed=True
+        )
+
     base = _ssh_args(location, config)
     tools = [
-        "arc", "python3", "find", "stat", "tar", "bsdtar", "7z", "7zz",
+        "arc", "sh", "cat", "mkdir", "mv", "rm", "python3", "find", "stat", "tar", "bsdtar", "7z", "7zz",
         "zip", "unzip", "rar", "unrar", "gzip", "bzip2", "xz", "zstd",
     ]
     tool_words = " ".join(shlex.quote(x) for x in tools)
@@ -931,7 +1221,10 @@ def remote_capabilities(location: RemoteLocation, config: dict, *, refresh: bool
         "[ -n \"$v\" ] && printf 'arc-version:%s\\n' \"$v\"; fi; "
         "find . -maxdepth 0 -print0 >/dev/null 2>&1 && printf 'feature:find-print0\\n'; "
         "command -v python3 >/dev/null 2>&1 && printf 'feature:python-scandir\\n'; "
-        "command -v stat >/dev/null 2>&1 && printf 'feature:stat\\n'"
+        "command -v stat >/dev/null 2>&1 && printf 'feature:stat\\n'; "
+        "if command -v arc >/dev/null 2>&1; then "
+        "b=$(arc backends --json 2>/dev/null); "
+        "[ -n \"$b\" ] && printf 'arc-backends-json:%s\\n' \"$b\"; fi"
     )
     argv = [*base, shell]
     record_stage("ssh-capabilities", argv, description=f"probe SSH capabilities for {location.alias or location.name}")
@@ -944,6 +1237,7 @@ def remote_capabilities(location: RemoteLocation, config: dict, *, refresh: bool
     found: list[str] = []
     features: list[str] = []
     arc_version: str | None = None
+    remote_backend_inventory: list[dict[str, Any]] | None = None
     for line in proc.stdout.splitlines():
         line = line.strip()
         if not line:
@@ -954,17 +1248,31 @@ def remote_capabilities(location: RemoteLocation, config: dict, *, refresh: bool
             features.append(line.split(":", 1)[1])
         elif line.startswith("arc-version:"):
             arc_version = line.split(":", 1)[1].strip() or None
+        elif line.startswith("arc-backends-json:"):
+            try:
+                remote_backend_inventory = _normalize_remote_backend_inventory(
+                    json.loads(line.split(":", 1)[1])
+                )
+            except json.JSONDecodeError:
+                remote_backend_inventory = None
         elif line in tools:
             # Backward-compatible with older/fake providers used in tests.
             found.append(line)
-    value = {
+    facts = {
         "remote": location.alias or location.name,
         "type": "ssh",
         "tools": sorted(set(found)),
         "features": sorted(set(features)),
         "arc_version": arc_version,
-        "capabilities": ["cat", "staging", "completion", "remote-probe", "atomic-upload", "remote-arc"],
+        "remote_backend_inventory": remote_backend_inventory,
+        # Compatibility projection retained for integrations that predate the
+        # typed R09B transport contract.
+        "capabilities": ["cat", "staging", "completion", "remote-probe", "remote-arc"],
     }
-    _store_capability_cache(location, config, value)
-    return value
+    provider = "ssh-shell+arc-backends"
+    fetched_at = time.time()
+    _store_capability_cache(location, config, facts, provider=provider, fetched_at=fetched_at)
+    return _decorate_capabilities(
+        location, config, facts, source="live", fetched_at=fetched_at, provider=provider, probed=True
+    )
 

@@ -212,11 +212,17 @@ Report configured backend preference order, installed binaries, and the typed ca
 --json[=legacy|v1]
 --verbose
 --remote NAME
+--refresh        bypass a fresh remote capability cache entry
+
+### Semantics
+
+Remote capability output is arc.remote-capability/v1 evidence. It reports transport locality, staging requirements, publication/finalization semantics, and probe provenance/age. SSH same-parent rename is described as atomic only when the required remote tools were actually probed. rclone moveto remains provider-dependent even when a server-side Move feature is reported, because that feature alone does not prove atomic replacement semantics.
 
 ### Examples
 
 arc backends
 arc backends --remote tablet
+arc backends --remote cloud --refresh --json
 
 ### See Also
 
@@ -732,7 +738,7 @@ arc-schema - show Arc machine-contract JSON Schemas
 
 ### Synopsis
 
-arc schema [machine-v1|backend-capability-v1|verification-evidence-v1|logical-fingerprint-v1|archive-diff-v1] [--list]
+arc schema [machine-v1|backend-capability-v1|verification-evidence-v1|logical-fingerprint-v1|archive-diff-v1|remote-capability-v1] [--list]
 
 ### Description
 
@@ -959,17 +965,21 @@ SSH: ssh://NAME/path or configured NAME:path. rclone: rclone://NAME/path or remo
 
 auto/local uses Arc's conservative stream-or-stage transport. --execution=remote delegates supported operations to Arc installed on the same SSH endpoint after version/capability checks.
 
-### Atomicity
+### Publication
 
-Uploads use temporary remote destinations and final rename/moveto where supported. Conversion verifies its local candidate before upload and then re-reads the published remote destination before --replace-source can delete a source.
+Uploads use a temporary remote object and a finalizer, but the guarantee is transport evidence rather than a generic atomic label. SSH uses a same-parent temporary file plus mv and claims same-filesystem rename atomicity only when the required shell tools were actually probed. rclone uses a temporary object plus moveto; even provider Move=true remains provider-dependent because rclone may implement moves with provider-specific semantics and the feature does not prove atomic replacement.
+
+### Capability Evidence
+
+arc backends --remote NAME emits arc.remote-capability/v1 evidence covering locality, staging, publication, the typed remote Arc backend inventory when available, and probe provenance. Cached capability evidence reports source=cache, age, TTL, and provider-generation identity. --refresh bypasses a fresh capability cache entry.
 
 ### Truthful Strategies
 
-When conversion stages a remote source or destination locally, human and JSON strategy text says transport-staged. Arc does not label that path as a direct remote stream.
+When conversion stages a remote source or destination locally, human and JSON strategy text says transport-staged. Dry-run planning never adds a network probe merely to upgrade a publication claim; absent fresh cached evidence, the guarantee remains unproven/provider-dependent.
 
 ### Completion
 
-Remote directory listings are cached by provider/directory/config generation and invalidated by successful mutations.
+Remote directory listings are cached separately by provider/directory/config generation and invalidated by successful mutations.
 
 ### See Also
 

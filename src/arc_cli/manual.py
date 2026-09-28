@@ -356,8 +356,14 @@ _add(
     _command_page(
         "backends",
         "Report configured backend preference order, installed binaries, and the typed capability profile Arc uses for planning rather than assuming similarly named native tools are interchangeable.",
-        options="--json[=legacy|v1]\n--verbose\n--remote NAME",
-        examples="arc backends\narc backends --remote tablet",
+        options="--json[=legacy|v1]\n--verbose\n--remote NAME\n--refresh        bypass a fresh remote capability cache entry",
+        semantics=(
+            "Remote capability output is arc.remote-capability/v1 evidence. It reports transport locality, staging requirements, "
+            "publication/finalization semantics, and probe provenance/age. SSH same-parent rename is described as atomic only when "
+            "the required remote tools were actually probed. rclone moveto remains provider-dependent even when a server-side Move "
+            "feature is reported, because that feature alone does not prove atomic replacement semantics."
+        ),
+        examples="arc backends\narc backends --remote tablet\narc backends --remote cloud --refresh --json",
         see_also="arc-backends(7), arc-formats(7)",
     )
 )
@@ -500,9 +506,10 @@ for page in (
             ("NAME", "arc-remote - SSH and rclone transport semantics"),
             ("LOCATIONS", "SSH: ssh://NAME/path or configured NAME:path. rclone: rclone://NAME/path or remote:path."),
             ("EXECUTION", "auto/local uses Arc's conservative stream-or-stage transport. --execution=remote delegates supported operations to Arc installed on the same SSH endpoint after version/capability checks."),
-            ("ATOMICITY", "Uploads use temporary remote destinations and final rename/moveto where supported. Conversion verifies its local candidate before upload and then re-reads the published remote destination before --replace-source can delete a source."),
-            ("TRUTHFUL STRATEGIES", "When conversion stages a remote source or destination locally, human and JSON strategy text says transport-staged. Arc does not label that path as a direct remote stream."),
-            ("COMPLETION", "Remote directory listings are cached by provider/directory/config generation and invalidated by successful mutations."),
+            ("PUBLICATION", "Uploads use a temporary remote object and a finalizer, but the guarantee is transport evidence rather than a generic atomic label. SSH uses a same-parent temporary file plus mv and claims same-filesystem rename atomicity only when the required shell tools were actually probed. rclone uses a temporary object plus moveto; even provider Move=true remains provider-dependent because rclone may implement moves with provider-specific semantics and the feature does not prove atomic replacement."),
+            ("CAPABILITY EVIDENCE", "arc backends --remote NAME emits arc.remote-capability/v1 evidence covering locality, staging, publication, the typed remote Arc backend inventory when available, and probe provenance. Cached capability evidence reports source=cache, age, TTL, and provider-generation identity. --refresh bypasses a fresh capability cache entry."),
+            ("TRUTHFUL STRATEGIES", "When conversion stages a remote source or destination locally, human and JSON strategy text says transport-staged. Dry-run planning never adds a network probe merely to upgrade a publication claim; absent fresh cached evidence, the guarantee remains unproven/provider-dependent."),
+            ("COMPLETION", "Remote directory listings are cached separately by provider/directory/config generation and invalidated by successful mutations."),
             ("SEE ALSO", "arc(1), arc-config(5), arc-convert(1)"),
         ),
     ),

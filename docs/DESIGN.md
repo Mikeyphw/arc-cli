@@ -67,6 +67,12 @@ Known families:
 
 Compressed TAR creation uses a pipe (`tar -> compressor`) so normalized compression level/thread settings do not depend on a particular tar implementation's compression flags. Reading compressed TAR uses the inverse pipe where appropriate.
 
+## Remote capability authority
+
+Remote transport policy is typed independently from archive-backend capability policy. `arc.remote-capability/v1` records SSH/rclone locality, whether reads/writes stream or stage, publication/finalization semantics, and probe provenance. SSH capability discovery includes the R08 typed remote Arc backend inventory in the same probe round trip. Capability cache records are generation-scoped and expose source, age, and TTL. Dry-run planning does not perform a network probe merely to strengthen a guarantee.
+
+Publication terminology is evidence-bound: local publication uses same-filesystem `os.replace`; SSH uses a same-parent temporary file plus `mv` and claims atomic rename only after probing its required tools; rclone uses a temporary object plus `moveto` but remains provider-dependent because server-side move support does not establish atomic replacement semantics.
+
 ## Progress/UI
 
 Rich is the primary UI dependency. Human-facing status and progress go to stderr; data and JSON stay on stdout. Interactive archive operations echo the Arc argv received by the process before work starts; archive-password values are redacted. The invocation is emitted as one logical soft-wrapped line so narrow terminals do not inject copy-breaking continuation lines. The UI does not claim to reconstruct shell quoting or pre-expansion `~`/glob syntax that no longer exists after the shell has built argv.

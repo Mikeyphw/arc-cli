@@ -63,7 +63,13 @@ Acceptance: logically equal ZIP/TAR/container encodings share the logical digest
 
 ## R09B — Remote capability and publication parity
 
-12. Deepen remote execution parity: typed locality/atomicity/staging capabilities, cached remote capability probes with explicit age/provenance, and explicit publication guarantees. Never describe remote behavior as locally atomic without evidence. R09B must consume R08 typed capabilities and R09A read-side provenance without making either layer the owner of transport policy.
+**Merge-window decision:** keep item 12 standalone. Items 13–14 belong to the later R10 mutation-policy/interactive-execution boundary and must not become transport-policy authority.
+
+12. Deepen remote execution parity: typed locality/atomicity/staging capabilities, cached remote capability probes with explicit age/provenance, and explicit publication guarantees. Never describe remote behavior as locally atomic without evidence. R09B consumes R08 typed backend profiles through the same SSH probe and carries R09A-compatible read-side truth without making either layer the owner of transport policy. rclone `moveto` remains explicitly provider-dependent; SSH same-parent rename becomes a guaranteed-atomic claim only from probed tool evidence. Dry-run planning stays zero-network and fails closed when no fresh evidence exists.
+
+Acceptance: `arc.remote-capability/v1` is bundled and queryable; live/cache provenance, age, TTL, and provider generation are visible; `--refresh` bypasses a fresh cache; the pre-existing one-SSH-probe cache contract remains intact; publication guarantees appear in conversion planning/runtime evidence; rclone never inherits a false local-style atomicity claim.
+
+**Separate R09B gate:** qualify the cumulative remote capability/publication promise ledger and broader transport matrix after this targeted implementation validation; do not merge the gate into R09B implementation.
 
 ## R10 — Destructive-operation policy and interactive execution UX
 

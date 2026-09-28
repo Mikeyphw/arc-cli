@@ -15,9 +15,15 @@ Report configured backend preference order, installed binaries, and the typed ca
 \-\-verbose
 .PP
 \-\-remote NAME
+.PP
+\-\-refresh        bypass a fresh remote capability cache entry
+.SH "SEMANTICS"
+Remote capability output is arc.remote\-capability/v1 evidence. It reports transport locality, staging requirements, publication/finalization semantics, and probe provenance/age. SSH same\-parent rename is described as atomic only when the required remote tools were actually probed. rclone moveto remains provider\-dependent even when a server\-side Move feature is reported, because that feature alone does not prove atomic replacement semantics.
 .SH "EXAMPLES"
 arc backends
 .PP
 arc backends \-\-remote tablet
+.PP
+arc backends \-\-remote cloud \-\-refresh \-\-json
 .SH "SEE ALSO"
 arc\-backends(7), arc\-formats(7)

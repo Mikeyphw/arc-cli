@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arc-cli.local/schema/remote-capability-v1.schema.json",
+  "title": "Arc remote transport capability evidence v1",
+  "type": "object",
+  "required": ["schema", "schema_version", "transport", "locality", "staging", "publication", "probe"],
+  "properties": {
+    "schema": {"const": "arc.remote-capability/v1"},
+    "schema_version": {"const": 1},
+    "transport": {"enum": ["ssh", "rclone"]},
+    "locality": {
+      "type": "object",
+      "required": ["transport", "read_execution", "write_execution", "remote_arc_execution"],
+      "properties": {
+        "transport": {"enum": ["ssh", "rclone"]},
+        "read_execution": {"type": "string"},
+        "write_execution": {"type": "string"},
+        "remote_arc_execution": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "staging": {
+      "type": "object",
+      "required": ["file_read", "directory_read", "random_access_requires_local_stage", "stream_read", "stream_write"],
+      "properties": {
+        "file_read": {"type": "boolean"},
+        "directory_read": {"type": ["boolean", "null"]},
+        "random_access_requires_local_stage": {"type": "boolean"},
+        "stream_read": {"type": ["boolean", "null"]},
+        "stream_write": {"type": ["boolean", "null"]},
+        "machine_safe_listing": {"type": "boolean"},
+        "provider_put_stream": {"type": ["boolean", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "publication": {
+      "type": "object",
+      "required": ["strategy", "scope", "finalizer", "temporary_object", "atomicity", "guaranteed_atomic", "replace_semantics", "evidence"],
+      "properties": {
+        "strategy": {"type": "string"},
+        "scope": {"type": "string"},
+        "finalizer": {"type": "string"},
+        "temporary_object": {"type": "boolean"},
+        "atomicity": {"type": "string"},
+        "guaranteed_atomic": {"type": "boolean"},
+        "replace_semantics": {"type": "string"},
+        "server_side_move": {"type": ["boolean", "null"]},
+        "evidence": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "probe": {
+      "type": "object",
+      "required": ["source", "provider", "fetched_at", "age_seconds", "ttl_seconds", "provider_generation", "fresh"],
+      "properties": {
+        "source": {"enum": ["live", "cache"]},
+        "provider": {"type": "string"},
+        "fetched_at": {"type": ["string", "null"]},
+        "age_seconds": {"type": ["integer", "null"], "minimum": 0},
+        "ttl_seconds": {"type": "integer", "minimum": 0},
+        "provider_generation": {"type": "string"},
+        "fresh": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}

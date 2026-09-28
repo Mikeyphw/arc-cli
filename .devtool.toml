@@ -158,6 +158,21 @@ pytest_tests = [
 pytest_args = ["--maxfail=1"]
 pytest_include_defaults = false
 
+[test_profiles.r09b]
+pytest_tests = [
+  "tests/test_r09b_remote_capability_publication.py",
+  "tests/test_r04_remote_transport.py",
+  "tests/test_r05_remote_native.py",
+  "tests/test_r08_machine_capability_verification.py",
+  "tests/test_r09a_provenance_diff.py",
+  "tests/test_convert_command.py",
+  "tests/test_completion.py",
+  "tests/test_manpages.py",
+  "tests/test_distribution_contract.py",
+]
+pytest_args = ["--maxfail=1"]
+pytest_include_defaults = false
+
 [[test]]
 id = "arc-r06-runtime-install-truth"
 name = "ARC-R06 runtime, alias, and installation truth"
@@ -222,6 +237,24 @@ command = [
   "tests/test_safety.py",
   "tests/test_cli_integration.py",
   "tests/test_command_aliases.py",
+  "tests/test_completion.py",
+  "tests/test_manpages.py",
+  "tests/test_distribution_contract.py",
+]
+
+[[test]]
+id = "arc-r09b-remote-capability-publication"
+name = "ARC-R09B remote capability, cache provenance, and publication truth"
+runner = "pytest"
+command = [
+  "python3", "-m", "pytest", "-q",
+  "--junitxml=.devtool/reports/roadmap/arc-r09b-remote-capability-publication.xml",
+  "tests/test_r09b_remote_capability_publication.py",
+  "tests/test_r04_remote_transport.py",
+  "tests/test_r05_remote_native.py",
+  "tests/test_r08_machine_capability_verification.py",
+  "tests/test_r09a_provenance_diff.py",
+  "tests/test_convert_command.py",
   "tests/test_completion.py",
   "tests/test_manpages.py",
   "tests/test_distribution_contract.py",
@@ -402,14 +435,14 @@ metadata = { read_only = true, purpose = "generated-command-docs", contract = "a
 
 [targets.arc.jobs.devtool-contract]
 runner = "command"
-command = ["python3", "scripts/check_devtool_contract.py"]
-inputs = [".devtool.toml", "devtoolw", "devtoolw.cmd", "docs/WRAPPER.md"]
+command = ["python3", "scripts/check_devtool_contract_r09b.py"]
+inputs = [".devtool.toml", "devtoolw", "devtoolw.cmd", "docs/WRAPPER.md", "scripts/check_devtool_contract_r09b.py"]
 metadata = { read_only = true, purpose = "devtool-contract", contract = "arc-devtool-v2" }
 
 [targets.arc.jobs.machine-contract]
 runner = "command"
-command = ["python3", "scripts/check_machine_contract.py"]
-inputs = ["src/arc_cli/machine.py", "src/arc_cli/capabilities.py", "src/arc_cli/verification.py", "src/arc_cli/schemas/**", "scripts/check_machine_contract.py", "pyproject.toml", "MANIFEST.in"]
+command = ["python3", "scripts/check_machine_contract_r09b.py"]
+inputs = ["src/arc_cli/machine.py", "src/arc_cli/capabilities.py", "src/arc_cli/verification.py", "src/arc_cli/schemas/**", "scripts/check_machine_contract_r09b.py", "pyproject.toml", "MANIFEST.in"]
 metadata = { read_only = true, purpose = "stable-machine-capability-contract", contract = "arc-r08" }
 
 [targets.arc.jobs.provenance-contract]
@@ -417,6 +450,12 @@ runner = "command"
 command = ["python3", "scripts/check_provenance_contract.py"]
 inputs = ["src/arc_cli/provenance.py", "src/arc_cli/command_docs.py", "src/arc_cli/machine.py", "src/arc_cli/schemas/**", "src/arc_cli/man/arc-diff.1", "docs/COMMAND_REFERENCE.md", "scripts/check_provenance_contract.py", "pyproject.toml"]
 metadata = { read_only = true, purpose = "logical-provenance-diff-contract", contract = "arc-r09a" }
+
+[targets.arc.jobs.remote-contract]
+runner = "command"
+command = ["python3", "scripts/check_remote_contract.py"]
+inputs = ["src/arc_cli/remote.py", "src/arc_cli/machine.py", "src/arc_cli/schemas/remote-capability-v1.schema.json", "src/arc_cli/man/arc-remote.7", "scripts/check_remote_contract.py", ".devtool.toml"]
+metadata = { read_only = true, purpose = "remote-capability-publication-contract", contract = "arc-r09b" }
 
 [targets.arc.jobs.backend-smoke]
 runner = "command"
@@ -463,6 +502,16 @@ r09a = [
   { id = "completion", ref = "job:completion-contract", depends_on = ["syntax"] },
   { id = "devtool-contract", ref = "job:devtool-contract", depends_on = ["syntax"] },
   { id = "r09a-contract", ref = "test:arc-r09a-provenance-diff", depends_on = ["machine-contract", "provenance-contract", "docs", "completion", "devtool-contract"] },
+]
+
+r09b = [
+  { id = "syntax", ref = "job:syntax", depends_on = [] },
+  { id = "machine-contract", ref = "job:machine-contract", depends_on = ["syntax"] },
+  { id = "remote-contract", ref = "job:remote-contract", depends_on = ["syntax"] },
+  { id = "docs", ref = "job:command-docs-contract", depends_on = ["syntax"] },
+  { id = "completion", ref = "job:completion-contract", depends_on = ["syntax"] },
+  { id = "devtool-contract", ref = "job:devtool-contract", depends_on = ["syntax"] },
+  { id = "r09b-contract", ref = "test:arc-r09b-remote-capability-publication", depends_on = ["machine-contract", "remote-contract", "docs", "completion", "devtool-contract"] },
 ]
 
 refresh_install = [
@@ -567,7 +616,7 @@ aliases = ["t"]
 [wrapper.commands.test.options.profile]
 type = "choice"
 description = "Select a repository test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "final_gate", "full"]
 command_argv = ["--profile", "{value}"]
 
 [wrapper.commands.test.options.node]
@@ -619,7 +668,7 @@ aliases = ["val"]
 [wrapper.commands.validate.options.profile]
 type = "choice"
 description = "Select the validation test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "final_gate", "full"]
 command_argv = ["--test-profile", "{value}"]
 
 [wrapper.commands.validate.options.affected]
@@ -709,6 +758,11 @@ target = "arc"
 [wrapper.commands.r09a]
 description = "Run ARC-R09A logical fingerprint/provenance/diff targeted validation"
 workflow = "r09a"
+target = "arc"
+
+[wrapper.commands.r09b]
+description = "Run ARC-R09B remote capability/cache/publication targeted validation"
+workflow = "r09b"
 target = "arc"
 
 [wrapper.commands.refresh-install]
