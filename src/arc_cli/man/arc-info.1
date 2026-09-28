@@ -12,7 +12,11 @@ Show a compact archive\-level summary without silently performing a full integri
 .SH "OPTIONS"
 \-\-members        include compact member statistics
 .PP
-\-\-verify         run a real integrity test
+\-\-verify         run the strongest verification the selected backend can prove
+.PP
+\-\-verify\-level LEVEL   none|structure|members|full
+.PP
+\-\-allow\-verification\-downgrade
 .PP
 \-\-technical      include backend\-oriented technical metadata
 .PP
@@ -28,9 +32,9 @@ Show a compact archive\-level summary without silently performing a full integri
 .PP
 \-\-show\-native[=before|after|both]
 .PP
-\-\-json
+\-\-json[=legacy|v1]
 .SH "SEMANTICS"
-Default info is metadata inspection, not verification: JSON uses verified=null unless \-\-verify was requested. Encrypted\-header archives still return outer metadata when member indexing needs a password. Content detection wins over a misleading extension and the mismatch is reported explicitly. Gzip inspection reports the trailer size hint and optional embedded original filename when present. Member\-backed summaries normalize oldest/newest timestamps and expose counts, largest\-member evidence with \-\-members, and encryption/solid/volume/comment\-like metadata when the selected backend can prove it. Remote random\-access inspection reports when it staged locally.
+Default info is metadata inspection, not verification: JSON uses verified=null unless \-\-verify or \-\-verify\-level was requested. Verification evidence records requested and achieved levels, backend, checks, and any explicitly authorized downgrade. Encrypted\-header archives still return outer metadata when member indexing needs a password. Content detection wins over a misleading extension and the mismatch is reported explicitly. Gzip inspection reports the trailer size hint and optional embedded original filename when present. Member\-backed summaries normalize oldest/newest timestamps and expose counts, largest\-member evidence with \-\-members, and encryption/solid/volume/comment\-like metadata when the selected backend can prove it. Remote random\-access inspection reports when it staged locally.
 .SH "EXAMPLES"
 arci backup.tar.zst
 .PP

@@ -18,6 +18,7 @@ VALUE_OPTIONS = {
     "--format", "-F", "--backend", "-o", "--output", "--level", "--threads", "--exclude", "--include",
     "--exclude-from", "--include-from", "--progress", "--password-file", "--password-env", "--profile",
     "--show-native", "--native-style", "--execution", "--source-password-file", "--source-password-env", "--source", "--batch-id",
+    "--verify-level",
 }
 OPTIONAL_VALUE_OPTIONS = {"--password", "--source-password", "--yazi"}
 
@@ -30,13 +31,14 @@ FILTERS = {"--exclude", "--include", "--exclude-from", "--include-from"}
 CREATE = {"--level", "--threads", "--add-extension", "--follow-symlinks", "--one-file-system", "--preserve-owner", "--preserve-acls", "--preserve-xattrs"}
 CREATE_SUFFIX_FLAGS = {flag for flag, _fmt, _suffix in CREATE_SUFFIX_SHORTCUTS}
 EXTRACT = {"-o", "--output", "--overwrite", "--skip-existing", "--rename-existing", "--unsafe-paths", "--stdout", "--preserve-owner", "--preserve-acls", "--preserve-xattrs"}
-CONVERT = CREATE | FILTERS | CREATE_SUFFIX_FLAGS | {"-f", "--force", "--replace-source", "--batch", "--resume", "--batch-id", "--source-password", "--source-password-file", "--source-password-env"}
-INFO = {"--format", "-F", "--backend", "--no-fallback", "--profile", "--password", "--password-file", "--password-env", "--members", "--verify", "--technical", "--json", "-q", "--quiet", "-v", "--verbose", "--progress", "--show-command", "--show-native", "--native-style", "--execution"}
+VERIFY = {"--verify-level", "--allow-verification-downgrade"}
+CONVERT = CREATE | FILTERS | CREATE_SUFFIX_FLAGS | VERIFY | {"-f", "--force", "--replace-source", "--batch", "--resume", "--batch-id", "--source-password", "--source-password-file", "--source-password-env"}
+INFO = {"--format", "-F", "--backend", "--no-fallback", "--profile", "--password", "--password-file", "--password-env", "--members", "--verify", "--technical", "--json", "-q", "--quiet", "-v", "--verbose", "--progress", "--show-command", "--show-native", "--native-style", "--execution"} | VERIFY
 
 COMMAND_OPTIONS: dict[str, set[str]] = {
     "identify": {"--format", "-F", "--json", "--yazi"},
     "list": BASE | FILTERS,
-    "test": BASE | FILTERS,
+    "test": BASE | FILTERS | VERIFY,
     "extract": BASE | FILTERS | EXTRACT,
     "create": BASE | FILTERS | CREATE | CREATE_SUFFIX_FLAGS | {"--overwrite"},
     "add": BASE | FILTERS | CREATE,
@@ -44,13 +46,14 @@ COMMAND_OPTIONS: dict[str, set[str]] = {
     "remove": BASE,
     "info": INFO,
     "convert": BASE | CONVERT,
-    "backends": {"--json", "--remote"},
+    "backends": {"--json", "--remote", "--verbose"},
     "formats": {"--json", "--remote"},
     "profiles": {"--json"},
     "aliases": {"--json", "--missing"},
     "doctor": {"--json", "--fix", "--source"},
     "explain": {"--json"},
     "recover": {"--cleanup", "--all", "--json"},
+    "schema": {"--list"},
     "man": {"--list", "--plain"},
     "help": set(),
     "completion": set(),
@@ -152,7 +155,7 @@ def completion_candidates(words: list[str]) -> list[str]:
     if op not in COMMAND_OPTIONS:
         return []
     if op == "explain":
-        inner = [word for word in words[1:] if word != "--json"]
+        inner = [word for word in words[1:] if word != "--json" and not word.startswith("--json=")]
         if not inner:
             return [name for name in OPERATIONS if name not in {"explain", "recover"}]
         return completion_candidates(inner)
@@ -176,6 +179,10 @@ def completion_candidates(words: list[str]) -> list[str]:
             attached = [x for x in profile_names(load_config()) if x.startswith(value_prefix)]
         elif opt == "--progress":
             attached = [x for x in ["auto", "always", "never"] if x.startswith(value_prefix)]
+        elif opt == "--verify-level":
+            attached = [x for x in ["none", "structure", "members", "full"] if x.startswith(value_prefix)]
+        elif opt == "--json":
+            attached = [x for x in ["legacy", "v1"] if x.startswith(value_prefix)]
         elif opt == "--yazi":
             allowed = {
                 "identify": ["auto", "archive"],
@@ -212,6 +219,8 @@ def completion_candidates(words: list[str]) -> list[str]:
         return [x for x in profile_names(load_config()) if x.startswith(prefix)]
     if prev == "--progress":
         return [x for x in ["auto", "always", "never"] if x.startswith(prefix)]
+    if prev == "--verify-level":
+        return [x for x in ["none", "structure", "members", "full"] if x.startswith(prefix)]
     if prev == "--yazi":
         allowed = {
             "identify": ["auto", "archive"],
@@ -247,6 +256,8 @@ def completion_candidates(words: list[str]) -> list[str]:
         return _option_candidates(op, prefix, before_current)
 
     pos = _positionals(before_current)
+    if op == "schema":
+        return [x for x in ["machine-v1", "backend-capability-v1", "verification-evidence-v1"] if x.startswith(prefix)]
     if op in {"extract", "list", "remove"}:
         if not pos:
             return _path_candidates(prefix, op=op, refresh=refresh_remote)

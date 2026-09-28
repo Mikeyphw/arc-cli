@@ -62,6 +62,9 @@ explain      explain an execution plan without mutating data
 recover      inspect and clean interrupted Arc transactions
 .fi
 .nf
+schema       show Arc machine\-contract JSON Schemas
+.fi
+.nf
 completion   manage shell completion
 .fi
 .nf
@@ -217,7 +220,7 @@ arc\-profiles   arc profiles
 .PP
 Create and convert short selectors are authoritative. When a caller supplies an extensionless destination, a short selector appends its represented suffix. Plain \-F/\-\-format only appends to an explicitly supplied extensionless path when \-\-add\-extension is requested. An omitted convert destination is always derived with the selected target suffix.
 .SH "MACHINE-READABLE IDENTITY"
-When a real installed executable alias such as arci or arccv is used with \-\-json, Arc preserves the redacted literal invocation and exposes the canonical resolved command so automation can distinguish what the user typed from what the dispatcher executed.
+Bare \-\-json preserves Arc's pre\-R08 command\-specific JSON shape for compatibility. Explicit \-\-json=v1 emits the stable arc.machine/v1 envelope with schema_version, typed result/error/diagnostic fields, a redacted received argv, and canonical command identity. Installed aliases such as arci/arccv preserve their literal executable identity while resolving to the canonical command.
 .SH "SAFETY"
 Arc rejects traversal, absolute member paths, unsafe link parents, and special objects before normalized extraction. Conversion builds an unpublished destination candidate, verifies it, then publishes it atomically. \-\-replace\-source cannot remove the source until verified publication succeeds.
 .SH "REMOTE PATHS"

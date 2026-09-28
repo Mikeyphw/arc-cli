@@ -10,15 +10,21 @@ arc\-test ...
 .PP
 arccheck ...
 .SH "DESCRIPTION"
-Run the selected backend's integrity verification. Unlike arc info, this command is explicitly an integrity operation.
+Run integrity verification at an explicit proof level. Unlike arc info, this command is explicitly a verification operation and reports what was actually proven.
 .SH "OPTIONS"
-\-\-json
+\-\-json[=legacy|v1]
+.PP
+\-\-verify\-level none|structure|members|full
+.PP
+\-\-allow\-verification\-downgrade
 .PP
 \-\-include/\-\-exclude and rule files
 .PP
 \-\-password/\-\-password\-file/\-\-password\-env
 .PP
 \-\-backend NAME
+.SH "SEMANTICS"
+Proof levels are evidence contracts, not quality labels. none performs no integrity proof. structure proves a readable container/member index; single compressed streams have no index, so Arc uses the stronger native full stream test. members adds Arc's normalized member path/type safety validation but is not a per\-member content checksum. full runs the selected backend integrity test that consumes encoded archive/compressed data. An explicit level cannot silently degrade: a weaker proof requires \-\-allow\-verification\-downgrade and records requested/achieved levels plus the reason.
 .SH "EXAMPLES"
 arct backup.zip
 .PP

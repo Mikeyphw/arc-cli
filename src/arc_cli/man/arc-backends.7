@@ -2,10 +2,12 @@
 .SH "NAME"
 arc\-backends \- native backend resolution and capabilities
 .SH "DESCRIPTION"
-Arc resolves a normalized operation to an installed compatible backend using format, operation, capability requirements, configured preference order, and \-\-no\-fallback policy.
+Arc resolves a normalized operation to an installed compatible backend using a typed capability profile: operation support, stream I/O, encryption, solid/multipart behavior, random access, metadata, mutation, verification depth, remote suitability, thread support, and safe\-index semantics.
 .SH "ROLES"
-TAR/bsdtar, ZIP create/extract, 7z/7zz, RAR create/extract, and compressor families gzip/bzip2/xz/zstd.
+TAR/bsdtar, ZIP create/extract, 7z/7zz, RAR create/extract, and compressor families gzip/bzip2/xz/zstd. Legacy capability strings remain a compatibility projection of the typed profile rather than an independent authority.
+.SH "VERIFICATION"
+Each backend declares the verification levels it can prove: none, structure, members, and/or full. structure means a readable container/member index (streams satisfy it with a stronger native full test); members adds Arc's normalized member path/type safety validation and is not a content checksum; full runs a backend integrity test that consumes encoded data. An explicit request cannot silently degrade. A weaker available level requires \-\-allow\-verification\-downgrade and produces downgraded=true evidence.
 .SH "DIAGNOSTICS"
-arc backends and arc backends \-\-json expose installed candidates/capabilities. \-\-show\-command shows immediate native argv; \-\-show\-native records the broader execution plan.
+arc backends \-\-verbose shows the human capability summary; \-\-json exposes the versioned capability profile. \-\-show\-command shows immediate native argv; \-\-show\-native records the broader execution plan.
 .SH "SEE ALSO"
 arc(1), arc\-formats(7)

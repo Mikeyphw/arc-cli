@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arc-cli.local/schema/backend-capability-v1.schema.json",
+  "title": "Arc backend capability profile v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "binary",
+    "operations",
+    "streams",
+    "encryption",
+    "archive_features",
+    "metadata",
+    "mutation",
+    "verification",
+    "random_access",
+    "remote_suitability",
+    "threads",
+    "safe_index"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "binary": {
+      "type": "string"
+    },
+    "operations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "streams": {
+      "type": "object",
+      "required": [
+        "stdin",
+        "stdout"
+      ],
+      "properties": {
+        "stdin": {
+          "type": "boolean"
+        },
+        "stdout": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "encryption": {
+      "type": "object",
+      "required": [
+        "read",
+        "write"
+      ],
+      "properties": {
+        "read": {
+          "type": "boolean"
+        },
+        "write": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "archive_features": {
+      "type": "object",
+      "required": [
+        "solid",
+        "multipart"
+      ],
+      "properties": {
+        "solid": {
+          "type": "boolean"
+        },
+        "multipart": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "mutation": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "verification": {
+      "type": "object",
+      "required": [
+        "levels",
+        "maximum"
+      ],
+      "properties": {
+        "levels": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "none",
+              "structure",
+              "members",
+              "full"
+            ]
+          }
+        },
+        "maximum": {
+          "enum": [
+            "none",
+            "structure",
+            "members",
+            "full"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "random_access": {
+      "type": "boolean"
+    },
+    "remote_suitability": {
+      "enum": [
+        "staged",
+        "streamable",
+        "staged-random-access"
+      ]
+    },
+    "threads": {
+      "type": "boolean"
+    },
+    "safe_index": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false
+}

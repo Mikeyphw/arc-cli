@@ -1,0 +1,21 @@
+.TH "ARC-SCHEMA" "1" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-schema \- show Arc machine\-contract JSON Schemas
+.SH "SYNOPSIS"
+arc schema [machine\-v1|backend\-capability\-v1|verification\-evidence\-v1] [\-\-list]
+.SH "DESCRIPTION"
+Print the bundled JSON Schemas that define Arc's stable machine envelope, typed backend capability profile, and verification evidence contracts.
+.SH "OPTIONS"
+\-\-list
+.PP
+machine\-v1 | backend\-capability\-v1 | verification\-evidence\-v1
+.SH "SEMANTICS"
+Schemas are shipped as package data and are the public validation contract for \-\-json=v1 consumers. Bare \-\-json remains the compatibility surface and is intentionally not covered by the versioned envelope schema.
+.SH "EXAMPLES"
+arc schema \-\-list
+.PP
+arc schema machine\-v1
+.PP
+arc schema verification\-evidence\-v1
+.SH "SEE ALSO"
+arc(1), arc\-backends(1), arc\-test(1)

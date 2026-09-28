@@ -102,9 +102,10 @@ _add(
             ),
             (
                 "MACHINE-READABLE IDENTITY",
-                "When a real installed executable alias such as arci or arccv is used with --json, Arc preserves "
-                "the redacted literal invocation and exposes the canonical resolved command so automation can "
-                "distinguish what the user typed from what the dispatcher executed.",
+                "Bare --json preserves Arc's pre-R08 command-specific JSON shape for compatibility. Explicit --json=v1 "
+                "emits the stable arc.machine/v1 envelope with schema_version, typed result/error/diagnostic fields, a "
+                "redacted received argv, and canonical command identity. Installed aliases such as arci/arccv preserve "
+                "their literal executable identity while resolving to the canonical command.",
             ),
             (
                 "SAFETY",
@@ -193,13 +194,16 @@ _add(
         "inputs may be mixed. Unknown values remain null/unknown rather than being reported as false.",
         options=(
             "--members        include compact member statistics\n"
-            "--verify         run a real integrity test\n"
+            "--verify         run the strongest verification the selected backend can prove\n"
+            "--verify-level LEVEL   none|structure|members|full\n"
+            "--allow-verification-downgrade\n"
             "--technical      include backend-oriented technical metadata\n"
             "-F, --format FORMAT\n--backend NAME\n--no-fallback\n"
-            "--password/--password-file/--password-env\n--show-command\n--show-native[=before|after|both]\n--json"
+            "--password/--password-file/--password-env\n--show-command\n--show-native[=before|after|both]\n--json[=legacy|v1]"
         ),
         semantics=(
-            "Default info is metadata inspection, not verification: JSON uses verified=null unless --verify was requested. "
+            "Default info is metadata inspection, not verification: JSON uses verified=null unless --verify or --verify-level was requested. "
+            "Verification evidence records requested and achieved levels, backend, checks, and any explicitly authorized downgrade. "
             "Encrypted-header archives still return outer metadata when member indexing needs a password. Content detection "
             "wins over a misleading extension and the mismatch is reported explicitly. Gzip inspection reports the trailer "
             "size hint and optional embedded original filename when present. Member-backed summaries normalize oldest/newest "
@@ -216,8 +220,14 @@ _add(
 _add(
     _command_page(
         "test",
-        "Run the selected backend's integrity verification. Unlike arc info, this command is explicitly an integrity operation.",
-        options="--json\n--include/--exclude and rule files\n--password/--password-file/--password-env\n--backend NAME",
+        "Run integrity verification at an explicit proof level. Unlike arc info, this command is explicitly a verification operation and reports what was actually proven.",
+        options="--json[=legacy|v1]\n--verify-level none|structure|members|full\n--allow-verification-downgrade\n--include/--exclude and rule files\n--password/--password-file/--password-env\n--backend NAME",
+        semantics=(
+            "Proof levels are evidence contracts, not quality labels. none performs no integrity proof. structure proves a readable container/member index; "
+            "single compressed streams have no index, so Arc uses the stronger native full stream test. members adds Arc's normalized member path/type safety validation "
+            "but is not a per-member content checksum. full runs the selected backend integrity test that consumes encoded archive/compressed data. "
+            "An explicit level cannot silently degrade: a weaker proof requires --allow-verification-downgrade and records requested/achieved levels plus the reason."
+        ),
         examples="arct backup.zip\narc test private.7z --password-env ARCHIVE_PASS",
         see_also="arc-info(1), arc-list(1)",
     )
@@ -235,7 +245,8 @@ _add(
             "--source-password/--source-password-file/--source-password-env\n"
             "--password/--password-file/--password-env\n--include/--exclude and rule files\n"
             "--level 0..9\n--threads N\n--backend NAME\n--no-fallback\n--dry-run\n"
-            "--show-command\n--show-native[=before|after|both]\n--json"
+            "--show-command\n--show-native[=before|after|both]\n--verify-level none|structure|members|full\n"
+            "--allow-verification-downgrade\n--json[=legacy|v1]"
         ),
         semantics=(
             "A short selector or -F/--format controls the actual target encoding even when DESTINATION has a conflicting "
@@ -263,10 +274,12 @@ _add(
             ),
             (
                 "PUBLICATION AND VERIFICATION",
-                "Local output is created at an unpublished same-filesystem candidate, integrity-tested there, and atomically "
-                "replaced into the requested final path only after verification. A failed conversion therefore leaves no new "
-                "corrupt final path and does not clobber an existing --force destination. Remote output is atomically uploaded, "
-                "re-read, and verified before --replace-source may delete any source.",
+                "Local output is created at an unpublished same-filesystem candidate and processed according to the requested "
+                "verification policy before publication. none deliberately publishes without proof and cannot authorize "
+                "--replace-source. structure/members/full are negotiated against typed backend capabilities; a weaker proof is "
+                "accepted only with --allow-verification-downgrade and is recorded explicitly. A failed requested proof leaves no "
+                "new corrupt final path and does not clobber an existing --force destination. Verified remote output is re-read "
+                "after publication before --replace-source may delete any source.",
             ),
         ),
         examples=(
@@ -307,8 +320,8 @@ _add(
 _add(
     _command_page(
         "backends",
-        "Report configured backend preference order, installed binaries, and normalized capabilities rather than assuming similarly named native tools are interchangeable.",
-        options="--json\n--remote NAME",
+        "Report configured backend preference order, installed binaries, and the typed capability profile Arc uses for planning rather than assuming similarly named native tools are interchangeable.",
+        options="--json[=legacy|v1]\n--verbose\n--remote NAME",
         examples="arc backends\narc backends --remote tablet",
         see_also="arc-backends(7), arc-formats(7)",
     )
@@ -347,7 +360,7 @@ _add(
         "Plan an Arc operation through its real dry-run path and show the decisions and native stages without mutating archives, destinations, transaction state, or remote content.",
         options="--json",
         semantics=(
-            "Explain forces the nested operation into dry-run mode. The plan records format/backend selection, publication and verification policy, locality/staging decisions, and source-removal policy where applicable. "
+            "Explain forces the nested operation into dry-run mode. The plan records format/backend selection, typed verification-policy negotiation, publication policy, locality/staging decisions, and source-removal policy where applicable. "
             "It is diagnostic evidence, not a promise that external state will remain unchanged between planning and execution."
         ),
         examples="arc explain convert a.zip -tzst\narc explain --json create backup.tar src/",
@@ -365,6 +378,20 @@ _add(
         ),
         examples="arc recover\narc recover TXID --json\narc recover TXID --cleanup",
         see_also="arc-convert(1), arc-explain(1)",
+    )
+)
+
+_add(
+    _command_page(
+        "schema",
+        "Print the bundled JSON Schemas that define Arc's stable machine envelope, typed backend capability profile, and verification evidence contracts.",
+        options="--list\nmachine-v1 | backend-capability-v1 | verification-evidence-v1",
+        semantics=(
+            "Schemas are shipped as package data and are the public validation contract for --json=v1 consumers. "
+            "Bare --json remains the compatibility surface and is intentionally not covered by the versioned envelope schema."
+        ),
+        examples="arc schema --list\narc schema machine-v1\narc schema verification-evidence-v1",
+        see_also="arc(1), arc-backends(1), arc-test(1)",
     )
 )
 
@@ -423,9 +450,10 @@ for page in (
         "ARC-BACKENDS",
         (
             ("NAME", "arc-backends - native backend resolution and capabilities"),
-            ("DESCRIPTION", "Arc resolves a normalized operation to an installed compatible backend using format, operation, capability requirements, configured preference order, and --no-fallback policy."),
-            ("ROLES", "TAR/bsdtar, ZIP create/extract, 7z/7zz, RAR create/extract, and compressor families gzip/bzip2/xz/zstd."),
-            ("DIAGNOSTICS", "arc backends and arc backends --json expose installed candidates/capabilities. --show-command shows immediate native argv; --show-native records the broader execution plan."),
+            ("DESCRIPTION", "Arc resolves a normalized operation to an installed compatible backend using a typed capability profile: operation support, stream I/O, encryption, solid/multipart behavior, random access, metadata, mutation, verification depth, remote suitability, thread support, and safe-index semantics."),
+            ("ROLES", "TAR/bsdtar, ZIP create/extract, 7z/7zz, RAR create/extract, and compressor families gzip/bzip2/xz/zstd. Legacy capability strings remain a compatibility projection of the typed profile rather than an independent authority."),
+            ("VERIFICATION", "Each backend declares the verification levels it can prove: none, structure, members, and/or full. structure means a readable container/member index (streams satisfy it with a stronger native full test); members adds Arc's normalized member path/type safety validation and is not a content checksum; full runs a backend integrity test that consumes encoded data. An explicit request cannot silently degrade. A weaker available level requires --allow-verification-downgrade and produces downgraded=true evidence."),
+            ("DIAGNOSTICS", "arc backends --verbose shows the human capability summary; --json exposes the versioned capability profile. --show-command shows immediate native argv; --show-native records the broader execution plan."),
             ("SEE ALSO", "arc(1), arc-formats(7)"),
         ),
     ),
@@ -464,6 +492,7 @@ DEFAULT_TOPIC_SECTIONS: dict[str, int] = {
     "doctor": 1,
     "explain": 1,
     "recover": 1,
+    "schema": 1,
     "completion": 1,
     "formats": 7,
     "remote": 7,

@@ -4,4 +4,5 @@ recursive-include scripts *.py
 recursive-include completions *
 recursive-include release *.json
 recursive-include src/arc_cli/man *
+recursive-include src/arc_cli/schemas *.json
 recursive-include tests *.py

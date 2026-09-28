@@ -15,14 +15,16 @@ import subprocess
 import sys
 import tempfile
 import time
-from contextlib import nullcontext, redirect_stdout
+from contextlib import nullcontext, redirect_stderr, redirect_stdout
 from pathlib import Path
 
 from rich.filesize import decimal
 from rich.table import Table
 from rich.text import Text
 
-from .backends import backend_inventory, resolve_backend, run_backend, _compression_command, _decompression_command
+from .backends import backend_capability_profile, backend_inventory, resolve_backend, run_backend, _compression_command, _decompression_command
+from .capabilities import VerificationLevel
+from .machine import MachineError, diagnostic as machine_diagnostic, dumps as machine_dumps, envelope as machine_envelope, load_schema, schema_names
 from .completion import FORMATS, completion_candidates, completion_mode, encode_candidates_nul, zsh_completion
 from .command_docs import COMMAND_DOCS, EXECUTABLE_ALIASES
 from .doctor import alias_status_rows, collect_doctor_report, fix_and_recheck
@@ -36,6 +38,7 @@ from .formats import CREATE_SUFFIX_SHORTCUTS, detect, extension_for, infer_from_
 from .interactive import choose_auto, filesystem_candidates, rg_files, yazi_choose
 from .model import FilterRule, Member
 from .progress import ProgressReporter, console, progress_enabled, stdout_console
+from .verification import VerificationEvidence, choose_level, verify_with_backend
 from .remote import (
     RemoteLocation,
     clear_completion_cache,
@@ -91,6 +94,44 @@ def split_passthrough(argv: list[str]) -> tuple[list[str], list[str]]:
     return argv[:idx], argv[idx + 1 :]
 
 
+def _normalize_json_argv(argv: list[str]) -> list[str]:
+    """Keep historical bare --json unambiguous beside positional arguments.
+
+    argparse optional-value options otherwise consume the next positional token
+    (for example ``arc explain --json convert ...``). Normalizing the bare
+    spelling to an inline legacy value preserves the old CLI while still
+    allowing the explicit ``--json=v1`` machine contract. Backend passthrough
+    tokens after ``--`` are left untouched.
+    """
+    out: list[str] = []
+    passthrough = False
+    for token in argv:
+        if token == "--":
+            passthrough = True
+            out.append(token)
+            continue
+        if not passthrough and token == "--json":
+            out.append("--json=legacy")
+        else:
+            out.append(token)
+    return out
+
+
+def _add_json_option(p: argparse.ArgumentParser) -> None:
+    p.add_argument(
+        "--json",
+        nargs="?",
+        const="legacy",
+        choices=["legacy", "v1"],
+        default=False,
+        help="emit JSON; bare --json preserves the legacy shape, --json=v1 emits the stable machine envelope",
+    )
+
+
+def _json_v1(args) -> bool:
+    return getattr(args, "json", False) == "v1"
+
+
 def add_common(
     p: argparse.ArgumentParser,
     *,
@@ -111,7 +152,7 @@ def add_common(
     p.add_argument("--execution", choices=["auto", "local", "remote"], default=None, help="remote archive execution strategy")
     p.add_argument("-q", "--quiet", action="store_true")
     p.add_argument("-v", "--verbose", action="count", default=0)
-    p.add_argument("--json", action="store_true")
+    _add_json_option(p)
     p.add_argument("--progress", choices=["auto", "always", "never"], default=None)
     p.add_argument("--yazi", nargs="?", const="auto", choices=["auto", "archive", "inputs", "output"])
     p.add_argument("--password", nargs="?", const="__PROMPT__", help="archive password; omit value to prompt securely")
@@ -173,7 +214,7 @@ def parser() -> argparse.ArgumentParser:
     q = sub.add_parser("identify", help=COMMAND_DOCS["identify"].summary)
     q.add_argument("files", nargs="*")
     q.add_argument("-F", "--format")
-    q.add_argument("--json", action="store_true")
+    _add_json_option(q)
     q.add_argument("--yazi", nargs="?", const="archive", choices=["auto", "archive"])
     q.add_argument("--show-native", nargs="?", const="after", choices=["before", "after", "both"], default=None)
     q.add_argument("--native-style", choices=["exact", "reproducible"], default=None)
@@ -185,6 +226,9 @@ def parser() -> argparse.ArgumentParser:
         if name == "list":
             q.add_argument("members", nargs="*")
         add_common(q, member_filter=True)
+        if name == "test":
+            q.add_argument("--verify-level", choices=[level.value for level in VerificationLevel], help="verification proof level; defaults to the strongest level the selected backend can prove")
+            q.add_argument("--allow-verification-downgrade", action="store_true", help="accept the strongest weaker proof when the requested verification level is unavailable")
 
     q = sub.add_parser("extract", help=COMMAND_DOCS["extract"].summary)
     q.add_argument("archive", nargs="?")
@@ -215,9 +259,11 @@ def parser() -> argparse.ArgumentParser:
     q.add_argument("--password-file")
     q.add_argument("--password-env", metavar="NAME")
     q.add_argument("--members", action="store_true", help="include compact member statistics")
-    q.add_argument("--verify", action="store_true", help="run a real integrity test")
+    q.add_argument("--verify", action="store_true", help="run verification using the strongest level the selected backend can prove")
+    q.add_argument("--verify-level", choices=[level.value for level in VerificationLevel], help="request an explicit verification proof level; implies --verify")
+    q.add_argument("--allow-verification-downgrade", action="store_true", help="accept the strongest weaker proof when the requested verification level is unavailable")
     q.add_argument("--technical", action="store_true", help="include backend-oriented technical metadata")
-    q.add_argument("--json", action="store_true")
+    _add_json_option(q)
     q.add_argument("-q", "--quiet", action="store_true")
     q.add_argument("-v", "--verbose", action="count", default=0)
     q.add_argument("--progress", choices=["auto", "always", "never"], default=None)
@@ -235,35 +281,42 @@ def parser() -> argparse.ArgumentParser:
     q.add_argument("--batch", action="store_true", help="treat every positional path as an independent source and derive each destination")
     q.add_argument("--resume", action="store_true", help="reuse completed batch items only when source and verified destination evidence still match")
     q.add_argument("--batch-id", help="override the deterministic resumable batch identity")
+    q.add_argument("--verify-level", choices=[level.value for level in VerificationLevel], help="verification proof level; defaults to the strongest level the selected backend can prove")
+    q.add_argument("--allow-verification-downgrade", action="store_true", help="accept the strongest weaker proof when the requested verification level is unavailable")
     q.add_argument("--source-password", nargs="?", const="__PROMPT__")
     q.add_argument("--source-password-file")
     q.add_argument("--source-password-env", metavar="NAME")
 
     q = sub.add_parser("explain", help=COMMAND_DOCS["explain"].summary)
-    q.add_argument("--json", action="store_true")
+    _add_json_option(q)
     q.add_argument("argv", nargs=argparse.REMAINDER, help="Arc command and arguments to plan without mutation")
 
     q = sub.add_parser("recover", help=COMMAND_DOCS["recover"].summary)
     q.add_argument("transaction_id", nargs="?")
     q.add_argument("--cleanup", action="store_true", help="remove only paths explicitly registered as transaction-owned temporary state")
     q.add_argument("--all", action="store_true", help="include completed transactions when listing")
-    q.add_argument("--json", action="store_true")
+    _add_json_option(q)
 
     q = sub.add_parser("backends", help=COMMAND_DOCS["backends"].summary)
-    q.add_argument("--json", action="store_true")
+    _add_json_option(q)
+    q.add_argument("--verbose", action="store_true", help="show typed normalized capability profiles")
     q.add_argument("--remote")
     q = sub.add_parser("formats", help=COMMAND_DOCS["formats"].summary)
-    q.add_argument("--json", action="store_true")
+    _add_json_option(q)
     q.add_argument("--remote")
     q = sub.add_parser("profiles", help=COMMAND_DOCS["profiles"].summary)
-    q.add_argument("--json", action="store_true")
+    _add_json_option(q)
     q = sub.add_parser("aliases", help=COMMAND_DOCS["aliases"].summary)
-    q.add_argument("--json", action="store_true")
+    _add_json_option(q)
     q.add_argument("--missing", action="store_true", help="show only aliases missing from PATH")
     q = sub.add_parser("doctor", help=COMMAND_DOCS["doctor"].summary)
-    q.add_argument("--json", action="store_true")
+    _add_json_option(q)
     q.add_argument("--fix", action="store_true", help="refresh generated surfaces and editable install, then re-check")
     q.add_argument("--source", type=Path, help="explicit arc-cli source checkout")
+    q = sub.add_parser("schema", help=COMMAND_DOCS["schema"].summary)
+    q.add_argument("name", nargs="?", choices=list(schema_names()))
+    q.add_argument("--list", action="store_true", help="list bundled schema identities")
+
     q = sub.add_parser("man", help=COMMAND_DOCS["man"].summary)
     q.add_argument("topic", nargs="?", default="arc")
     q.add_argument("--list", action="store_true", dest="list_topics")
@@ -275,7 +328,7 @@ def parser() -> argparse.ArgumentParser:
     c = sub.add_parser("completion", help=COMMAND_DOCS["completion"].summary)
     c.add_argument("action", choices=["zsh", "cache", "refresh", "clear-cache"])
     c.add_argument("location", nargs="?")
-    c.add_argument("--json", action="store_true")
+    _add_json_option(c)
     return p
 
 
@@ -1116,6 +1169,8 @@ def _list_or_test(args, extra: list[str], config: dict) -> int:
         backend = resolve_backend(
             fmt, args.command, config, args.backend,
             required_capabilities=_backend_requirements(args, fmt, args.command, password),
+            required_verification=_explicit_verification_requirement(args) if args.command == "test" else None,
+            allow_verification_downgrade=bool(getattr(args, "allow_verification_downgrade", False)),
             no_fallback=args.no_fallback,
         )
 
@@ -1172,28 +1227,77 @@ def _list_or_test(args, extra: list[str], config: dict) -> int:
         members = [] if fmt.is_stream else backend.list_members(archive, password=password)
         selected_members = _select_archive_members(members, args)
         if rules and not selected_members:
+            skipped_evidence = VerificationEvidence(
+                _requested_verification_level(args, backend),
+                VerificationLevel.NONE,
+                "skipped",
+                backend=backend.info.binary,
+                reason="no archive members matched filters",
+            )
+            payload = {"operation": "test", "archive": str(archive_arg), "format": fmt.canonical, "backend": backend.info.binary, "ok": True, "members": 0, "skipped": True, "verification": skipped_evidence.to_dict()}
             if args.json:
-                print(json.dumps({"operation": "test", "archive": str(archive_arg), "format": fmt.canonical, "backend": backend.info.binary, "ok": True, "members": 0, "skipped": True}))
+                print(json.dumps(payload))
             elif not args.quiet:
                 stdout_console.print(f"[green]OK[/] no archive members matched filters: {archive_arg}")
             return 0
         selected_names = [m.name for m in selected_members] if rules else []
-        cmd, meta = backend.command(
-            "test", archive, fmt=fmt, members=selected_names, extra=extra,
-            password=password, config=config, dry_run=args.dry_run, no_fallback=args.no_fallback,
-        )
-        enabled = progress_enabled(args.progress, args.json, args.quiet)
-        sizes = _member_sizes(selected_members)
-        progress_total = 0 if meta.get("progress_indeterminate") else sum(sizes.values())
-        progress_files = 0 if meta.get("progress_indeterminate") else len(sizes)
-        with ProgressReporter("Testing", progress_total, progress_files, enabled) as rep:
-            rc = run_backend(cmd, meta, rep, sizes, show_command=args.show_command, dry_run=args.dry_run, verbose=args.verbose)
-        if rc != 0:
-            _raise_backend_failure(rc, meta, password=password, operation="test")
+        requested = _requested_verification_level(args, backend)
+
+        if args.dry_run:
+            cmd, meta = backend.command(
+                "test", archive, fmt=fmt, members=selected_names, extra=extra,
+                password=password, config=config, dry_run=True, no_fallback=args.no_fallback,
+            )
+            run_backend(cmd, meta, None, {}, show_command=True, dry_run=True, verbose=args.verbose)
+            evidence = VerificationEvidence(requested, VerificationLevel.NONE, "skipped", backend=backend.info.binary, reason="dry-run")
+        else:
+            def run_full() -> tuple[bool, str | None]:
+                cmd, meta = backend.command(
+                    "test", archive, fmt=fmt, members=selected_names, extra=extra,
+                    password=password, config=config, dry_run=False, no_fallback=args.no_fallback,
+                )
+                enabled = progress_enabled(args.progress, args.json, args.quiet)
+                sizes = _member_sizes(selected_members)
+                progress_total = 0 if meta.get("progress_indeterminate") else sum(sizes.values())
+                progress_files = 0 if meta.get("progress_indeterminate") else len(sizes)
+                with ProgressReporter("Testing", progress_total, progress_files, enabled) as rep:
+                    rc = run_backend(cmd, meta, rep, sizes, show_command=args.show_command, dry_run=False, verbose=args.verbose)
+                if rc == 0:
+                    return True, None
+                try:
+                    _raise_backend_failure(rc, meta, password=password, operation="test")
+                except ArcError as exc:
+                    return False, str(exc)
+                return False, f"backend status {rc}"
+
+            evidence = verify_with_backend(
+                path=archive,
+                backend=backend,
+                requested=requested,
+                allow_downgrade=bool(getattr(args, "allow_verification_downgrade", False)),
+                list_members=None if fmt.is_stream else (lambda: selected_members),
+                run_full=run_full,
+            )
+        ok = evidence.status != "failed"
+        payload = {
+            "operation": "test",
+            "archive": str(archive_arg),
+            "format": fmt.canonical,
+            "backend": backend.info.binary,
+            "ok": ok,
+            "members": len(selected_members),
+            "verification": evidence.to_dict(),
+        }
+        if not ok:
+            raise CorruptArchive(_verification_failure_detail(evidence) or "archive verification failed")
         if args.json:
-            print(json.dumps({"operation": "test", "archive": str(archive_arg), "format": fmt.canonical, "backend": backend.info.binary, "ok": True, "members": len(selected_members)}))
+            print(json.dumps(payload))
         elif not args.quiet:
-            stdout_console.print(f"[green]OK[/] archive passed backend test: {archive_arg}")
+            if evidence.status == "skipped":
+                stdout_console.print(f"[yellow]SKIPPED[/] verification: {archive_arg} ({evidence.reason or 'no proof requested'})")
+            else:
+                label = evidence.achieved.value + (" (downgraded)" if evidence.downgraded else "")
+                stdout_console.print(f"[green]OK[/] archive verification passed: {archive_arg} · {label}")
         return 0
     finally:
         if stdin_temp:
@@ -2009,42 +2113,115 @@ def _conversion_targets(config: dict) -> list[str]:
     return targets
 
 
-def _verify_archive_path(path: Path, fmt, password: str | None, args, config: dict) -> tuple[bool, str, str | None]:
+def _verification_failure_detail(evidence: VerificationEvidence) -> str | None:
+    for check in reversed(evidence.checks):
+        if check.status == "failed":
+            return check.detail or check.name
+    return evidence.reason if evidence.status == "failed" else None
+
+
+def _coerce_verification_evidence(value, args=None) -> VerificationEvidence:
+    if isinstance(value, VerificationEvidence):
+        return value
+    # Compatibility for tests/plugins written against the pre-R08 private
+    # helper contract: (verified, backend, error).
+    if isinstance(value, tuple) and len(value) == 3:
+        verified, backend, error = value
+        requested = VerificationLevel.parse(getattr(args, "verify_level", None) or "full")
+        return VerificationEvidence(
+            requested=requested,
+            achieved=VerificationLevel.FULL if verified else VerificationLevel.NONE,
+            status="passed" if verified else "failed",
+            backend=backend,
+            reason=error,
+        )
+    raise TypeError(f"unsupported verification evidence value: {type(value).__name__}")
+
+
+def _explicit_verification_requirement(args) -> VerificationLevel | None:
+    value = getattr(args, "verify_level", None)
+    if not value or value == VerificationLevel.NONE.value:
+        return None
+    return VerificationLevel.parse(value)
+
+
+def _requested_verification_level(args, backend) -> VerificationLevel:
+    explicit = getattr(args, "verify_level", None)
+    if explicit:
+        return VerificationLevel.parse(explicit)
+    profile = getattr(backend.info, "capability_profile", None)
+    if profile is not None:
+        return profile.maximum_verification
+    caps = set(getattr(backend.info, "capabilities", set()) or set())
+    if "test" in caps:
+        return VerificationLevel.FULL
+    if "list" in caps or "safe-index" in caps:
+        return VerificationLevel.MEMBERS
+    return VerificationLevel.NONE
+
+
+def _verify_archive_path(path: Path, fmt, password: str | None, args, config: dict) -> VerificationEvidence:
+    if getattr(args, "verify_level", None) == VerificationLevel.NONE.value:
+        return VerificationEvidence(
+            VerificationLevel.NONE,
+            VerificationLevel.NONE,
+            "skipped",
+            backend=None,
+            reason="verification explicitly disabled",
+        )
     backend = resolve_backend(
         fmt,
         "test",
         config,
         getattr(args, "backend", None),
         required_capabilities=_backend_requirements(args, fmt, "test", password),
+        required_verification=_explicit_verification_requirement(args),
+        allow_verification_downgrade=bool(getattr(args, "allow_verification_downgrade", False)),
         no_fallback=bool(getattr(args, "no_fallback", False)),
     )
-    cmd, meta = backend.command(
-        "test",
-        path,
-        fmt=fmt,
-        members=[],
-        extra=[],
-        config=config,
-        password=password,
-        dry_run=False,
-        no_fallback=bool(getattr(args, "no_fallback", False)),
+    requested = _requested_verification_level(args, backend)
+
+    def list_members():
+        return backend.list_members(path, password=password)
+
+    def run_full() -> tuple[bool, str | None]:
+        cmd, meta = backend.command(
+            "test",
+            path,
+            fmt=fmt,
+            members=[],
+            extra=[],
+            config=config,
+            password=password,
+            dry_run=False,
+            no_fallback=bool(getattr(args, "no_fallback", False)),
+        )
+        rc = run_backend(
+            cmd,
+            meta,
+            None,
+            {},
+            show_command=bool(getattr(args, "show_command", False)),
+            dry_run=False,
+            verbose=int(getattr(args, "verbose", 0) or 0),
+        )
+        if rc == 0:
+            return True, None
+        try:
+            _raise_backend_failure(rc, meta, password=password, operation="test")
+        except ArcError as exc:
+            return False, str(exc)
+        return False, f"backend status {rc}"
+
+    evidence = verify_with_backend(
+        path=path,
+        backend=backend,
+        requested=requested,
+        allow_downgrade=bool(getattr(args, "allow_verification_downgrade", False)),
+        list_members=None if fmt.is_stream else list_members,
+        run_full=run_full,
     )
-    rc = run_backend(
-        cmd,
-        meta,
-        None,
-        {},
-        show_command=bool(getattr(args, "show_command", False)),
-        dry_run=False,
-        verbose=int(getattr(args, "verbose", 0) or 0),
-    )
-    if rc == 0:
-        return True, backend.info.binary, None
-    try:
-        _raise_backend_failure(rc, meta, password=password, operation="test")
-    except ArcError as exc:
-        return False, backend.info.binary, str(exc)
-    return False, backend.info.binary, f"backend status {rc}"
+    return evidence
 
 
 def _archive_info_local(path: Path, display: str, args, config: dict, password: str | None) -> tuple[dict, bool]:
@@ -2097,10 +2274,15 @@ def _archive_info_local(path: Path, display: str, args, config: dict, password: 
     verified: bool | None = None
     verify_error: str | None = None
     verify_backend: str | None = None
+    verification: dict[str, object] | None = None
     failed = False
-    if getattr(args, "verify", False):
-        verified, verify_backend, verify_error = _verify_archive_path(path, fmt, password, args, config)
-        failed = not verified
+    if getattr(args, "verify", False) or getattr(args, "verify_level", None):
+        evidence = _coerce_verification_evidence(_verify_archive_path(path, fmt, password, args, config), args)
+        verification = evidence.to_dict()
+        verify_backend = evidence.backend
+        verify_error = _verification_failure_detail(evidence)
+        verified = True if evidence.status == "passed" and evidence.achieved is not VerificationLevel.NONE else (False if evidence.status == "failed" else None)
+        failed = evidence.status == "failed"
 
     # A mismatch means content detection beat the filename hint. A matching
     # hint is still reported separately so callers do not confuse filename
@@ -2143,6 +2325,7 @@ def _archive_info_local(path: Path, display: str, args, config: dict, password: 
         "verified": verified,
         "verify_backend": verify_backend,
         "verify_error": verify_error,
+        "verification": verification,
         "technical": technical if getattr(args, "technical", False) else None,
         "convert_targets": _conversion_targets(config),
     }
@@ -2207,9 +2390,14 @@ def _print_info_result(result: dict, *, members: bool = False, technical: bool =
         t.add_row("Safety", "unsafe member paths detected")
     t.add_row("Backend", str(result["backend"] or "unavailable"))
     if result["verified"] is True:
-        t.add_row("Integrity", f"verified ({result['verify_backend']})")
+        evidence = result.get("verification") or {}
+        achieved = evidence.get("achieved")
+        suffix = f" · {achieved}" if achieved else ""
+        t.add_row("Integrity", f"verified ({result['verify_backend']}){suffix}")
     elif result["verified"] is False:
         t.add_row("Integrity", f"FAILED — {result['verify_error']}")
+    elif result.get("verification") and result["verification"].get("status") == "skipped":
+        t.add_row("Integrity", "not verified (verification level none)")
     else:
         t.add_row("Integrity", "not checked")
     targets = result.get("convert_targets") or []
@@ -2396,17 +2584,49 @@ def _convert_backend_summary(source_fmt, target_fmt, args, config: dict) -> str:
     return f"{source_backend} -> {target_backend}"
 
 
+def _verification_plan(target_fmt, args, config: dict) -> dict[str, object]:
+    explicit = getattr(args, "verify_level", None)
+    if explicit == VerificationLevel.NONE.value:
+        return {"requested": "none", "selected": "none", "backend": None, "downgraded": False, "reason": "verification explicitly disabled"}
+    backend = resolve_backend(
+        target_fmt,
+        "test",
+        config,
+        getattr(args, "backend", None),
+        required_verification=_explicit_verification_requirement(args),
+        allow_verification_downgrade=bool(getattr(args, "allow_verification_downgrade", False)),
+        no_fallback=bool(getattr(args, "no_fallback", False)),
+    )
+    profile = backend.info.capability_profile or backend_capability_profile(backend.info.binary)
+    requested = VerificationLevel.parse(explicit) if explicit else profile.maximum_verification
+    selected, downgraded, reason = choose_level(
+        requested,
+        set(profile.verification_levels),
+        allow_downgrade=bool(getattr(args, "allow_verification_downgrade", False)),
+    )
+    return {
+        "requested": requested.value,
+        "selected": selected.value,
+        "backend": backend.info.binary,
+        "downgraded": downgraded,
+        "reason": reason,
+    }
+
+
 def _show_convert_plan(source: str, destination: str, source_fmt, target_fmt, strategy: str, args, config: dict) -> None:
     destination_remote = parse_remote(
         destination, config, probe_rclone=not bool(getattr(args, "dry_run", False))
     )
-    publication = "local-same-filesystem-atomic-replace" if destination_remote is None else "transport-dependent-remote-publish-with-reread"
+    verification_plan = _verification_plan(target_fmt, args, config)
+    verification_enabled = verification_plan["selected"] != VerificationLevel.NONE.value
+    publication = "local-same-filesystem-atomic-replace" if destination_remote is None else ("transport-dependent-remote-publish-with-reread" if verification_enabled else "transport-dependent-remote-publish-unverified")
     record_decision("source_format", source_fmt.canonical, reason="detected from source bytes/name during planning")
     record_decision("destination_format", target_fmt.canonical, reason="explicit selector or destination suffix")
     record_decision("backend_chain", _convert_backend_summary(source_fmt, target_fmt, args, config), reason="compatible source/target backend resolution")
     record_decision("strategy", strategy, reason="selected from source/target representation and filters")
     record_decision("publication", publication, reason="locality determines publication guarantees")
-    record_decision("verification", "verify-unpublished-candidate-then-published-remote-reread" if destination_remote else "verify-unpublished-candidate-before-publish", reason="destination must be proven before source removal")
+    record_decision("verification", "verify-unpublished-candidate-then-published-remote-reread" if destination_remote and verification_enabled else ("verification-disabled" if not verification_enabled else "verify-unpublished-candidate-before-publish"), reason="publication verification sequence")
+    record_decision("verification_policy", verification_plan, reason="typed verification policy negotiated against the selected test backend")
     record_decision("source_removal", "after-verified-publish" if args.replace_source else "keep", reason="--replace-source policy")
     mark_mutation(not bool(getattr(args, "dry_run", False)))
     if args.quiet or args.json:
@@ -2422,9 +2642,15 @@ def _show_convert_plan(source: str, destination: str, source_fmt, target_fmt, st
     t.add_row("Strategy", strategy)
     if destination_remote is None:
         publication_label = "yes (local same-filesystem publish)"
-    else:
+    elif verification_enabled:
         publication_label = "transport-dependent; remote re-read verified"
+    else:
+        publication_label = "transport-dependent; verification disabled"
     t.add_row("Atomic", publication_label)
+    verify_label = str(verification_plan["selected"])
+    if verification_plan.get("downgraded"):
+        verify_label += " (downgraded)"
+    t.add_row("Verification", verify_label)
     t.add_row("Source kept", "no, after verified publish" if args.replace_source else "yes")
     stdout_console.print(t)
 
@@ -2629,6 +2855,8 @@ def _convert_one(job: dict, args, config: dict, source_password: str | None, des
     source_raw = str(job["source"])
     destination_raw = str(job["destination"])
     target_fmt = job["target_format"]
+    if args.replace_source and getattr(args, "verify_level", None) == VerificationLevel.NONE.value:
+        raise UsageError("--replace-source requires verification; --verify-level none cannot authorize source deletion")
     source_remote = parse_remote(source_raw, config, probe_rclone=True)
     destination_remote = parse_remote(destination_raw, config, probe_rclone=True)
     transfer_progress = progress_enabled(args.progress, args.json, args.quiet)
@@ -2693,41 +2921,60 @@ def _convert_one(job: dict, args, config: dict, source_password: str | None, des
             # Verification happens against the unpublished local candidate.  A
             # failed test therefore cannot leave a new/corrupt final local path
             # or clobber an existing --force destination.
-            with ProgressReporter("Verifying", 0, 0, progress_enabled(args.progress, args.json, args.quiet)) as verification:
-                verified, verify_backend, verify_error = _verify_archive_path(
-                    local_destination, target_fmt, destination_password, args, config
+            with ProgressReporter("Verifying", 0, 0, progress_enabled(args.progress, args.json, args.quiet)) as verification_progress:
+                verification_evidence = _coerce_verification_evidence(
+                    _verify_archive_path(local_destination, target_fmt, destination_password, args, config),
+                    args,
                 )
-                verification.complete()
-            if not verified:
-                tx_event("verify", status="failed", destination=destination_raw, detail=verify_error)
+                verification_progress.complete()
+            verify_backend = verification_evidence.backend
+            verify_error = _verification_failure_detail(verification_evidence)
+            if verification_evidence.status == "failed":
+                tx_event("verify", status="failed", destination=destination_raw, detail=verify_error, evidence=verification_evidence.to_dict())
                 raise CorruptArchive(f"converted destination failed verification: {verify_error}")
-            tx_event("verify", status="passed", destination=destination_raw, backend=verify_backend, scope="unpublished-candidate")
+            tx_event(
+                "verify",
+                status=verification_evidence.status,
+                destination=destination_raw,
+                backend=verify_backend,
+                scope="unpublished-candidate",
+                evidence=verification_evidence.to_dict(),
+            )
 
             if destination_remote:
                 tx_event("remote-transfer", direction="upload", destination=destination_raw)
                 upload_remote(local_destination, destination_remote, config, progress=transfer_progress)
                 tx_event("remote-transfer-complete", direction="upload", destination=destination_raw)
-                # Verify the published remote object, not merely the pre-upload
-                # staging bytes.  Only a successful re-read can authorize source
-                # removal.
-                published = work / ("verify-" + (destination_remote.basename or "destination.arc"))
-                download_remote(destination_remote, published, config, progress=transfer_progress)
-                with ProgressReporter(
-                    "Verifying remote",
-                    0,
-                    0,
-                    progress_enabled(args.progress, args.json, args.quiet),
-                ) as remote_verification:
-                    verified, verify_backend, verify_error = _verify_archive_path(
-                        published, target_fmt, destination_password, args, config
-                    )
-                    remote_verification.complete()
-                if not verified:
-                    tx_event("verify", status="failed", destination=destination_raw, detail=verify_error, scope="published-remote-reread")
-                    raise CorruptArchive(f"published remote destination failed verification: {verify_error}")
-                tx_event("verify", status="passed", destination=destination_raw, backend=verify_backend, scope="published-remote-reread")
-                tx_event("publish", destination=destination_raw, publication="transport-dependent-verified-reread")
-                converted_size = published.stat().st_size
+                # When verification is enabled, verify the published remote
+                # object rather than merely the pre-upload staging bytes.  A
+                # verification level of none deliberately skips the expensive
+                # re-read and can never authorize --replace-source.
+                if verification_evidence.achieved is not VerificationLevel.NONE:
+                    published = work / ("verify-" + (destination_remote.basename or "destination.arc"))
+                    download_remote(destination_remote, published, config, progress=transfer_progress)
+                    with ProgressReporter(
+                        "Verifying remote",
+                        0,
+                        0,
+                        progress_enabled(args.progress, args.json, args.quiet),
+                    ) as remote_verification_progress:
+                        remote_evidence = _coerce_verification_evidence(
+                            _verify_archive_path(published, target_fmt, destination_password, args, config),
+                            args,
+                        )
+                        remote_verification_progress.complete()
+                    verify_backend = remote_evidence.backend
+                    verify_error = _verification_failure_detail(remote_evidence)
+                    if remote_evidence.status == "failed":
+                        tx_event("verify", status="failed", destination=destination_raw, detail=verify_error, scope="published-remote-reread", evidence=remote_evidence.to_dict())
+                        raise CorruptArchive(f"published remote destination failed verification: {verify_error}")
+                    verification_evidence = remote_evidence
+                    tx_event("verify", status=remote_evidence.status, destination=destination_raw, backend=verify_backend, scope="published-remote-reread", evidence=remote_evidence.to_dict())
+                    tx_event("publish", destination=destination_raw, publication="transport-dependent-verified-reread")
+                    converted_size = published.stat().st_size
+                else:
+                    tx_event("publish", destination=destination_raw, publication="transport-dependent-unverified")
+                    converted_size = local_destination.stat().st_size
             else:
                 assert final_local_destination is not None
                 converted_size = local_destination.stat().st_size
@@ -2756,8 +3003,9 @@ def _convert_one(job: dict, args, config: dict, source_password: str | None, des
                 "size_change_percent": size_change,
                 "ratio": ratio,
                 "members": member_count,
-                "verified": True,
+                "verified": True if verification_evidence.status == "passed" and verification_evidence.achieved is not VerificationLevel.NONE else None,
                 "verify_backend": verify_backend,
+                "verification": verification_evidence.to_dict(),
                 "source_removed": bool(args.replace_source),
                 "transport": destination_remote.kind if destination_remote else (source_remote.kind if source_remote else "local"),
                 "duration_seconds": time.monotonic() - started,
@@ -2780,6 +3028,8 @@ def _batch_policy(args, jobs: list[dict]) -> dict:
         "threads": getattr(args, "threads", None),
         "filters": rules,
         "replace_source": bool(getattr(args, "replace_source", False)),
+        "verify_level": getattr(args, "verify_level", None),
+        "allow_verification_downgrade": bool(getattr(args, "allow_verification_downgrade", False)),
         "execution": getattr(args, "execution", None),
     }
 
@@ -2806,6 +3056,8 @@ def _resume_destination_fingerprint(raw: str, config: dict) -> dict | None:
 
 def _resume_entry_valid(entry: dict | None, job: dict, config: dict) -> bool:
     if not entry or entry.get("status") != "completed":
+        return False
+    if not bool((entry.get("result") or {}).get("verified")):
         return False
     prior_destination = entry.get("destination_fingerprint")
     current_destination = _resume_destination_fingerprint(str(job["destination"]), config)
@@ -2847,7 +3099,14 @@ def _print_convert_success(result: dict) -> None:
     if result.get("members") is not None:
         t.add_row("Members", str(result["members"]))
     t.add_row("Output", str(result["destination"]))
-    t.add_row("Verified", f"yes ({result['verify_backend']})")
+    evidence = result.get("verification") or {}
+    if result.get("verified"):
+        label = str(evidence.get("achieved") or "verified")
+        if evidence.get("downgraded"):
+            label += " (downgraded)"
+        t.add_row("Verified", f"yes ({result['verify_backend']}) · {label}")
+    else:
+        t.add_row("Verified", "no (verification disabled)")
     if result.get("duration_seconds") is not None:
         t.add_row("Duration", f"{float(result['duration_seconds']):.2f}s")
     if result.get("source_removed"):
@@ -2856,6 +3115,8 @@ def _print_convert_success(result: dict) -> None:
 
 
 def _convert(args, config: dict) -> int:
+    if args.replace_source and getattr(args, "verify_level", None) == VerificationLevel.NONE.value:
+        raise UsageError("--replace-source requires verification; --verify-level none cannot authorize source deletion")
     jobs = _resolve_convert_jobs(args, config)
     source_password = _resolve_source_password(args)
     destination_password = _resolve_password(args)
@@ -2885,8 +3146,8 @@ def _convert(args, config: dict) -> int:
                 "source_format": source_fmt.canonical,
                 "destination_format": job["target_format"].canonical,
                 "strategy": strategy,
-                "publication": "transport-dependent-remote-publish-with-reread" if destination_remote else "local-same-filesystem-atomic-replace",
-                "verification": "verify-unpublished-candidate-then-published-remote-reread" if destination_remote else "verify-unpublished-candidate-before-publish",
+                "publication": ("transport-dependent-remote-publish-with-reread" if _verification_plan(job["target_format"], args, config)["selected"] != "none" else "transport-dependent-remote-publish-unverified") if destination_remote else "local-same-filesystem-atomic-replace",
+                "verification": _verification_plan(job["target_format"], args, config),
                 "source_removal": "after-verified-publish" if args.replace_source else "keep",
                 "dry_run": True,
             })
@@ -3064,7 +3325,34 @@ def _completion_command(args, config: dict) -> int:
     return 0
 
 
-def _show_backends(config: dict, json_mode: bool = False, remote: str | None = None) -> int:
+def _schema_command(args) -> int:
+    if args.list or not args.name:
+        print(json.dumps({"schema_version": 1, "schemas": list(schema_names())}, ensure_ascii=False, sort_keys=True))
+        return 0
+    print(json.dumps(load_schema(args.name), ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
+
+def _parse_machine_result(text: str):
+    stripped = text.strip()
+    if not stripped:
+        return None
+    try:
+        return json.loads(stripped)
+    except json.JSONDecodeError:
+        values = []
+        for line in stripped.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                values.append(json.loads(line))
+            except json.JSONDecodeError:
+                return {"raw": stripped}
+        return values
+
+
+def _show_backends(config: dict, json_mode: bool = False, remote: str | None = None, verbose: bool = False) -> int:
     if remote:
         location = _remote_name_location(remote, config)
         data = remote_capabilities(location, config)
@@ -3082,14 +3370,26 @@ def _show_backends(config: dict, json_mode: bool = False, remote: str | None = N
     t.add_column("Candidate")
     t.add_column("Status")
     t.add_column("Capabilities")
+    if verbose:
+        t.add_column("Verify")
+        t.add_column("I/O")
+        t.add_column("Remote")
     for row in rows:
         for index, candidate in enumerate(row["candidates"]):
-            t.add_row(
+            values = [
                 row["role"] if index == 0 else "",
                 candidate["binary"],
                 candidate["path"] or "missing",
                 " ".join(candidate["capabilities"]),
-            )
+            ]
+            if verbose:
+                profile = candidate["capability_profile"]
+                values.extend([
+                    str(profile["verification"]["maximum"]),
+                    "/".join(name for name, enabled in profile["streams"].items() if enabled) or "file",
+                    str(profile["remote_suitability"]),
+                ])
+            t.add_row(*values)
     stdout_console.print(t)
     return 0
 
@@ -3323,7 +3623,7 @@ def _dispatch_command(args, extra: list[str], config: dict) -> int:
                 return rc
         return run_archive_command()
     if args.command == "backends":
-        return _show_backends(config, args.json, args.remote)
+        return _show_backends(config, args.json, args.remote, args.verbose)
     if args.command == "formats":
         return _show_formats(args.json, args.remote, config)
     if args.command == "profiles":
@@ -3332,6 +3632,8 @@ def _dispatch_command(args, extra: list[str], config: dict) -> int:
         return _aliases_command(args)
     if args.command == "doctor":
         return _doctor_command(args)
+    if args.command == "schema":
+        return _schema_command(args)
     if args.command in {"man", "help"}:
         return _man_command(args)
     if args.command == "completion":
@@ -3370,11 +3672,41 @@ def _decorate_alias_json_output(text: str, args) -> str:
     return json.dumps(decorate(payload), ensure_ascii=False) + "\n"
 
 
+def _machine_v1_requested(argv: list[str]) -> bool:
+    for token in argv:
+        if token == "--":
+            break
+        if token == "--json=v1":
+            return True
+    return False
+
+
+def _parse_error_message(stderr_text: str) -> str:
+    lines = [line.strip() for line in stderr_text.splitlines() if line.strip()]
+    if not lines:
+        return "invalid command line"
+    last = lines[-1]
+    marker = "error: "
+    if marker in last:
+        return last.split(marker, 1)[1]
+    return last
+
+
+def _machine_parse_args(invoked_program: str, display_argv: list[str], command: str, message: str):
+    return argparse.Namespace(
+        _invoked_program=invoked_program,
+        _display_argv=list(display_argv),
+        command=command,
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     explicit_argv = argv is not None
-    argv = list(sys.argv[1:] if argv is None else argv)
+    raw_argv = list(sys.argv[1:] if argv is None else argv)
+    display_argv = list(raw_argv)
+    machine_parse = _machine_v1_requested(display_argv)
+    argv = _normalize_json_argv(raw_argv)
     invoked_program = Path(sys.argv[0]).name if not explicit_argv else "arc"
-    display_argv = list(argv)
     implied_command = EXECUTABLE_ALIASES.get(invoked_program) if not explicit_argv else None
     if implied_command:
         argv = [implied_command, *argv]
@@ -3391,7 +3723,37 @@ def main(argv: list[str] | None = None) -> int:
             print("\n".join(completion_candidates(words)))
         return 0
     wrapper_argv, extra = split_passthrough(argv)
-    args = parser().parse_args(wrapper_argv)
+    parse_stderr = io.StringIO()
+    try:
+        if machine_parse:
+            with redirect_stderr(parse_stderr):
+                args = parser().parse_args(wrapper_argv)
+        else:
+            args = parser().parse_args(wrapper_argv)
+    except SystemExit as exc:
+        if machine_parse:
+            command = implied_command or next((token for token in wrapper_argv if not token.startswith("-")), "")
+            machine_args = _machine_parse_args(
+                invoked_program,
+                display_argv,
+                command,
+                _parse_error_message(parse_stderr.getvalue()),
+            )
+            sys.stdout.write(
+                machine_dumps(
+                    machine_envelope(
+                        machine_args,
+                        error=MachineError(
+                            "UsageError",
+                            _parse_error_message(parse_stderr.getvalue()),
+                            int(exc.code) if isinstance(exc.code, int) else 2,
+                            "usage",
+                        ),
+                    )
+                )
+            )
+            return int(exc.code) if isinstance(exc.code, int) else 2
+        raise
     args._invoked_program = invoked_program
     args._display_argv = display_argv
     config = load_config()
@@ -3402,27 +3764,53 @@ def main(argv: list[str] | None = None) -> int:
         if args.command in {"create", "convert"}:
             _create_format_options(args)
         _show_invocation(argv, args)
+        machine_v1 = _json_v1(args)
+        native_mode = getattr(args, "show_native", None)
         begin_plan(
             args.command,
-            mode=getattr(args, "show_native", None),
+            mode=None if machine_v1 else native_mode,
             style=getattr(args, "native_style", None) or "reproducible",
         )
-        capture_alias_json = bool(getattr(args, "json", False) and invoked_program in EXECUTABLE_ALIASES)
-        if capture_alias_json:
+        if machine_v1:
             captured = io.StringIO()
             with redirect_stdout(captured):
                 rc = _dispatch_command(args, extra, config)
-            sys.stdout.write(_decorate_alias_json_output(captured.getvalue(), args))
+            diagnostics = []
+            if native_mode in {"before", "after", "both"}:
+                diagnostics.append(machine_diagnostic("native_plan", plan_dict()))
+            sys.stdout.write(
+                machine_dumps(
+                    machine_envelope(
+                        args,
+                        result=_parse_machine_result(captured.getvalue()),
+                        diagnostics=diagnostics,
+                        status="ok" if rc == 0 else "failed",
+                    )
+                )
+            )
         else:
-            rc = _dispatch_command(args, extra, config)
-        if rc == 0:
-            emit_after(json_mode=bool(getattr(args, "json", False)))
+            capture_alias_json = bool(getattr(args, "json", False) and invoked_program in EXECUTABLE_ALIASES)
+            if capture_alias_json:
+                captured = io.StringIO()
+                with redirect_stdout(captured):
+                    rc = _dispatch_command(args, extra, config)
+                sys.stdout.write(_decorate_alias_json_output(captured.getvalue(), args))
+            else:
+                rc = _dispatch_command(args, extra, config)
+            if rc == 0:
+                emit_after(json_mode=bool(getattr(args, "json", False)))
         return rc
     except KeyboardInterrupt:
-        console.print("[yellow]Interrupted[/]")
+        if 'args' in locals() and _json_v1(args):
+            sys.stdout.write(machine_dumps(machine_envelope(args, error=MachineError("KeyboardInterrupt", "interrupted", 130, "interrupt"))))
+        else:
+            console.print("[yellow]Interrupted[/]")
         return 130
     except ArcError as exc:
-        console.print(f"[bold red]error:[/] {exc}")
+        if 'args' in locals() and _json_v1(args):
+            sys.stdout.write(machine_dumps(machine_envelope(args, error=MachineError(type(exc).__name__, str(exc), exc.exit_code))))
+        else:
+            console.print(f"[bold red]error:[/] {exc}")
         return exc.exit_code
     except BrokenPipeError:
         return 141

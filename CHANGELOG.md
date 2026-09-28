@@ -1,4 +1,5 @@
 ## ARC final gate/seal v6
+- ARC-R08: introduce the stable `arc.machine/v1` envelope behind explicit `--json=v1` while retaining bare-`--json` compatibility; bundle public JSON Schemas, preserve/redact literal+canonical invocation identity, and emit parser/runtime failures as typed machine errors. Replace backend capability string authority with typed profiles covering operations, stream I/O, encryption, solid/multipart, metadata/mutation, random access, remote suitability, threading, safe indexing, and verification depth. Add explicit `none|structure|members|full` verification evidence, fail-closed proof negotiation, opt-in downgrade evidence, and prevent unverified conversion from authorizing source deletion/resume reuse.
 
 - Replace the host-precomputed content root with a live post-gate schema-5 ledger generated on the actual validation worktree.
 - Commit `release/ARC-FINAL-SEAL.json` as a static schema-6 seal contract defining scope, wrapper entry points, evidence locations, and R05 ancestry.

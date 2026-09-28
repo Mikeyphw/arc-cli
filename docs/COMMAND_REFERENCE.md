@@ -39,6 +39,7 @@ Arc provides one normalized interface over native archive and compression backen
   doctor       audit Arc installation and runtime health
   explain      explain an execution plan without mutating data
   recover      inspect and clean interrupted Arc transactions
+  schema       show Arc machine-contract JSON Schemas
   completion   manage shell completion
   help         open detailed bundled help
   man          open Arc manual pages
@@ -100,7 +101,7 @@ Create and convert short selectors are authoritative. When a caller supplies an 
 
 ### Machine-Readable Identity
 
-When a real installed executable alias such as arci or arccv is used with --json, Arc preserves the redacted literal invocation and exposes the canonical resolved command so automation can distinguish what the user typed from what the dispatcher executed.
+Bare --json preserves Arc's pre-R08 command-specific JSON shape for compatibility. Explicit --json=v1 emits the stable arc.machine/v1 envelope with schema_version, typed result/error/diagnostic fields, a redacted received argv, and canonical command identity. Installed aliases such as arci/arccv preserve their literal executable identity while resolving to the canonical command.
 
 ### Safety
 
@@ -201,11 +202,12 @@ arc-backends ...
 
 ### Description
 
-Report configured backend preference order, installed binaries, and normalized capabilities rather than assuming similarly named native tools are interchangeable.
+Report configured backend preference order, installed binaries, and the typed capability profile Arc uses for planning rather than assuming similarly named native tools are interchangeable.
 
 ### Options
 
---json
+--json[=legacy|v1]
+--verbose
 --remote NAME
 
 ### Examples
@@ -307,7 +309,9 @@ Transform one logical archive representation into another through Arc's normaliz
 --dry-run
 --show-command
 --show-native[=before|after|both]
---json
+--verify-level none|structure|members|full
+--allow-verification-downgrade
+--json[=legacy|v1]
 
 ### Semantics
 
@@ -323,7 +327,7 @@ Multiple sources with an explicit target format are independent batch jobs. Arc 
 
 ### Publication And Verification
 
-Local output is created at an unpublished same-filesystem candidate, integrity-tested there, and atomically replaced into the requested final path only after verification. A failed conversion therefore leaves no new corrupt final path and does not clobber an existing --force destination. Remote output is atomically uploaded, re-read, and verified before --replace-source may delete any source.
+Local output is created at an unpublished same-filesystem candidate and processed according to the requested verification policy before publication. none deliberately publishes without proof and cannot authorize --replace-source. structure/members/full are negotiated against typed backend capabilities; a weaker proof is accepted only with --allow-verification-downgrade and is recorded explicitly. A failed requested proof leaves no new corrupt final path and does not clobber an existing --force destination. Verified remote output is re-read after publication before --replace-source may delete any source.
 
 ### Examples
 
@@ -453,7 +457,7 @@ Plan an Arc operation through its real dry-run path and show the decisions and n
 
 ### Semantics
 
-Explain forces the nested operation into dry-run mode. The plan records format/backend selection, publication and verification policy, locality/staging decisions, and source-removal policy where applicable. It is diagnostic evidence, not a promise that external state will remain unchanged between planning and execution.
+Explain forces the nested operation into dry-run mode. The plan records format/backend selection, typed verification-policy negotiation, publication policy, locality/staging decisions, and source-removal policy where applicable. It is diagnostic evidence, not a promise that external state will remain unchanged between planning and execution.
 
 ### Examples
 
@@ -547,7 +551,9 @@ Show a compact archive-level summary without silently performing a full integrit
 ### Options
 
 --members        include compact member statistics
---verify         run a real integrity test
+--verify         run the strongest verification the selected backend can prove
+--verify-level LEVEL   none|structure|members|full
+--allow-verification-downgrade
 --technical      include backend-oriented technical metadata
 -F, --format FORMAT
 --backend NAME
@@ -555,11 +561,11 @@ Show a compact archive-level summary without silently performing a full integrit
 --password/--password-file/--password-env
 --show-command
 --show-native[=before|after|both]
---json
+--json[=legacy|v1]
 
 ### Semantics
 
-Default info is metadata inspection, not verification: JSON uses verified=null unless --verify was requested. Encrypted-header archives still return outer metadata when member indexing needs a password. Content detection wins over a misleading extension and the mismatch is reported explicitly. Gzip inspection reports the trailer size hint and optional embedded original filename when present. Member-backed summaries normalize oldest/newest timestamps and expose counts, largest-member evidence with --members, and encryption/solid/volume/comment-like metadata when the selected backend can prove it. Remote random-access inspection reports when it staged locally.
+Default info is metadata inspection, not verification: JSON uses verified=null unless --verify or --verify-level was requested. Verification evidence records requested and achieved levels, backend, checks, and any explicitly authorized downgrade. Encrypted-header archives still return outer metadata when member indexing needs a password. Content detection wins over a misleading extension and the mismatch is reported explicitly. Gzip inspection reports the trailer size hint and optional embedded original filename when present. Member-backed summaries normalize oldest/newest timestamps and expose counts, largest-member evidence with --members, and encryption/solid/volume/comment-like metadata when the selected backend can prove it. Remote random-access inspection reports when it staged locally.
 
 ### Examples
 
@@ -670,6 +676,39 @@ arcrm plain.tar old/path.txt
 
 arc-add(1), arc-update(1)
 
+## arc-schema(1)
+
+### Name
+
+arc-schema - show Arc machine-contract JSON Schemas
+
+### Synopsis
+
+arc schema [machine-v1|backend-capability-v1|verification-evidence-v1] [--list]
+
+### Description
+
+Print the bundled JSON Schemas that define Arc's stable machine envelope, typed backend capability profile, and verification evidence contracts.
+
+### Options
+
+--list
+machine-v1 | backend-capability-v1 | verification-evidence-v1
+
+### Semantics
+
+Schemas are shipped as package data and are the public validation contract for --json=v1 consumers. Bare --json remains the compatibility surface and is intentionally not covered by the versioned envelope schema.
+
+### Examples
+
+arc schema --list
+arc schema machine-v1
+arc schema verification-evidence-v1
+
+### See Also
+
+arc(1), arc-backends(1), arc-test(1)
+
 ## arc-test(1)
 
 ### Name
@@ -685,14 +724,20 @@ arccheck ...
 
 ### Description
 
-Run the selected backend's integrity verification. Unlike arc info, this command is explicitly an integrity operation.
+Run integrity verification at an explicit proof level. Unlike arc info, this command is explicitly a verification operation and reports what was actually proven.
 
 ### Options
 
---json
+--json[=legacy|v1]
+--verify-level none|structure|members|full
+--allow-verification-downgrade
 --include/--exclude and rule files
 --password/--password-file/--password-env
 --backend NAME
+
+### Semantics
+
+Proof levels are evidence contracts, not quality labels. none performs no integrity proof. structure proves a readable container/member index; single compressed streams have no index, so Arc uses the stronger native full stream test. members adds Arc's normalized member path/type safety validation but is not a per-member content checksum. full runs the selected backend integrity test that consumes encoded archive/compressed data. An explicit level cannot silently degrade: a weaker proof requires --allow-verification-downgrade and records requested/achieved levels plus the reason.
 
 ### Examples
 
@@ -788,15 +833,19 @@ arc-backends - native backend resolution and capabilities
 
 ### Description
 
-Arc resolves a normalized operation to an installed compatible backend using format, operation, capability requirements, configured preference order, and --no-fallback policy.
+Arc resolves a normalized operation to an installed compatible backend using a typed capability profile: operation support, stream I/O, encryption, solid/multipart behavior, random access, metadata, mutation, verification depth, remote suitability, thread support, and safe-index semantics.
 
 ### Roles
 
-TAR/bsdtar, ZIP create/extract, 7z/7zz, RAR create/extract, and compressor families gzip/bzip2/xz/zstd.
+TAR/bsdtar, ZIP create/extract, 7z/7zz, RAR create/extract, and compressor families gzip/bzip2/xz/zstd. Legacy capability strings remain a compatibility projection of the typed profile rather than an independent authority.
+
+### Verification
+
+Each backend declares the verification levels it can prove: none, structure, members, and/or full. structure means a readable container/member index (streams satisfy it with a stronger native full test); members adds Arc's normalized member path/type safety validation and is not a content checksum; full runs a backend integrity test that consumes encoded data. An explicit request cannot silently degrade. A weaker available level requires --allow-verification-downgrade and produces downgraded=true evidence.
 
 ### Diagnostics
 
-arc backends and arc backends --json expose installed candidates/capabilities. --show-command shows immediate native argv; --show-native records the broader execution plan.
+arc backends --verbose shows the human capability summary; --json exposes the versioned capability profile. --show-command shows immediate native argv; --show-native records the broader execution plan.
 
 ### See Also
 

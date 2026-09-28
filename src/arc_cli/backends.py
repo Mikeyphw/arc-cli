@@ -5,9 +5,11 @@ import re
 import shutil
 import subprocess
 import tempfile
+from dataclasses import replace
 from functools import lru_cache
 from pathlib import Path
 
+from .capabilities import BACKEND_PROFILES, BackendCapabilityProfile, VerificationLevel, backend_profile, verification_rank
 from .config import DEFAULT_BACKENDS, backend_preferences
 from .errors import BackendUnavailable, CorruptArchive, PasswordError, UnsupportedFormat
 from .model import ArchiveFormat, BackendInfo, ManifestEntry, Member
@@ -17,22 +19,7 @@ from .progress import ProgressReporter, console
 
 
 BACKEND_CAPABILITIES: dict[str, set[str]] = {
-    "tar": {"create", "list", "extract", "test", "add", "update", "safe-index", "metadata"},
-    "bsdtar": {"create", "list", "extract", "test", "add", "update", "safe-index", "metadata"},
-    "zip": {"create", "add", "update", "remove", "password"},
-    "unzip": {"list", "extract", "test", "password", "safe-index"},
-    "7z": {"create", "list", "extract", "test", "add", "update", "remove", "password", "threads", "safe-index"},
-    "7zz": {"create", "list", "extract", "test", "add", "update", "remove", "password", "threads", "safe-index"},
-    "rar": {"create", "list", "extract", "test", "add", "update", "remove", "password", "safe-index"},
-    "unrar": {"list", "extract", "test", "password", "safe-index"},
-    "gzip": {"create", "extract", "test"},
-    "pigz": {"create", "extract", "test", "threads"},
-    "bzip2": {"create", "extract", "test"},
-    "pbzip2": {"create", "extract", "test", "threads"},
-    "xz": {"create", "extract", "test", "threads"},
-    "pixz": {"create", "extract", "test", "threads"},
-    "zstd": {"create", "extract", "test", "threads"},
-    "pzstd": {"create", "extract", "test", "threads"},
+    name: profile.legacy_capabilities() for name, profile in BACKEND_PROFILES.items()
 }
 
 
@@ -61,31 +48,57 @@ def _tar_delete_supported(binary: str) -> bool:
     return "--delete" in (proc.stdout or "")
 
 
-def backend_capabilities(binary: str) -> set[str]:
+def backend_capability_profile(binary: str) -> BackendCapabilityProfile:
     name = Path(binary).name
-    caps = set(BACKEND_CAPABILITIES.get(name, set()))
+    profile = backend_profile(name)
     if name == "tar":
         concrete = shutil.which(binary) or binary
-        if _tar_delete_supported(concrete):
-            caps.add("remove")
-    return caps
+        if _tar_delete_supported(concrete) and "remove" not in profile.operations:
+            operations = frozenset({*profile.operations, "remove"})
+            mutation = frozenset({*profile.mutation, "remove"})
+            profile = replace(profile, operations=operations, mutation=mutation)
+    return profile
+
+
+def backend_capabilities(binary: str) -> set[str]:
+    return backend_capability_profile(binary).legacy_capabilities()
+
+
+def _profile_satisfies(profile: BackendCapabilityProfile, required: set[str]) -> bool:
+    return required <= profile.legacy_capabilities()
+
+
+def _profile_satisfies_verification(profile: BackendCapabilityProfile, requested: VerificationLevel) -> bool:
+    return verification_rank(profile.maximum_verification) >= verification_rank(requested)
 
 
 def _which_capable(
     names: list[str],
     *,
     required: set[str] | None = None,
+    required_verification: VerificationLevel | None = None,
+    allow_verification_downgrade: bool = False,
     no_fallback: bool = False,
 ) -> tuple[str, str] | None:
     required = required or set()
     candidates = names[:1] if no_fallback and names else names
+    eligible: list[tuple[str, str, BackendCapabilityProfile]] = []
     for name in candidates:
         path = shutil.which(name)
         if not path:
             continue
-        caps = backend_capabilities(name)
-        if required <= caps:
-            return name, path
+        profile = backend_capability_profile(name)
+        if _profile_satisfies(profile, required):
+            eligible.append((name, path, profile))
+    if required_verification is not None:
+        for name, path, profile in eligible:
+            if _profile_satisfies_verification(profile, required_verification):
+                return name, path
+        if allow_verification_downgrade and eligible:
+            return eligible[0][0], eligible[0][1]
+        return None
+    if eligible:
+        return eligible[0][0], eligible[0][1]
     return None
 
 
@@ -95,11 +108,13 @@ def backend_inventory(config: dict) -> list[dict]:
         candidates = []
         for name in preferences:
             path = shutil.which(name)
+            profile = backend_capability_profile(name)
             candidates.append({
                 "binary": name,
                 "path": path,
                 "installed": bool(path),
-                "capabilities": sorted(backend_capabilities(name)),
+                "capabilities": sorted(profile.legacy_capabilities()),
+                "capability_profile": profile.to_dict(),
             })
         rows.append({"role": role, "preferences": preferences, "candidates": candidates})
     return rows
@@ -676,22 +691,23 @@ class StreamBackend(Backend):
 
 
 def _make_backend(name: str, path: str, fmt: ArchiveFormat, operation: str) -> Backend:
-    info = BackendInfo(name, name, path, backend_capabilities(name))
+    profile = backend_capability_profile(name)
+    info = BackendInfo(name, name, path, profile.legacy_capabilities(), profile)
     if name in {"7z", "7zz"}:
         if fmt.container == "rar" and operation in {"create", "add", "update", "remove"}:
             raise UnsupportedFormat("7-Zip can read RAR but cannot create or mutate RAR archives")
         if fmt.container == "tar":
             raise UnsupportedFormat("forced 7-Zip TAR handling is not enabled; use tar/bsdtar")
-        return SevenZipBackend(BackendInfo("7z", name, path, backend_capabilities(name)))
+        return SevenZipBackend(BackendInfo("7z", name, path, profile.legacy_capabilities(), profile))
     if name in {"zip", "unzip"}:
         return InfoZipBackend(info, name)
     if name in {"rar", "unrar"}:
         return RarBackend(info, "rar" if name == "rar" else "unrar")
     if name in {"tar", "bsdtar"}:
-        return TarBackend(BackendInfo("tar", name, path, backend_capabilities(name)))
+        return TarBackend(BackendInfo("tar", name, path, profile.legacy_capabilities(), profile))
     if name in {"gzip", "pigz", "bzip2", "pbzip2", "xz", "pixz", "zstd", "pzstd"}:
         comp = {"gzip": "gzip", "pigz": "gzip", "bzip2": "bzip2", "pbzip2": "bzip2", "xz": "xz", "pixz": "xz", "zstd": "zstd", "pzstd": "zstd"}[name]
-        return StreamBackend(BackendInfo(comp, name, path, backend_capabilities(name)), comp)
+        return StreamBackend(BackendInfo(comp, name, path, profile.legacy_capabilities(), profile), comp)
     raise BackendUnavailable(f"unsupported backend: {name}")
 
 
@@ -738,6 +754,8 @@ def resolve_backend(
     forced: str | None = None,
     *,
     required_capabilities: set[str] | None = None,
+    required_verification: VerificationLevel | None = None,
+    allow_verification_downgrade: bool = False,
     no_fallback: bool = False,
 ) -> Backend:
     required = set(required_capabilities or ()) | {operation}
@@ -748,10 +766,15 @@ def resolve_backend(
         name = Path(path).name
         if not _format_allows_binary(fmt, operation, name):
             raise UnsupportedFormat(f"backend {forced} cannot {operation} {fmt.canonical}")
-        missing = required - backend_capabilities(name)
+        profile = backend_capability_profile(name)
+        missing = required - profile.legacy_capabilities()
         if missing:
             raise UnsupportedFormat(
                 f"backend {forced} lacks required capability/capabilities: {', '.join(sorted(missing))}"
+            )
+        if required_verification is not None and not _profile_satisfies_verification(profile, required_verification) and not allow_verification_downgrade:
+            raise UnsupportedFormat(
+                f"backend {forced} cannot prove verification level {required_verification.value}; maximum={profile.maximum_verification.value}"
             )
         return _make_backend(name, path, fmt, operation)
 
@@ -759,6 +782,7 @@ def resolve_backend(
     preferences = backend_preferences(config, role)
     candidates = preferences[:1] if no_fallback and preferences else preferences
     reasons: list[str] = []
+    eligible: list[tuple[str, str, BackendCapabilityProfile]] = []
     for candidate in candidates:
         path = shutil.which(candidate)
         if not path:
@@ -768,15 +792,29 @@ def resolve_backend(
         if not _format_allows_binary(fmt, operation, name):
             reasons.append(f"{candidate}: incompatible with {fmt.canonical}/{operation}")
             continue
-        missing = required - backend_capabilities(name)
+        profile = backend_capability_profile(name)
+        missing = required - profile.legacy_capabilities()
         if missing:
             reasons.append(f"{candidate}: missing {','.join(sorted(missing))}")
             continue
+        eligible.append((name, path, profile))
+        if required_verification is None or _profile_satisfies_verification(profile, required_verification):
+            return _make_backend(name, path, fmt, operation)
+        reasons.append(f"{candidate}: verification max {profile.maximum_verification.value} < {required_verification.value}")
+    if required_verification is not None and allow_verification_downgrade and eligible:
+        name, path, _profile = eligible[0]
         return _make_backend(name, path, fmt, operation)
+    if required_verification is not None and eligible:
+        maxima = ", ".join(f"{name}={profile.maximum_verification.value}" for name, _path, profile in eligible)
+        raise UnsupportedFormat(
+            f"verification level {required_verification.value} is unavailable for {fmt.canonical}; installed compatible backend maximums: {maxima}; "
+            "use --allow-verification-downgrade to accept a weaker proof"
+        )
     suffix = f" ({'; '.join(reasons)})" if reasons else ""
     mode = " with fallback disabled" if no_fallback else ""
+    verification_requirement = f",verification>={required_verification.value}" if required_verification is not None else ""
     raise BackendUnavailable(
-        f"no installed backend can {operation} {fmt.canonical}{mode}; required={','.join(sorted(required))}{suffix}"
+        f"no installed backend can {operation} {fmt.canonical}{mode}; required={','.join(sorted(required))}{verification_requirement}{suffix}"
     )
 
 

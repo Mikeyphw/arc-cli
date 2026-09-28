@@ -106,7 +106,11 @@ Transform one logical archive representation into another through Arc's normaliz
 .PP
 \-\-show\-native[=before|after|both]
 .PP
-\-\-json
+\-\-verify\-level none|structure|members|full
+.PP
+\-\-allow\-verification\-downgrade
+.PP
+\-\-json[=legacy|v1]
 .SH "SEMANTICS"
 A short selector or \-F/\-\-format controls the actual target encoding even when DESTINATION has a conflicting recognized suffix. With no destination, Arc derives a new sibling name by replacing one recognized source suffix. For an explicitly supplied extensionless destination, a short selector appends its suffix; plain \-F/\-\-format requires \-\-add\-extension to append one. Compatible single\-stream conversions and unfiltered TAR\-compression changes use byte\-stream pipelines locally. Container\-to\-container conversions use an isolated safe member tree. When remote transport forces local staging, the displayed strategy is prefixed transport\-staged rather than claiming a direct remote stream.
 .SH "STREAM AND MEMBER SELECTION"
@@ -114,7 +118,7 @@ Container\-to\-gzip/bzip2/xz/zstd requires exactly one selected regular file. In
 .SH "BATCH CONVERSION"
 Multiple sources with an explicit target format are independent batch jobs. Arc resolves and collision\-checks the complete destination set before starting the first conversion, so a late filename conflict cannot leave an earlier batch item already published. \-\-batch resolves the ambiguous two\-source case. Batch runs persist a manifest under Arc's state directory. \-\-resume reuses a completed item only when its source fingerprint and verified destination fingerprint still match; changed inputs invalidate only the affected item. Remote items are not reused unless Arc can prove a stable remote identity.
 .SH "PUBLICATION AND VERIFICATION"
-Local output is created at an unpublished same\-filesystem candidate, integrity\-tested there, and atomically replaced into the requested final path only after verification. A failed conversion therefore leaves no new corrupt final path and does not clobber an existing \-\-force destination. Remote output is atomically uploaded, re\-read, and verified before \-\-replace\-source may delete any source.
+Local output is created at an unpublished same\-filesystem candidate and processed according to the requested verification policy before publication. none deliberately publishes without proof and cannot authorize \-\-replace\-source. structure/members/full are negotiated against typed backend capabilities; a weaker proof is accepted only with \-\-allow\-verification\-downgrade and is recorded explicitly. A failed requested proof leaves no new corrupt final path and does not clobber an existing \-\-force destination. Verified remote output is re\-read after publication before \-\-replace\-source may delete any source.
 .SH "EXAMPLES"
 arc convert old.zip \-tzst
 .PP

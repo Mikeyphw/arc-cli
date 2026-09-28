@@ -59,9 +59,31 @@ for name, command in expected_jobs.items():
     if list(actual or []) != command:
         fail(f"targets.arc.jobs.{name}.command drifted: {actual!r}")
 
-for workflow in ("lint", "format", "fast", "quality", "release", "final_gate", "final_seal"):
+for workflow in ("lint", "format", "fast", "quality", "release", "final_gate", "final_seal", "r08"):
     if workflow not in workflows:
         fail(f"required arc workflow missing: {workflow}")
+
+r08 = workflows.get("r08", [])
+r08_refs = {str(step.get("ref", "")) for step in r08 if isinstance(step, dict)}
+for required_ref in (
+    "job:machine-contract",
+    "job:command-docs-contract",
+    "job:completion-contract",
+    "job:devtool-contract",
+    "test:arc-r08-machine-capability-verification",
+):
+    if required_ref not in r08_refs:
+        fail(f"r08 workflow missing required ref: {required_ref}")
+
+if list(jobs.get("machine-contract", {}).get("command", []) or []) != ["python3", "scripts/check_machine_contract.py"]:
+    fail("targets.arc.jobs.machine-contract must execute the canonical R08 machine contract checker")
+
+declared_tests = data.get("test", [])
+if not isinstance(declared_tests, list) or not any(
+    isinstance(item, dict) and item.get("id") == "arc-r08-machine-capability-verification"
+    for item in declared_tests
+):
+    fail("missing first-class arc-r08-machine-capability-verification test")
 
 if wrapper.get("schema") != 1:
     fail("wrapper schema must remain 1")
@@ -87,6 +109,8 @@ if commands.get("gate", {}).get("workflow") != "final_gate":
     fail("wrapper gate command must use workflow='final_gate'")
 if commands.get("seal", {}).get("workflow") != "final_seal":
     fail("wrapper seal command must use workflow='final_seal'")
+if commands.get("r08", {}).get("workflow") != "r08":
+    fail("wrapper r08 command must use workflow='r08'")
 
 for name in ("devtoolw", "devtoolw.cmd"):
     path = ROOT / name

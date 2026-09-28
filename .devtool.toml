@@ -125,6 +125,21 @@ pytest_tests = [
 pytest_args = ["--maxfail=1"]
 pytest_include_defaults = false
 
+[test_profiles.r08]
+pytest_tests = [
+  "tests/test_r08_machine_capability_verification.py",
+  "tests/test_r03_qualification.py",
+  "tests/test_info_command.py",
+  "tests/test_convert_command.py",
+  "tests/test_r04_execution_plan.py",
+  "tests/test_r07_execution_recovery_resume.py",
+  "tests/test_completion.py",
+  "tests/test_manpages.py",
+  "tests/test_distribution_contract.py",
+]
+pytest_args = ["--maxfail=1"]
+pytest_include_defaults = false
+
 [[test]]
 id = "arc-r06-runtime-install-truth"
 name = "ARC-R06 runtime, alias, and installation truth"
@@ -150,6 +165,24 @@ command = [
   "tests/test_convert_command.py",
   "tests/test_r01_semantics.py",
   "tests/test_r04_execution_plan.py",
+  "tests/test_completion.py",
+  "tests/test_manpages.py",
+  "tests/test_distribution_contract.py",
+]
+
+[[test]]
+id = "arc-r08-machine-capability-verification"
+name = "ARC-R08 machine schema, backend capabilities, and verification policy"
+runner = "pytest"
+command = [
+  "python3", "-m", "pytest", "-q",
+  "--junitxml=.devtool/reports/roadmap/arc-r08-machine-capability-verification.xml",
+  "tests/test_r08_machine_capability_verification.py",
+  "tests/test_r03_qualification.py",
+  "tests/test_info_command.py",
+  "tests/test_convert_command.py",
+  "tests/test_r04_execution_plan.py",
+  "tests/test_r07_execution_recovery_resume.py",
   "tests/test_completion.py",
   "tests/test_manpages.py",
   "tests/test_distribution_contract.py",
@@ -326,13 +359,19 @@ metadata = { read_only = true, purpose = "completion-contract", contract = "arc-
 runner = "command"
 command = ["python3", "scripts/generate_command_docs.py", "--check"]
 inputs = ["src/arc_cli/manual.py", "src/arc_cli/command_docs.py", "src/arc_cli/man/**", "docs/COMMAND_REFERENCE.md", "scripts/generate_command_docs.py"]
-metadata = { read_only = true, purpose = "generated-command-docs", contract = "arc-r07" }
+metadata = { read_only = true, purpose = "generated-command-docs", contract = "arc-r08" }
 
 [targets.arc.jobs.devtool-contract]
 runner = "command"
 command = ["python3", "scripts/check_devtool_contract.py"]
 inputs = [".devtool.toml", "devtoolw", "devtoolw.cmd", "docs/WRAPPER.md"]
 metadata = { read_only = true, purpose = "devtool-contract", contract = "arc-devtool-v2" }
+
+[targets.arc.jobs.machine-contract]
+runner = "command"
+command = ["python3", "scripts/check_machine_contract.py"]
+inputs = ["src/arc_cli/machine.py", "src/arc_cli/capabilities.py", "src/arc_cli/verification.py", "src/arc_cli/schemas/**", "scripts/check_machine_contract.py", "pyproject.toml", "MANIFEST.in"]
+metadata = { read_only = true, purpose = "stable-machine-capability-contract", contract = "arc-r08" }
 
 [targets.arc.jobs.backend-smoke]
 runner = "command"
@@ -360,6 +399,15 @@ r07 = [
   { id = "docs", ref = "job:command-docs-contract", depends_on = ["syntax"] },
   { id = "completion", ref = "job:completion-contract", depends_on = ["syntax"] },
   { id = "r07-contract", ref = "test:arc-r07-execution-recovery-resume", depends_on = ["docs", "completion"] },
+]
+
+r08 = [
+  { id = "syntax", ref = "job:syntax", depends_on = [] },
+  { id = "machine-contract", ref = "job:machine-contract", depends_on = ["syntax"] },
+  { id = "docs", ref = "job:command-docs-contract", depends_on = ["syntax"] },
+  { id = "completion", ref = "job:completion-contract", depends_on = ["syntax"] },
+  { id = "devtool-contract", ref = "job:devtool-contract", depends_on = ["syntax"] },
+  { id = "r08-contract", ref = "test:arc-r08-machine-capability-verification", depends_on = ["machine-contract", "docs", "completion", "devtool-contract"] },
 ]
 
 refresh_install = [
@@ -464,7 +512,7 @@ aliases = ["t"]
 [wrapper.commands.test.options.profile]
 type = "choice"
 description = "Select a repository test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "r07", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "final_gate", "full"]
 command_argv = ["--profile", "{value}"]
 
 [wrapper.commands.test.options.node]
@@ -516,7 +564,7 @@ aliases = ["val"]
 [wrapper.commands.validate.options.profile]
 type = "choice"
 description = "Select the validation test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "r07", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "final_gate", "full"]
 command_argv = ["--test-profile", "{value}"]
 
 [wrapper.commands.validate.options.affected]
@@ -596,6 +644,11 @@ target = "arc"
 [wrapper.commands.r07]
 description = "Run ARC-R07 explain/recovery/resumable-batch targeted validation"
 workflow = "r07"
+target = "arc"
+
+[wrapper.commands.r08]
+description = "Run ARC-R08 machine/capability/verification targeted validation"
+workflow = "r08"
 target = "arc"
 
 [wrapper.commands.refresh-install]

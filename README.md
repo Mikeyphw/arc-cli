@@ -96,7 +96,7 @@ arc info backup.zip --verify
 arc info a.zip b.tar.zst --json
 ```
 
-The JSON form reports `verified: null` unless `--verify` actually runs. Content detection is compared with the filename extension, so a ZIP renamed to `.rar` is reported as ZIP with an extension mismatch. Header-encrypted archives retain whatever outer metadata Arc can prove even when member metadata requires a password. Remote info uses the same SSH/rclone transport layer and reports whether random-access inspection required local staging.
+The JSON form reports `verified: null` unless verification actually runs. `--verify-level none|structure|members|full` selects the requested proof; `--allow-verification-downgrade` is required before Arc may accept a weaker backend proof, and the result records both requested and achieved levels. Content detection is compared with the filename extension, so a ZIP renamed to `.rar` is reported as ZIP with an extension mismatch. Header-encrypted archives retain whatever outer metadata Arc can prove even when member metadata requires a password. Remote info uses the same SSH/rclone transport layer and reports whether random-access inspection required local staging.
 
 ## Conversion
 
@@ -111,7 +111,7 @@ arc convert archive.zip -zst --include video.mp4
 
 The same authoritative suffix selectors used by `create` are accepted by `convert`. With no destination, Arc removes one recognized source archive suffix and appends the selected target suffix. With an explicit selector, a conflicting destination extension is only a filename; the selector still determines the bytes written.
 
-Compatible local single-stream and TAR recompression paths avoid an unnecessary extracted tree. Other container conversions use an isolated safe member pipeline. Local output is built at an unpublished same-filesystem candidate, verified there, and atomically published only after verification, so failed verification cannot leave a new corrupt final path or clobber an existing `--force` destination. `--replace-source` removes the source only after verified publication.
+Compatible local single-stream and TAR recompression paths avoid an unnecessary extracted tree. Other container conversions use an isolated safe member pipeline. Local output is built at an unpublished same-filesystem candidate and evaluated under the selected verification policy before publication. `--verify-level none` deliberately publishes without proof and cannot be combined with `--replace-source`; stronger levels are negotiated against the selected backend's typed capability profile. A weaker proof is accepted only with explicit `--allow-verification-downgrade`. Failed requested verification cannot leave a new corrupt final path or clobber an existing `--force` destination. `--replace-source` removes the source only after verified publication.
 
 Remote conversion intentionally reports `transport-staged ...` rather than pretending transport staging is a direct stream. A remote source is staged so Arc can retain content-first format classification (including the stream-vs-compressed-TAR distinction), normalized safety checks, and exact physical-size evidence. A remote destination is first produced and verified as a local candidate, then uploaded through Arc's temporary-target/finalize transport path, re-read, and verified again before source deletion is permitted; final rename/moveto atomicity depends on the transport/provider. The SSH/rclone transport layer can stream in other operations, but conversion does not trade those invariants for a lower-staging path.
 
@@ -151,7 +151,7 @@ arc-formats                        -> arc formats
 arcp  / arc-profiles               -> arc profiles
 ```
 
-`arcc` is intentionally not installed because `c` would be ambiguous between create and convert. Generated Zsh completion is alias-aware and maps each executable back to its canonical Arc command before asking the Python completion engine for candidates. When a real alias is invoked with `--json`, Arc also adds a redacted `invocation` field plus `resolved_command`, so automation can distinguish the executable the user invoked from the canonical dispatcher operation.
+`arcc` is intentionally not installed because `c` would be ambiguous between create and convert. Generated Zsh completion is alias-aware and maps each executable back to its canonical Arc command before asking the Python completion engine for candidates. Bare `--json` keeps the pre-R08 compatibility shape (including alias `invocation`/`resolved_command` fields). Explicit `--json=v1` uses the stable machine envelope and preserves the redacted received executable/argv plus canonical command identity.
 
 The alias list is now a typed registry rather than duplicated package metadata. Inspect registry/runtime agreement with:
 
@@ -365,7 +365,7 @@ show_native = "after"
 native_command_style = "reproducible"
 ```
 
-`exact` shows the argv/staging operations Arc really used. `reproducible` hides temporary manifest/staging names so the output is easier to learn from. Password values are always redacted. JSON mode keeps normal stdout machine-readable and emits the structured native-plan diagnostic separately.
+`exact` shows the argv/staging operations Arc really used. `reproducible` hides temporary manifest/staging names so the output is easier to learn from. Password values are always redacted. In legacy bare `--json` mode the native plan remains a separate structured diagnostic on stderr. With `--json=v1`, the same plan is carried inside the envelope's `diagnostics` array so stdout is one self-contained machine record.
 
 ## Safe extraction and conflicts
 
@@ -448,19 +448,44 @@ arc extract backup.zip README.md --stdout > README.md
 
 A single compressed stream from stdin has no filename to derive, so extraction from stream-compressed stdin requires `--stdout`.
 
-## JSON
+## JSON and stable machine output
+
+Bare `--json` is the compatibility surface and keeps each command's historical JSON shape:
 
 ```bash
 arc identify file.bin --json
 arc list backup.zip --json
-arc extract backup.zip -o out --json
-arc create backup.7z src/ --json
 arc test backup.zip --json
 arc backends --json
-arc formats --json
 ```
 
-Diagnostics and progress stay on stderr.
+Use explicit `--json=v1` when building new automation. It emits one `arc.machine/v1` envelope containing `schema_version`, typed result/error fields, canonical/literal invocation identity, and structured diagnostics:
+
+```bash
+arc info backup.zip --verify-level full --json=v1
+arc backends --json=v1
+arc explain --json=v1 convert backup.zip -tzst
+```
+
+The public schemas are bundled with the package:
+
+```bash
+arc schema --list
+arc schema machine-v1
+arc schema backend-capability-v1
+arc schema verification-evidence-v1
+```
+
+Password values are redacted from invocation/error evidence. Parser failures requested with `--json=v1` are machine errors rather than human argparse output. Animated progress stays disabled in JSON modes.
+
+Verification levels have explicit evidence meanings:
+
+- `none` — perform no archive-integrity proof; the result is recorded as skipped.
+- `structure` — prove that the container/member index is readable. For single compressed streams, which have no member index, Arc runs the native stream-integrity test and records the stronger `full` proof instead.
+- `members` — prove a readable member index **and** validate Arc's normalized member-safety rules (paths/types). This is not a per-member content checksum.
+- `full` — run the selected backend's integrity test that consumes archive/compressed data. It proves the backend accepted the encoded data; it is not a cryptographic proof that two logical archives are equivalent.
+
+An explicit level never silently degrades. If no eligible installed backend can satisfy it, Arc fails before mutation unless `--allow-verification-downgrade` was explicitly supplied; the requested/achieved levels and downgrade reason are then preserved in verification evidence.
 
 ## Configuration and environment
 
@@ -491,14 +516,16 @@ zstd = ["pzstd", "zstd"]
 
 Precedence is CLI > environment > TOML > built-in defaults. Supported environment overrides include `ARC_PROGRESS`, `ARC_LEVEL`, `ARC_THREADS`, and per-role backend variables such as `ARC_BACKEND_TAR` or `ARC_BACKEND_ZSTD`.
 
-Backend selection is capability-aware. If the first configured backend cannot satisfy a requested normalized feature (for example `--threads`), arc tries the next compatible installed backend. Use `--no-fallback` to restrict selection to the first configured preference, or `--backend NAME` for a strict explicit backend.
+Backend selection is capability-aware. R08 makes that authority typed: every backend profile describes normalized operations, stdin/stdout, encryption read/write, solid/multipart support, metadata, mutation, random access, thread support, safe indexing, remote suitability, and the verification levels Arc can prove. Legacy capability strings are generated from that profile for compatibility. If the first configured backend cannot satisfy a requested normalized feature (for example `--threads`), Arc tries the next compatible installed backend. Use `--no-fallback` to restrict selection to the first configured preference, or `--backend NAME` for a strict explicit backend.
 
 TAR mutation is capability-dependent: BSD tar is accepted for create/add/update but does not advertise member removal. For `arc remove` on TAR, arc probes concrete `tar` executables for `--delete` support and falls through to a compatible backend when available; otherwise removal is reported as unsupported rather than invoking an invalid BSD-tar command.
 
 Inspect the complete candidate/capability inventory with:
 
 ```bash
+arc backends --verbose
 arc backends --json
+arc backends --json=v1
 ```
 
 ## Exit codes

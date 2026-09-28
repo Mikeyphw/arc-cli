@@ -40,13 +40,15 @@ Acceptance: explain/dry-run must be mutation-free; mutating commands emit durabl
 
 ## R08 — Stable machine schema, backend capabilities, and verification policy
 
-Merge window: inspect items 7–9 before implementation.
+**Merge-window decision:** merge items 7–9. Stable machine output, backend capability negotiation, and verification evidence are one typed planner/runtime/evidence boundary; splitting them would allow the JSON contract to describe a capability/verification model different from the executor's authority.
 
-7. Version Arc's machine-output envelope and typed result/error/diagnostic structures. Publish JSON Schema and stable canonical/literal invocation identity.
-8. Replace scattered backend special cases with typed capability negotiation covering format operations, streams, encryption, solid/multipart metadata, stdin/stdout, mutation, verification depth, random access, and remote suitability.
-9. Add explicit verification levels (`none`, `structure`, `members`, `full`) with evidence stating exactly what Arc proved and what the selected backend could not prove.
+7. Add explicit `--json=v1` with the `arc.machine/v1` result/error/diagnostic envelope while preserving historical bare `--json` shapes for compatibility. Bundle `machine-v1`, backend-capability-v1, and verification-evidence-v1 JSON Schemas; preserve canonical and redacted received invocation identity, including installed aliases and parser failures.
+8. Make immutable typed backend profiles authoritative for normalized operation support, stdin/stdout, encryption read/write, solid/multipart behavior, metadata/mutation, random access, thread support, safe indexing, remote suitability, and verification depth. Legacy capability strings remain a compatibility projection of this typed source.
+9. Add explicit `--verify-level none|structure|members|full`. Requested proof must be satisfied by the selected backend or fail closed; a weaker proof is legal only with `--allow-verification-downgrade` and produces explicit requested/achieved/downgraded/check evidence. Verification `none` cannot authorize `--replace-source` or resumable-batch evidence reuse.
 
-Expected boundary: typed capability/evidence contract shared by planner, runtime, JSON, diagnostics, and docs.
+Acceptance: legacy bare JSON remains regression-compatible; `--json=v1` is one self-contained record with secret-redacted invocation and typed errors/diagnostics; schemas survive wheel/sdist rebuilds; capability reporting and planner decisions consume the typed profile; impossible proof requests fail before being mislabeled; downgrade is opt-in and visible; verification-disabled conversion cannot become deletion/resume authority.
+
+**Separate R08 gate:** qualify the cumulative typed-machine/capability/verification promise ledger and broader backend matrix after this targeted implementation validation; do not merge the gate into R08 implementation.
 
 ## R09 — Provenance, logical equivalence, and archive diff
 

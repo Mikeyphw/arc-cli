@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arc-cli.local/schema/machine-v1.schema.json",
+  "title": "Arc machine envelope v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "schema_version",
+    "kind",
+    "status",
+    "operation",
+    "invocation",
+    "result",
+    "error",
+    "diagnostics"
+  ],
+  "properties": {
+    "schema": {
+      "const": "arc.machine/v1"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "kind": {
+      "enum": [
+        "result",
+        "error"
+      ]
+    },
+    "status": {
+      "type": "string"
+    },
+    "operation": {
+      "type": "string"
+    },
+    "invocation": {
+      "type": "object",
+      "required": [
+        "program",
+        "literal_argv",
+        "literal",
+        "canonical_command"
+      ],
+      "properties": {
+        "program": {
+          "type": "string"
+        },
+        "literal_argv": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "literal": {
+          "type": "string"
+        },
+        "canonical_command": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "result": {},
+    "error": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "type",
+            "message",
+            "exit_code",
+            "category"
+          ],
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "message": {
+              "type": "string"
+            },
+            "exit_code": {
+              "type": "integer"
+            },
+            "category": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "kind",
+          "severity",
+          "payload"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "payload": {}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

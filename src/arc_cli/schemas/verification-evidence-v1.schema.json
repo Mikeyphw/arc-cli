@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arc-cli.local/schema/verification-evidence-v1.schema.json",
+  "title": "Arc verification evidence v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "requested",
+    "achieved",
+    "status",
+    "backend",
+    "downgraded",
+    "reason",
+    "checks"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "requested": {
+      "enum": [
+        "none",
+        "structure",
+        "members",
+        "full"
+      ]
+    },
+    "achieved": {
+      "enum": [
+        "none",
+        "structure",
+        "members",
+        "full"
+      ]
+    },
+    "status": {
+      "enum": [
+        "passed",
+        "failed",
+        "skipped"
+      ]
+    },
+    "backend": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "downgraded": {
+      "type": "boolean"
+    },
+    "reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "status",
+          "provider",
+          "detail"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "passed",
+              "failed",
+              "skipped"
+            ]
+          },
+          "provider": {
+            "type": "string"
+          },
+          "detail": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

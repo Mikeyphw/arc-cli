@@ -49,6 +49,7 @@ COMMAND_DOCS: dict[str, CommandDoc] = {
     "doctor": CommandDoc("doctor", "audit Arc installation and runtime health", synopsis="arc doctor [--json] [--fix] [--source PATH]"),
     "explain": CommandDoc("explain", "explain an execution plan without mutating data", synopsis="arc explain [--json] COMMAND ..."),
     "recover": CommandDoc("recover", "inspect and clean interrupted Arc transactions", synopsis="arc recover [TRANSACTION_ID] [--cleanup] [--json]"),
+    "schema": CommandDoc("schema", "show Arc machine-contract JSON Schemas", synopsis="arc schema [machine-v1|backend-capability-v1|verification-evidence-v1] [--list]"),
     "completion": CommandDoc("completion", "manage shell completion", synopsis="arc completion ACTION [LOCATION]"),
     "man": CommandDoc("man", "open Arc manual pages", synopsis="arc man [TOPIC]"),
     "help": CommandDoc("help", "open detailed help for an Arc command", synopsis="arc help [TOPIC]"),

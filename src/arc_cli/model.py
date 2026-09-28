@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
 
+from .capabilities import BackendCapabilityProfile
+
 Operation = Literal["identify", "list", "extract", "create", "info", "test", "convert", "add", "update", "remove"]
 
 
@@ -38,6 +40,7 @@ class BackendInfo:
     binary: str
     path: str
     capabilities: set[str] = field(default_factory=set)
+    capability_profile: BackendCapabilityProfile | None = None
 
 
 @dataclass(slots=True)
