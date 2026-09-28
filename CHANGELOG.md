@@ -1,3 +1,9 @@
+## ARC-R10 cumulative gate
+
+- Qualify R10 through R10C with a separate 240-test gate spanning mutation policy, recoverability, backend-command truth, machine batch, transport/recovery dependencies, docs/completion, and packaging.
+- Add gate-only regressions for extract rename, symlink skip-identical proof, update snapshot/non-clobbering behavior, clean aggregate batch JSON, and command secret redaction.
+- Add first-class `arc-r10-gate` / `r10_gate` / `./devtoolw r10-gate` ownership and close R10 before R11 configuration provenance begins.
+
 ## ARC-R10C mutation-policy convergence
 
 - Make explicit extract `--destination-policy` authoritative over legacy collision flags and prove `skip-identical` conflicts before mutation.

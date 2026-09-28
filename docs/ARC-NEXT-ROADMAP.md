@@ -100,6 +100,8 @@ R10C closes that gate-discovered gap without changing the R11 boundary. Extract 
 
 The next artifact remains the separate widened R10 gate, now auditing R10 + R10A + R10B + R10C before R11 begins.
 
+**R10 gate: QUALIFIED.** The separate cumulative gate closes R10 through R10C with first-class `arc-r10-gate` / `r10_gate` Devtool ownership and a 240-test mutation/command-truth/batch/recovery/transport/docs/package matrix. R11 is now the next implementation boundary.
+
 ## R11 — Configuration provenance and explainability
 
 15. Add `arc config show --effective`, `arc config explain KEY`, and resolved-profile inspection with provenance for built-in defaults, config, environment, profile, and CLI. Invalid/unknown configuration should be diagnosable without silently becoming `{}` in doctor/config-audit surfaces.

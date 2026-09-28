@@ -315,6 +315,31 @@ pytest_tests = [
 pytest_args = ["--maxfail=1"]
 pytest_include_defaults = false
 
+[test_profiles.r10_gate]
+pytest_tests = [
+  "tests/test_r10_gate.py",
+  "tests/test_r10c_mutation_policy_convergence.py",
+  "tests/test_r10_mutation_policy_progress.py",
+  "tests/test_r10a_backend_command_truth.py",
+  "tests/test_r10b_machine_batch.py",
+  "tests/test_r07_execution_recovery_resume.py",
+  "tests/test_r09b_remote_capability_publication.py",
+  "tests/test_r05_remote_native.py",
+  "tests/test_r04_execution_plan.py",
+  "tests/test_r04_remote_transport.py",
+  "tests/test_r08_machine_capability_verification.py",
+  "tests/test_convert_command.py",
+  "tests/test_cli_integration.py",
+  "tests/test_safety.py",
+  "tests/test_create_ui_shortcuts.py",
+  "tests/test_command_aliases.py",
+  "tests/test_completion.py",
+  "tests/test_manpages.py",
+  "tests/test_distribution_contract.py",
+]
+pytest_args = ["--maxfail=1", "-ra"]
+pytest_include_defaults = false
+
 [[test]]
 id = "arc-r09b-remote-capability-publication"
 name = "ARC-R09B remote capability, cache provenance, and publication truth"
@@ -416,6 +441,34 @@ command = [
   "tests/test_cli_integration.py",
   "tests/test_r05_remote_native.py",
   "tests/test_r07_execution_recovery_resume.py",
+  "tests/test_completion.py",
+  "tests/test_manpages.py",
+  "tests/test_distribution_contract.py",
+]
+
+[[test]]
+id = "arc-r10-gate"
+name = "ARC-R10 cumulative mutation policy, backend-command truth, machine batch, and recoverability gate"
+runner = "pytest"
+command = [
+  "python3", "-m", "pytest", "-q", "-ra",
+  "--junitxml=.devtool/reports/roadmap/arc-r10-gate.xml",
+  "tests/test_r10_gate.py",
+  "tests/test_r10c_mutation_policy_convergence.py",
+  "tests/test_r10_mutation_policy_progress.py",
+  "tests/test_r10a_backend_command_truth.py",
+  "tests/test_r10b_machine_batch.py",
+  "tests/test_r07_execution_recovery_resume.py",
+  "tests/test_r09b_remote_capability_publication.py",
+  "tests/test_r05_remote_native.py",
+  "tests/test_r04_execution_plan.py",
+  "tests/test_r04_remote_transport.py",
+  "tests/test_r08_machine_capability_verification.py",
+  "tests/test_convert_command.py",
+  "tests/test_cli_integration.py",
+  "tests/test_safety.py",
+  "tests/test_create_ui_shortcuts.py",
+  "tests/test_command_aliases.py",
   "tests/test_completion.py",
   "tests/test_manpages.py",
   "tests/test_distribution_contract.py",
@@ -630,6 +683,12 @@ command = ["python3", "scripts/check_batch_contract.py"]
 inputs = [".devtool.toml", "src/arc_cli/batch.py", "src/arc_cli/machine.py", "src/arc_cli/schemas/batch-input-v1.schema.json", "src/arc_cli/command_docs.py", "src/arc_cli/completion.py", "src/arc_cli/manual.py", "scripts/check_batch_contract.py", "pyproject.toml"]
 metadata = { read_only = true, purpose = "machine-batch-contract", contract = "arc-r10b" }
 
+[targets.arc.jobs.r10-gate-contract]
+runner = "command"
+command = ["python3", "scripts/check_r10_gate_contract.py"]
+inputs = [".devtool.toml", "docs/ARC-R10-GATE.md", "docs/ARC-NEXT-ROADMAP.md", "docs/WRAPPER.md", "scripts/check_r10_gate_contract.py", "tests/test_r10_gate.py"]
+metadata = { read_only = true, purpose = "arc-r10-cumulative-gate-contract", contract = "arc-r10-gate-v1" }
+
 [targets.arc.jobs.backend-smoke]
 runner = "command"
 command = [".devtool/venvs/arc/bin/python", "scripts/devtool_backend_smoke.py"]
@@ -730,6 +789,18 @@ r10c = [
   { id = "completion", ref = "job:completion-contract", depends_on = ["syntax"] },
   { id = "devtool-contract", ref = "job:devtool-contract", depends_on = ["syntax"] },
   { id = "r10c", ref = "test:arc-r10c-mutation-policy-convergence", depends_on = ["docs", "completion", "devtool-contract"] },
+]
+
+r10_gate = [
+  { id = "syntax", ref = "job:syntax", depends_on = [] },
+  { id = "machine-contract", ref = "job:machine-contract", depends_on = ["syntax"] },
+  { id = "remote-contract", ref = "job:remote-contract", depends_on = ["syntax"] },
+  { id = "batch-contract", ref = "job:batch-contract", depends_on = ["syntax"] },
+  { id = "docs", ref = "job:command-docs-contract", depends_on = ["syntax"] },
+  { id = "completion", ref = "job:completion-contract", depends_on = ["syntax"] },
+  { id = "devtool-contract", ref = "job:devtool-contract", depends_on = ["syntax"] },
+  { id = "gate-contract", ref = "job:r10-gate-contract", depends_on = ["machine-contract", "remote-contract", "batch-contract", "docs", "completion", "devtool-contract"] },
+  { id = "gate", ref = "test:arc-r10-gate", depends_on = ["gate-contract"] },
 ]
 
 
@@ -835,7 +906,7 @@ aliases = ["t"]
 [wrapper.commands.test.options.profile]
 type = "choice"
 description = "Select a repository test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "r10c", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "r10c", "r10_gate", "final_gate", "full"]
 command_argv = ["--profile", "{value}"]
 
 [wrapper.commands.test.options.node]
@@ -887,7 +958,7 @@ aliases = ["val"]
 [wrapper.commands.validate.options.profile]
 type = "choice"
 description = "Select the validation test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "r10c", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "r10c", "r10_gate", "final_gate", "full"]
 command_argv = ["--test-profile", "{value}"]
 
 [wrapper.commands.validate.options.affected]
@@ -1007,6 +1078,11 @@ target = "arc"
 [wrapper.commands.r10c]
 description = "Run ARC-R10C mutation-policy convergence and recoverability validation"
 workflow = "r10c"
+target = "arc"
+
+[wrapper.commands.r10-gate]
+description = "Run the cumulative ARC-R10 mutation policy/command truth/machine batch qualification gate"
+workflow = "r10_gate"
 target = "arc"
 
 [wrapper.commands.refresh-install]
