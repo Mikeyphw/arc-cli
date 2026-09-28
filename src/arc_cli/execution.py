@@ -7,6 +7,8 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Iterable, Sequence
 
+from rich.text import Text
+
 from .progress import console
 
 
@@ -105,13 +107,23 @@ class ExecutionPlan:
 _plan_var: contextvars.ContextVar[ExecutionPlan | None] = contextvars.ContextVar("arc_execution_plan", default=None)
 _mode_var: contextvars.ContextVar[str | None] = contextvars.ContextVar("arc_native_mode", default=None)
 _style_var: contextvars.ContextVar[str] = contextvars.ContextVar("arc_native_style", default="reproducible")
+_primary_command_var: contextvars.ContextVar[bool] = contextvars.ContextVar("arc_primary_command", default=False)
+_primary_command_emitted_var: contextvars.ContextVar[bool] = contextvars.ContextVar("arc_primary_command_emitted", default=False)
 
 
-def begin_plan(operation: str, *, mode: str | None = None, style: str = "reproducible") -> ExecutionPlan:
+def begin_plan(
+    operation: str,
+    *,
+    mode: str | None = None,
+    style: str = "reproducible",
+    show_primary_command: bool = False,
+) -> ExecutionPlan:
     plan = ExecutionPlan(operation=operation)
     _plan_var.set(plan)
     _mode_var.set(mode)
     _style_var.set(style)
+    _primary_command_var.set(bool(show_primary_command))
+    _primary_command_emitted_var.set(False)
     return plan
 
 
@@ -158,14 +170,14 @@ def record_stage(
     return stage
 
 
-def record_backend(cmd: list[str], meta: dict) -> None:
+def record_backend(cmd: list[str], meta: dict) -> ExecutionStage:
     cleanup = [os.fspath(x) for x in meta.get("cleanup", [])]
     redact = [str(x) for x in meta.get("redact", []) if x]
     preprocess = meta.get("preprocess")
     pipeline = meta.get("pipeline")
     stdout_file = meta.get("stdout_file")
     if preprocess:
-        record_stage(
+        return record_stage(
             "backend-pipeline",
             preprocess,
             description="archive input preprocessing and backend",
@@ -174,8 +186,8 @@ def record_backend(cmd: list[str], meta: dict) -> None:
             redact=redact,
             implementation_paths=cleanup,
         )
-    elif pipeline:
-        record_stage(
+    if pipeline:
+        return record_stage(
             "backend-pipeline",
             cmd,
             description="archive backend and compression pipeline",
@@ -184,15 +196,35 @@ def record_backend(cmd: list[str], meta: dict) -> None:
             redact=redact,
             implementation_paths=cleanup,
         )
-    else:
-        record_stage(
-            "backend",
-            cmd,
-            description="archive backend",
-            stdout_to=stdout_file,
-            redact=redact,
-            implementation_paths=cleanup,
-        )
+    return record_stage(
+        "backend",
+        cmd,
+        description="archive backend",
+        stdout_to=stdout_file,
+        redact=redact,
+        implementation_paths=cleanup,
+    )
+
+
+def emit_command(stage: ExecutionStage, *, force: bool = False, label: str = "Command") -> bool:
+    """Emit the exact native command Arc executes, never the Arc wrapper argv.
+
+    Interactive execution shows only the first primary execution command by
+    default. ``--show-command`` and dry-run callers pass ``force=True`` and may
+    therefore expose every requested native stage. Secrets are redacted using
+    the same ExecutionStage authority as ``--show-native``.
+    """
+    automatic = _primary_command_var.get()
+    if not force:
+        if not automatic or _primary_command_emitted_var.get():
+            return False
+        _primary_command_emitted_var.set(True)
+    line = Text.assemble(
+        (f"{label:<9}", "bold cyan"),
+        (stage.display(reproducible=False), "dim"),
+    )
+    console.print(line, soft_wrap=True)
+    return True
 
 
 def _print_stage(stage: ExecutionStage, *, style: str) -> None:

@@ -277,6 +277,16 @@ pytest_tests = [
 pytest_args = ["--maxfail=1"]
 pytest_include_defaults = false
 
+[test_profiles.r10a]
+pytest_tests = [
+  "tests/test_r10a_backend_command_truth.py",
+  "tests/test_create_ui_shortcuts.py",
+  "tests/test_r04_execution_plan.py",
+  "tests/test_r05_remote_native.py",
+]
+pytest_args = ["--maxfail=1"]
+pytest_include_defaults = false
+
 [[test]]
 id = "arc-r09b-remote-capability-publication"
 name = "ARC-R09B remote capability, cache provenance, and publication truth"
@@ -334,6 +344,19 @@ command = [
   "tests/test_completion.py",
   "tests/test_manpages.py",
   "tests/test_distribution_contract.py",
+]
+
+[[test]]
+id = "arc-r10a-backend-command-truth"
+name = "ARC-R10A backend command display truth"
+runner = "pytest"
+command = [
+  "python3", "-m", "pytest", "-q",
+  "--junitxml=.devtool/reports/roadmap/arc-r10a-backend-command-truth.xml",
+  "tests/test_r10a_backend_command_truth.py",
+  "tests/test_create_ui_shortcuts.py",
+  "tests/test_r04_execution_plan.py",
+  "tests/test_r05_remote_native.py",
 ]
 
 [ui.profiles.arc]
@@ -616,6 +639,13 @@ r10 = [
   { id = "r10", ref = "test:arc-r10-mutation-policy-progress", depends_on = ["docs", "completion", "devtool-contract"] },
 ]
 
+r10a = [
+  { id = "syntax", ref = "job:syntax", depends_on = [] },
+  { id = "docs", ref = "job:command-docs-contract", depends_on = ["syntax"] },
+  { id = "devtool-contract", ref = "job:devtool-contract", depends_on = ["syntax"] },
+  { id = "r10a", ref = "test:arc-r10a-backend-command-truth", depends_on = ["docs", "devtool-contract"] },
+]
+
 
 refresh_install = [
   { id = "alias-contract", ref = "job:alias-contract", depends_on = [] },
@@ -719,7 +749,7 @@ aliases = ["t"]
 [wrapper.commands.test.options.profile]
 type = "choice"
 description = "Select a repository test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "final_gate", "full"]
 command_argv = ["--profile", "{value}"]
 
 [wrapper.commands.test.options.node]
@@ -771,7 +801,7 @@ aliases = ["val"]
 [wrapper.commands.validate.options.profile]
 type = "choice"
 description = "Select the validation test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "final_gate", "full"]
 command_argv = ["--test-profile", "{value}"]
 
 [wrapper.commands.validate.options.affected]
@@ -876,6 +906,11 @@ target = "arc"
 [wrapper.commands.r10]
 description = "Run ARC-R10 destructive-policy and semantic-progress targeted validation"
 workflow = "r10"
+target = "arc"
+
+[wrapper.commands.r10a]
+description = "Run ARC-R10A backend-command truth targeted validation"
+workflow = "r10a"
 target = "arc"
 
 [wrapper.commands.refresh-install]

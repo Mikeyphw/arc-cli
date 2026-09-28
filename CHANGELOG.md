@@ -1,3 +1,9 @@
+## ARC-R10A backend command display truth
+
+- Fix interactive `Command` output to show exact redacted native backend argv/pipelines instead of echoing the Arc wrapper invocation.
+- Preserve received Arc argv separately for machine/provenance/transaction identity.
+- Add first-class R10A Devtool workflow and regression coverage.
+
 ## ARC-R10 destructive policy and execution UX
 
 - Centralize destination collision policy as fail/replace/rename/skip-identical with optional recoverable backup-existing and legacy flag compatibility.

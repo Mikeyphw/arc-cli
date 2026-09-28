@@ -106,6 +106,10 @@ Create and convert short selectors are authoritative. When a caller supplies an 
 
 Bare --json preserves Arc's pre-R08 command-specific JSON shape for compatibility. Explicit --json=v1 emits the stable arc.machine/v1 envelope with schema_version, typed result/error/diagnostic fields, a redacted received argv, and canonical command identity. Installed aliases such as arci/arccv preserve their literal executable identity while resolving to the canonical command.
 
+### Command Display
+
+Interactive Command output is backend-native: it renders the exact redacted native execution stage Arc launches rather than echoing the Arc wrapper argv. The received Arc invocation remains a separate machine, transaction, and provenance identity. Remote-native execution labels the local SSH delegation as Remote and forwards --show-command so the delegated Arc emits the archive backend it actually launches. --show-command forces immediate native-command diagnostics and --show-native exposes the broader execution plan.
+
 ### Safety
 
 Arc rejects traversal, absolute member paths, unsafe link parents, and special objects before normalized extraction. Conversion builds an unpublished destination candidate, verifies it, then publishes it atomically. --replace-source cannot remove the source until verified publication succeeds.

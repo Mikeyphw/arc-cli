@@ -71,7 +71,7 @@ Arguments after `--` remain native Devtool passthrough only on wrapper commands 
 ./devtoolw test --changed
 ```
 
-`quick` covers format/filter/completion contracts, `integration` covers CLI integration plus extraction safety, `r04`/`r05` cover their remote feature slices, `r06` covers runtime/alias/install truth plus packaging/man/completion parity, `r07` covers explain/recovery/resumable-batch behavior plus affected plan/docs/completion regressions, `r08` covers machine-schema/capability/verification behavior plus the affected backend/info/convert/docs/package surface, `r09a` covers logical fingerprints/diff plus machine/schema/alias/docs/package parity, `r09b` covers the targeted remote capability/publication slice, `r09b_gate` widens that to the cumulative transport/provenance/integration/package matrix, `final_gate` is the historical complete R01-R05 campaign test tree, and `full` remains the ordinary complete test profile.
+`quick` covers format/filter/completion contracts, `integration` covers CLI integration plus extraction safety, `r04`/`r05` cover their remote feature slices, `r06` covers runtime/alias/install truth plus packaging/man/completion parity, `r07` covers explain/recovery/resumable-batch behavior plus affected plan/docs/completion regressions, `r08` covers machine-schema/capability/verification behavior plus the affected backend/info/convert/docs/package surface, `r09a` covers logical fingerprints/diff plus machine/schema/alias/docs/package parity, `r09b` covers the targeted remote capability/publication slice, `r09b_gate` widens that to the cumulative transport/provenance/integration/package matrix, `r10` covers mutation policy/progress, `r10a` covers backend-command display truth, `final_gate` is the historical complete R01-R05 campaign test tree, and `full` remains the ordinary complete test profile.
 
 ## EXO workflows and scheduler
 
@@ -190,3 +190,6 @@ This resolves to the `r09b_gate` EXO workflow. It rechecks machine, provenance, 
 ## ARC-R10
 
 `./devtoolw r10` runs the repository-owned destructive-policy and semantic-progress implementation workflow. It keeps R10 targeted validation separate from its later cumulative gate.
+
+
+`./devtoolw r10a` runs the ARC-R10A backend-command truth workflow.

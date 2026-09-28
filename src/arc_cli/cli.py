@@ -31,7 +31,7 @@ from .doctor import alias_status_rows, collect_doctor_report, fix_and_recheck
 from .manpages import available_topics, show_manpage
 from .config import get_profile, load_config
 from .errors import ArcError, BackendUnavailable, ConflictError, CorruptArchive, PasswordError, UnsafeArchive, UnsupportedFormat, UsageError
-from .execution import begin_plan, emit_after, mark_mutation, plan_dict, record_decision, record_stage
+from .execution import begin_plan, emit_after, emit_command, mark_mutation, plan_dict, record_decision, record_stage
 from .filtering import build_manifest, expand_rule_files, filter_members
 from . import __version__
 from .formats import CREATE_SUFFIX_SHORTCUTS, detect, extension_for, infer_from_name, parse_format, resolve_create_format, strip_archive_suffix
@@ -1561,6 +1561,17 @@ def _remote_common_native_args(args) -> list[str]:
         out.append("--json")
     if getattr(args, "quiet", False):
         out.append("--quiet")
+    # Remote-native execution delegates archive work to another Arc process.
+    # Forward command display so the remote Arc prints the archive backend it
+    # actually launches; do not mislabel the local SSH delegation as that
+    # backend command.  Explicit --show-command remains effective for non-TTY
+    # callers, while ordinary automatic display remains interactive-only.
+    if getattr(args, "show_command", False) or (
+        console.is_terminal
+        and not bool(getattr(args, "quiet", False))
+        and not bool(getattr(args, "json", False))
+    ):
+        out.append("--show-command")
     out += ["--progress", "never"]
     return out
 
@@ -1623,9 +1634,13 @@ def _run_remote_arc(
 
     command = shlex.join(remote_argv)
     argv = [*ssh_command_prefix(location, config), command]
-    record_stage("ssh-remote-exec", argv, description=description)
+    stage = record_stage("ssh-remote-exec", argv, description=description)
+    # The SSH command is a transport/delegation boundary, not the archive
+    # backend.  Show it only when command display was explicitly requested or
+    # during dry-run, and label it truthfully.  On a real run the delegated Arc
+    # receives --show-command and emits its own native backend command.
     if show_command or dry_run:
-        console.print("[bold cyan]$[/] " + shlex.join(argv))
+        emit_command(stage, force=True, label="Remote")
     if dry_run:
         return 0
     proc = subprocess.run(argv, check=False)
@@ -2058,12 +2073,8 @@ def _record_info_probe(backend, path: Path, password: str | None, args, *, descr
     if not cmd:
         return
     redact = [password] if password else []
-    record_stage("metadata-index", cmd, description=description, redact=redact)
-    if getattr(args, "show_command", False):
-        shown = list(cmd)
-        if password:
-            shown = [part.replace(password, "<redacted>") for part in shown]
-        console.print("[dim]command:[/] " + shlex.join(shown))
+    stage = record_stage("metadata-index", cmd, description=description, redact=redact)
+    emit_command(stage, force=bool(getattr(args, "show_command", False)))
 
 
 def _member_time_range(path: Path, fmt, members: list[Member] | None = None) -> tuple[str | None, str | None]:
@@ -4172,13 +4183,18 @@ def main(argv: list[str] | None = None) -> int:
         _apply_defaults(args, config)
         if args.command in {"create", "convert"}:
             _create_format_options(args)
-        _show_invocation(argv, args)
         machine_v1 = _json_v1(args)
         native_mode = getattr(args, "show_native", None)
         begin_plan(
             args.command,
             mode=None if machine_v1 else native_mode,
             style=getattr(args, "native_style", None) or "reproducible",
+            show_primary_command=(
+                console.is_terminal
+                and not bool(getattr(args, "quiet", False))
+                and not bool(getattr(args, "json", False))
+                and args.command in {"list", "test", "extract", "create", "add", "update", "remove", "info", "convert"}
+            ),
         )
         if machine_v1:
             captured = io.StringIO()

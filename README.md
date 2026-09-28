@@ -376,7 +376,7 @@ SSH completion prefers remote Python metadata and falls back to NUL-delimited `f
 
 ## Native-command learning
 
-`--show-command` remains the immediate backend diagnostic. `--show-native` records the complete execution plan and can display it before, after, or both:
+Interactive `Command` output shows the exact redacted native backend stage Arc executes; it never echoes the Arc wrapper invocation as though that were the backend command. `--show-command` remains the explicit immediate backend diagnostic. `--show-native` records the complete execution plan and can display it before, after, or both:
 
 ```bash
 arc create backup.7z src --level 7 --show-native

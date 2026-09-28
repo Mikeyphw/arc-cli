@@ -15,7 +15,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 from .errors import BackendUnavailable, UsageError
-from .execution import record_decision, record_stage
+from .execution import emit_command, record_decision, record_stage
 from .progress import ProgressReporter, console
 
 
@@ -579,8 +579,7 @@ def stream_remote_to_local(
         stdout_to=destination,
         redact=redact or [],
     )
-    if show_command or dry_run:
-        console.print("[bold cyan]$[/] " + stage.display(reproducible=False))
+    emit_command(stage, force=show_command or dry_run)
     if dry_run:
         return
     if destination is not None:
@@ -725,8 +724,7 @@ def stream_pipeline_to_remote(
         redact=redact or [],
         implementation_paths=implementation_paths or [],
     )
-    if show_command or dry_run:
-        console.print("[bold cyan]$[/] " + stage.display(reproducible=False))
+    emit_command(stage, force=show_command or dry_run)
     if finalize:
         record_stage("rclone-finalize", finalize, description=f"finalize {location.raw} via provider move")
     if dry_run:

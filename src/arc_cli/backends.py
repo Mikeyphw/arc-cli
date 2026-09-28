@@ -829,23 +829,16 @@ def run_backend(
     verbose: int = 0,
 ) -> int:
     import shlex
-    from .execution import record_backend
+    from .execution import emit_command, record_backend
 
-    record_backend(cmd, meta)
+    stage = record_backend(cmd, meta)
     redact_values = [x for x in meta.get("redact", []) if x]
     display_cmd = list(cmd)
     for i, item in enumerate(display_cmd):
         for secret in redact_values:
             if secret in item:
                 display_cmd[i] = item.replace(secret, "***")
-    if show_command or dry_run:
-        if meta.get("preprocess"):
-            console.print("[bold cyan]$[/] " + shlex.join(meta["preprocess"]))
-            console.print("[bold cyan]|[/] " + shlex.join(display_cmd))
-        else:
-            console.print("[bold cyan]$[/] " + shlex.join(display_cmd))
-            if meta.get("pipeline"):
-                console.print("[bold cyan]|[/] " + shlex.join(meta["pipeline"]))
+    emit_command(stage, force=show_command or dry_run)
     if dry_run:
         return 0
     cleanup = meta.get("cleanup", [])

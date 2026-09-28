@@ -82,6 +82,16 @@ Merge-window decision: items 13–14 form one mutation-policy/execution-UX autho
 
 R10 implementation owns the shared `fail/replace/rename/skip-identical` destination policy, optional recoverable `backup-existing`, compatibility aliases for legacy overwrite/force flags, and semantic `scan → encode → verify → publish` progress that remains silent for JSON/non-TTY/quiet output.
 
+### R10A — Backend command display truth
+
+Inserted before the R10 gate after operator feedback. Human interactive `Command` output must show the exact redacted native execution stage Arc actually launches—not echo the Arc wrapper invocation. Received Arc argv remains authoritative machine/provenance identity. `--show-command`, dry-run, and `--show-native` continue to expose native execution without inventing shell syntax.
+
+The R10 gate is deferred until R10A and R10B are complete and will audit all three implementation overlays together.
+
+### R10B — Machine batch input
+
+Reserved next: a generic `arc batch` operation with a versioned JSON input schema for heterogeneous machine-submitted Arc operations. This is distinct from `arc convert --batch`, which remains the resumable multi-conversion feature.
+
 ## R11 — Configuration provenance and explainability
 
 15. Add `arc config show --effective`, `arc config explain KEY`, and resolved-profile inspection with provenance for built-in defaults, config, environment, profile, and CLI. Invalid/unknown configuration should be diagnosable without silently becoming `{}` in doctor/config-audit surfaces.

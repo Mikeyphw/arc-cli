@@ -193,3 +193,8 @@ Verification policy is fail-closed: an unavailable requested level fails unless 
 The logical digest deliberately excludes timestamp metadata. A separate metadata digest tracks the currently selected metadata surface, while each archive retains its encoded byte SHA-256, size, format, backend, and source label. `arc.archive-diff/v1` therefore distinguishes logical equivalence, metadata equivalence, byte identity, format changes, and encoding-only differences without conflating those claims. `encoding_only` requires both logical and selected metadata equivalence.
 
 Conversion equivalence proof reuses this exact authority. For local conversion, the readable source and unpublished same-filesystem destination candidate are fingerprinted before `os.replace`; a mismatch prevents publication. Remote output is additionally re-read and fingerprinted after transport before Arc reports the proof. This is an assertion of semantic preservation, so intentional content-changing filters correctly fail `--prove-equivalent` rather than being silently treated as equivalent. Remote transport capability/atomicity negotiation remains owned by R09B.
+
+
+## Backend command display truth
+
+Human `Command` output is derived from the exact redacted `ExecutionStage` that Arc launches. Received Arc argv remains a distinct provenance/audit identity and is never substituted for backend argv in that operator-facing line.
