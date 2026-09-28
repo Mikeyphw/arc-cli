@@ -40,6 +40,7 @@ Arc provides one normalized interface over native archive and compression backen
   doctor       audit Arc installation and runtime health
   explain      explain an execution plan without mutating data
   recover      inspect and clean interrupted Arc transactions
+  batch        execute machine-submitted Arc operations from JSON
   schema       show Arc machine-contract JSON Schemas
   completion   manage shell completion
   help         open detailed bundled help
@@ -231,6 +232,40 @@ arc backends --remote cloud --refresh --json
 ### See Also
 
 arc-backends(7), arc-formats(7)
+
+## arc-batch(1)
+
+### Name
+
+arc-batch - execute machine-submitted Arc operations from JSON
+
+### Synopsis
+
+arc batch [FILE|-] [--validate-only] [--json[=v1]]
+
+### Description
+
+Execute a sequence of Arc operations supplied as a versioned JSON document. Batch input uses argv arrays, never shell command strings, so quoting and token boundaries remain explicit machine data.
+
+### Options
+
+FILE|-        JSON input path or stdin
+--validate-only validate without execution
+--json[=legacy|v1] machine-readable result
+
+### Semantics
+
+Input must declare schema=arc.batch-input/v1 and contain a non-empty operations array. Operation IDs are unique; each NUL-free argv is pre-parsed through Arc's normal parser before any operation executes. on_error=stop or continue controls unallowed failures, while per-item allow_failure marks an expected non-zero result. Exit 130 always stops the batch as an interrupt. Recursive batch execution, binary extract --stdout, malformed nested argv, and interactive password prompts are rejected before execution. --validate-only performs this same preflight without execution. Result argv is secret-redacted. This command is separate from arc convert --batch.
+
+### Examples
+
+arc schema batch-input-v1
+arc batch jobs.json --validate-only --json
+arc batch jobs.json --json=v1
+
+### See Also
+
+arc-schema(1), arc-convert(1), arc(1)
 
 ## arc-completion(1)
 
@@ -747,7 +782,7 @@ arc-schema - show Arc machine-contract JSON Schemas
 
 ### Synopsis
 
-arc schema [machine-v1|backend-capability-v1|verification-evidence-v1|logical-fingerprint-v1|archive-diff-v1|remote-capability-v1] [--list]
+arc schema [machine-v1|backend-capability-v1|verification-evidence-v1|logical-fingerprint-v1|archive-diff-v1|remote-capability-v1|batch-input-v1] [--list]
 
 ### Description
 

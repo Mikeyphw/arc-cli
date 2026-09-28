@@ -83,7 +83,7 @@ def test_v1_native_plan_is_a_typed_diagnostic_not_separate_stderr(tmp_path: Path
 
 
 def test_bundled_machine_capability_and_verification_schemas_are_discoverable(capsys) -> None:
-    assert set(schema_names()) == {"machine-v1", "backend-capability-v1", "verification-evidence-v1", "logical-fingerprint-v1", "archive-diff-v1", "remote-capability-v1"}
+    assert set(schema_names()) == {"machine-v1", "backend-capability-v1", "verification-evidence-v1", "logical-fingerprint-v1", "archive-diff-v1", "remote-capability-v1", "batch-input-v1"}
     for name in schema_names():
         schema = load_schema(name)
         assert schema["$schema"].endswith("2020-12/schema")

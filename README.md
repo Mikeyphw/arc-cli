@@ -671,3 +671,19 @@ Batch conversion writes a durable per-item manifest. Resume reuses only unchange
 arc convert a.zip b.zip c.zip -tzst --batch
 arc convert a.zip b.zip c.zip -tzst --batch --resume
 ```
+
+
+### Machine batch execution
+
+`arc batch` is a generic automation surface distinct from `arc convert --batch`. It consumes a versioned JSON document whose operations contain argv arrays rather than shell strings. Inspect the public input contract with `arc schema batch-input-v1`. Use `--validate-only` to check a document without executing it and `--json=v1` for the stable machine envelope.
+
+```json
+{
+  "schema": "arc.batch-input/v1",
+  "on_error": "stop",
+  "operations": [
+    {"id": "inventory", "argv": ["formats", "--json"]},
+    {"id": "verify", "argv": ["test", "backup.7z", "--json=v1"]}
+  ]
+}
+```

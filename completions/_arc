@@ -100,7 +100,7 @@ _arc() {
   fi
 
   if [[ "${words[1]}" == arc && CURRENT == 2 ]]; then
-    _values 'arc operation' identify create extract list info diff test convert add update remove backends formats profiles aliases doctor explain recover schema completion man help
+    _values 'arc operation' identify create extract list info diff test convert add update remove backends formats profiles aliases doctor explain recover batch schema completion man help
     return
   fi
 

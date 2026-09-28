@@ -56,6 +56,7 @@ COMMAND_OPTIONS: dict[str, set[str]] = {
     "doctor": {"--json", "--fix", "--source"},
     "explain": {"--json"},
     "recover": {"--cleanup", "--all", "--json"},
+    "batch": {"--validate-only", "--json"},
     "schema": {"--list"},
     "man": {"--list", "--plain"},
     "help": set(),

@@ -1,0 +1,23 @@
+.TH "ARC-BATCH" "1" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-batch \- execute machine\-submitted Arc operations from JSON
+.SH "SYNOPSIS"
+arc batch [FILE|\-] [\-\-validate\-only] [\-\-json[=v1]]
+.SH "DESCRIPTION"
+Execute a sequence of Arc operations supplied as a versioned JSON document. Batch input uses argv arrays, never shell command strings, so quoting and token boundaries remain explicit machine data.
+.SH "OPTIONS"
+FILE|\-        JSON input path or stdin
+.PP
+\-\-validate\-only validate without execution
+.PP
+\-\-json[=legacy|v1] machine\-readable result
+.SH "SEMANTICS"
+Input must declare schema=arc.batch\-input/v1 and contain a non\-empty operations array. Operation IDs are unique; each NUL\-free argv is pre\-parsed through Arc's normal parser before any operation executes. on_error=stop or continue controls unallowed failures, while per\-item allow_failure marks an expected non\-zero result. Exit 130 always stops the batch as an interrupt. Recursive batch execution, binary extract \-\-stdout, malformed nested argv, and interactive password prompts are rejected before execution. \-\-validate\-only performs this same preflight without execution. Result argv is secret\-redacted. This command is separate from arc convert \-\-batch.
+.SH "EXAMPLES"
+arc schema batch\-input\-v1
+.PP
+arc batch jobs.json \-\-validate\-only \-\-json
+.PP
+arc batch jobs.json \-\-json=v1
+.SH "SEE ALSO"
+arc\-schema(1), arc\-convert(1), arc(1)

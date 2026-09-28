@@ -1,3 +1,9 @@
+## ARC-R10B versioned machine batch input
+
+- Add generic `arc batch` for heterogeneous sequential operations submitted as argv arrays.
+- Bundle/query `arc.batch-input/v1`, validate strictly, bound request sizes, reject recursion/binary stdout, and redact secrets in result evidence.
+- Add validate-only, stop/continue + allow-failure semantics, machine-v1 wrapping, docs/completion/package parity, and first-class Devtool ownership.
+
 ## ARC-R10A backend command display truth
 
 - Fix interactive `Command` output to show exact redacted native backend argv/pipelines instead of echoing the Arc wrapper invocation.

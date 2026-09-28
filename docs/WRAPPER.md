@@ -193,3 +193,5 @@ This resolves to the `r09b_gate` EXO workflow. It rechecks machine, provenance, 
 
 
 `./devtoolw r10a` runs the ARC-R10A backend-command truth workflow.
+
+`./devtoolw r10b` runs the ARC-R10B versioned machine-batch schema/execution workflow.

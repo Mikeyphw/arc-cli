@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import contextvars
 import io
 import dataclasses
 import getpass
@@ -22,6 +23,7 @@ from rich.filesize import decimal
 from rich.table import Table
 from rich.text import Text
 
+from .batch import execute_batch, load_batch_input
 from .backends import backend_capability_profile, backend_inventory, resolve_backend, run_backend, _compression_command, _decompression_command
 from .capabilities import VerificationLevel
 from .machine import MachineError, diagnostic as machine_diagnostic, dumps as machine_dumps, envelope as machine_envelope, load_schema, schema_names
@@ -326,6 +328,11 @@ def parser() -> argparse.ArgumentParser:
     q.add_argument("transaction_id", nargs="?")
     q.add_argument("--cleanup", action="store_true", help="remove only paths explicitly registered as transaction-owned temporary state")
     q.add_argument("--all", action="store_true", help="include completed transactions when listing")
+    _add_json_option(q)
+
+    q = sub.add_parser("batch", help=COMMAND_DOCS["batch"].summary)
+    q.add_argument("input", nargs="?", default="-", help="batch JSON file, or - for stdin")
+    q.add_argument("--validate-only", action="store_true", help="validate the batch input without executing operations")
     _add_json_option(q)
 
     q = sub.add_parser("backends", help=COMMAND_DOCS["backends"].summary)
@@ -4005,6 +4012,79 @@ def _recover_command(args) -> int:
     stdout_console.print(t)
     return 0
 
+def _preflight_batch_request(request) -> None:
+    """Parse every nested argv before the first operation is allowed to run.
+
+    This catches malformed options/operands transactionally at the batch
+    boundary and also forbids prompt-style password flags, which would violate
+    the non-interactive machine contract.  Help-only argv (argparse exit 0) are
+    valid operations and remain capture-only at execution time.
+    """
+    prompt_attrs = ("password", "source_password", "left_password", "right_password")
+    for operation in request.operations:
+        parse_out = io.StringIO()
+        parse_err = io.StringIO()
+        parsed = None
+        try:
+            with redirect_stdout(parse_out), redirect_stderr(parse_err):
+                parsed = parser().parse_args(_normalize_json_argv(list(operation.argv)))
+        except SystemExit as exc:
+            code = int(exc.code) if isinstance(exc.code, int) else 2
+            if code != 0:
+                detail = _parse_error_message(parse_err.getvalue())
+                raise UsageError(f"batch operation {operation.id!r} has invalid Arc argv: {detail}") from None
+        if parsed is not None and any(getattr(parsed, name, None) == "__PROMPT__" for name in prompt_attrs):
+            raise UsageError(
+                f"batch operation {operation.id!r} requests an interactive password prompt; "
+                "machine batches must provide a value, --password-file, or --password-env"
+            )
+
+
+def _batch_command(args) -> int:
+    request = load_batch_input(args.input)
+    _preflight_batch_request(request)
+    if args.validate_only:
+        payload = {
+            "schema": "arc.batch-validation/v1",
+            "schema_version": 1,
+            "status": "valid",
+            "operations": len(request.operations),
+            "on_error": request.on_error,
+        }
+        if args.json:
+            print(json.dumps(payload, ensure_ascii=False, sort_keys=True))
+        else:
+            stdout_console.print(f"[green]VALID[/] {len(request.operations)} operation(s) · on_error={request.on_error}")
+        return 0
+
+    def runner(argv: list[str]) -> tuple[int, str, str]:
+        out = io.StringIO()
+        err = io.StringIO()
+        try:
+            with redirect_stdout(out), redirect_stderr(err):
+                code = contextvars.copy_context().run(main, argv)
+        except SystemExit as exc:
+            code = int(exc.code) if isinstance(exc.code, int) else 2
+        return int(code), out.getvalue(), err.getvalue()
+
+    payload = execute_batch(request, runner)
+    if args.json:
+        print(json.dumps(payload, ensure_ascii=False, sort_keys=True))
+    else:
+        table = Table(title="Arc batch")
+        table.add_column("ID")
+        table.add_column("Status")
+        table.add_column("Exit", justify="right")
+        table.add_column("Command")
+        for item in payload["operations"]:
+            table.add_row(str(item["id"]), str(item["status"]), str(item["exit_code"]), shlex.join(item["argv"]))
+        stdout_console.print(table)
+        stdout_console.print(f"Executed {payload['executed']}/{payload['requested']} · failed {payload['failed']}")
+    if payload["status"] == "interrupted":
+        return 130
+    return 0 if payload["status"] == "ok" else 1
+
+
 def _dispatch_command(args, extra: list[str], config: dict) -> int:
     if args.command == "identify":
         return _identify(args, config)
@@ -4016,6 +4096,8 @@ def _dispatch_command(args, extra: list[str], config: dict) -> int:
         return _explain_command(args, config)
     if args.command == "recover":
         return _recover_command(args)
+    if args.command == "batch":
+        return _batch_command(args)
     if args.command == "convert":
         return _convert(args, config)
     if args.command in {"create", "add", "update", "list", "test", "extract", "remove"}:

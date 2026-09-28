@@ -198,3 +198,8 @@ Conversion equivalence proof reuses this exact authority. For local conversion, 
 ## Backend command display truth
 
 Human `Command` output is derived from the exact redacted `ExecutionStage` that Arc launches. Received Arc argv remains a distinct provenance/audit identity and is never substituted for backend argv in that operator-facing line.
+
+
+## Machine batch boundary
+
+Generic machine batching is argv-native and schema-versioned. Arc never evaluates batch entries as shell strings. Every nested argv is syntactically pre-parsed before the first operation executes, prompt-style credentials and NUL argv are rejected, and exit 130 is an unconditional batch interrupt. Each nested operation then executes through the ordinary CLI in an isolated context, with bounded request size, explicit failure policy, secret-redacted evidence, and a stable `arc.batch-result/v1` aggregate.

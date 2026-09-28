@@ -287,6 +287,18 @@ pytest_tests = [
 pytest_args = ["--maxfail=1"]
 pytest_include_defaults = false
 
+[test_profiles.r10b]
+pytest_tests = [
+  "tests/test_r10b_machine_batch.py",
+  "tests/test_r08_machine_capability_verification.py",
+  "tests/test_cli_integration.py",
+  "tests/test_completion.py",
+  "tests/test_manpages.py",
+  "tests/test_distribution_contract.py",
+]
+pytest_args = ["--maxfail=1"]
+pytest_include_defaults = false
+
 [[test]]
 id = "arc-r09b-remote-capability-publication"
 name = "ARC-R09B remote capability, cache provenance, and publication truth"
@@ -357,6 +369,21 @@ command = [
   "tests/test_create_ui_shortcuts.py",
   "tests/test_r04_execution_plan.py",
   "tests/test_r05_remote_native.py",
+]
+
+[[test]]
+id = "arc-r10b-machine-batch"
+name = "ARC-R10B versioned JSON machine batch execution"
+runner = "pytest"
+command = [
+  "python3", "-m", "pytest", "-q",
+  "--junitxml=.devtool/reports/roadmap/arc-r10b-machine-batch.xml",
+  "tests/test_r10b_machine_batch.py",
+  "tests/test_r08_machine_capability_verification.py",
+  "tests/test_cli_integration.py",
+  "tests/test_completion.py",
+  "tests/test_manpages.py",
+  "tests/test_distribution_contract.py",
 ]
 
 [ui.profiles.arc]
@@ -562,6 +589,12 @@ command = ["python3", "scripts/check_r09b_gate_contract.py"]
 inputs = [".devtool.toml", "docs/ARC-R09B-GATE.md", "docs/ARC-NEXT-ROADMAP.md", "docs/WRAPPER.md", "scripts/check_r09b_gate_contract.py", "tests/test_r09b_gate.py"]
 metadata = { read_only = true, purpose = "r09b-cumulative-promise-gate", contract = "arc-r09b-gate-v1" }
 
+[targets.arc.jobs.batch-contract]
+runner = "command"
+command = ["python3", "scripts/check_batch_contract.py"]
+inputs = [".devtool.toml", "src/arc_cli/batch.py", "src/arc_cli/machine.py", "src/arc_cli/schemas/batch-input-v1.schema.json", "src/arc_cli/command_docs.py", "src/arc_cli/completion.py", "src/arc_cli/manual.py", "scripts/check_batch_contract.py", "pyproject.toml"]
+metadata = { read_only = true, purpose = "machine-batch-contract", contract = "arc-r10b" }
+
 [targets.arc.jobs.backend-smoke]
 runner = "command"
 command = [".devtool/venvs/arc/bin/python", "scripts/devtool_backend_smoke.py"]
@@ -644,6 +677,16 @@ r10a = [
   { id = "docs", ref = "job:command-docs-contract", depends_on = ["syntax"] },
   { id = "devtool-contract", ref = "job:devtool-contract", depends_on = ["syntax"] },
   { id = "r10a", ref = "test:arc-r10a-backend-command-truth", depends_on = ["docs", "devtool-contract"] },
+]
+
+r10b = [
+  { id = "syntax", ref = "job:syntax", depends_on = [] },
+  { id = "machine-contract", ref = "job:machine-contract", depends_on = ["syntax"] },
+  { id = "batch-contract", ref = "job:batch-contract", depends_on = ["syntax"] },
+  { id = "docs", ref = "job:command-docs-contract", depends_on = ["syntax"] },
+  { id = "completion", ref = "job:completion-contract", depends_on = ["syntax"] },
+  { id = "devtool-contract", ref = "job:devtool-contract", depends_on = ["syntax"] },
+  { id = "r10b", ref = "test:arc-r10b-machine-batch", depends_on = ["machine-contract", "batch-contract", "docs", "completion", "devtool-contract"] },
 ]
 
 
@@ -749,7 +792,7 @@ aliases = ["t"]
 [wrapper.commands.test.options.profile]
 type = "choice"
 description = "Select a repository test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "final_gate", "full"]
 command_argv = ["--profile", "{value}"]
 
 [wrapper.commands.test.options.node]
@@ -801,7 +844,7 @@ aliases = ["val"]
 [wrapper.commands.validate.options.profile]
 type = "choice"
 description = "Select the validation test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "final_gate", "full"]
 command_argv = ["--test-profile", "{value}"]
 
 [wrapper.commands.validate.options.affected]
@@ -911,6 +954,11 @@ target = "arc"
 [wrapper.commands.r10a]
 description = "Run ARC-R10A backend-command truth targeted validation"
 workflow = "r10a"
+target = "arc"
+
+[wrapper.commands.r10b]
+description = "Run ARC-R10B machine-batch schema and execution validation"
+workflow = "r10b"
 target = "arc"
 
 [wrapper.commands.refresh-install]

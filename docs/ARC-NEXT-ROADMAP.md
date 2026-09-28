@@ -90,7 +90,9 @@ The R10 gate is deferred until R10A and R10B are complete and will audit all thr
 
 ### R10B — Machine batch input
 
-Reserved next: a generic `arc batch` operation with a versioned JSON input schema for heterogeneous machine-submitted Arc operations. This is distinct from `arc convert --batch`, which remains the resumable multi-conversion feature.
+A generic `arc batch` operation accepts the bundled `arc.batch-input/v1` JSON Schema contract for heterogeneous machine-submitted Arc operations. Each item is a NUL-free argv string array with a unique ID; shell command strings, recursive batches, malformed nested argv, and prompt-style credentials are rejected during whole-batch preflight before execution. The batch owns explicit stop/continue behavior, per-item allowed failures, unconditional interrupt propagation, secret-redacted results, bounded input/operation sizes, validate-only mode, and stable JSON output. This is distinct from `arc convert --batch`, which remains the resumable multi-conversion feature.
+
+R10B completes the inserted implementation pair. The next artifact is the widened separate R10 gate, which audits R10 + R10A + R10B before R11 begins.
 
 ## R11 — Configuration provenance and explainability
 

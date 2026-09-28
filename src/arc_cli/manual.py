@@ -362,6 +362,28 @@ _add(
 )
 _add(
     _command_page(
+        "batch",
+        "Execute a sequence of Arc operations supplied as a versioned JSON document. Batch input uses argv arrays, never shell command strings, so quoting and token boundaries remain explicit machine data.",
+        options="FILE|-        JSON input path or stdin\n--validate-only validate without execution\n--json[=legacy|v1] machine-readable result",
+        semantics=(
+            "Input must declare schema=arc.batch-input/v1 and contain a non-empty operations array. Operation IDs are unique; "
+            "each NUL-free argv is pre-parsed through Arc's normal parser before any operation executes. on_error=stop or continue "
+            "controls unallowed failures, while per-item allow_failure marks an expected non-zero result. Exit 130 always stops the "
+            "batch as an interrupt. Recursive batch execution, binary extract --stdout, malformed nested argv, and interactive password "
+            "prompts are rejected before execution. --validate-only performs this same preflight without execution. Result argv is "
+            "secret-redacted. This command is separate from arc convert --batch."
+        ),
+        examples=(
+            "arc schema batch-input-v1\n"
+            "arc batch jobs.json --validate-only --json\n"
+            "arc batch jobs.json --json=v1"
+        ),
+        see_also="arc-schema(1), arc-convert(1), arc(1)",
+    )
+)
+
+_add(
+    _command_page(
         "backends",
         "Report configured backend preference order, installed binaries, and the typed capability profile Arc uses for planning rather than assuming similarly named native tools are interchangeable.",
         options="--json[=legacy|v1]\n--verbose\n--remote NAME\n--refresh        bypass a fresh remote capability cache entry",
