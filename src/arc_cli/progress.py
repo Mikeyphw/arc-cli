@@ -185,3 +185,71 @@ def progress_enabled(mode: str, json_mode: bool = False, quiet: bool = False) ->
     if mode == "always":
         return True
     return sys.stderr.isatty()
+
+SEMANTIC_PHASES = ("scan", "encode", "verify", "publish")
+
+
+@dataclass
+class SemanticProgress:
+    """Stable user-facing mutation lifecycle independent of backend telemetry."""
+    enabled: bool
+    operation: str
+    batch_index: int = 1
+    batch_total: int = 1
+
+    def __post_init__(self) -> None:
+        self._progress: Progress | None = None
+        self._task = None
+        self._started = None
+        self._input_bytes = 0
+        self._output_bytes = 0
+
+    def __enter__(self):
+        if not self.enabled:
+            return self
+        import time
+        self._started = time.monotonic()
+        self._progress = Progress(
+            SpinnerColumn(finished_text="[green]✓[/]"),
+            TextColumn("{task.fields[operation]}"),
+            BarColumn(),
+            TextColumn("{task.fields[phase]}"),
+            TextColumn("{task.fields[batch]}"),
+            TextColumn("{task.fields[metrics]}", style="dim"),
+            TimeElapsedColumn(),
+            console=console,
+            transient=False,
+            expand=True,
+        )
+        self._progress.start()
+        self._task = self._progress.add_task(
+            self.operation, total=len(SEMANTIC_PHASES), operation=self.operation,
+            phase="scan", batch=self._batch_text(), metrics="",
+        )
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        if self._progress:
+            self._progress.stop()
+
+    def _batch_text(self) -> str:
+        return f"{self.batch_index}/{self.batch_total}" if self.batch_total > 1 else ""
+
+    def phase(self, name: str, *, input_bytes: int = 0, output_bytes: int = 0) -> None:
+        if name not in SEMANTIC_PHASES:
+            raise ValueError(f"unknown semantic progress phase: {name}")
+        self._input_bytes = max(self._input_bytes, input_bytes)
+        self._output_bytes = max(self._output_bytes, output_bytes)
+        if not self._progress:
+            return
+        idx = SEMANTIC_PHASES.index(name)
+        metrics = ""
+        if self._input_bytes and self._output_bytes:
+            ratio = self._input_bytes / self._output_bytes if self._output_bytes else 0
+            metrics = f"ratio {ratio:.2f}x"
+        self._progress.update(self._task, completed=idx, phase=name, batch=self._batch_text(), metrics=metrics)
+
+    def complete(self, *, input_bytes: int = 0, output_bytes: int = 0) -> None:
+        self.phase("publish", input_bytes=input_bytes, output_bytes=output_bytes)
+        if self._progress:
+            self._progress.update(self._task, completed=len(SEMANTIC_PHASES))

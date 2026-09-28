@@ -20,7 +20,7 @@ VALUE_OPTIONS = {
     "--exclude-from", "--include-from", "--progress", "--password-file", "--password-env", "--profile",
     "--show-native", "--native-style", "--execution", "--source-password-file", "--source-password-env", "--source", "--batch-id",
     "--left-password-file", "--left-password-env", "--right-password-file", "--right-password-env",
-    "--verify-level",
+    "--verify-level", "--destination-policy", "--backup-existing",
 }
 OPTIONAL_VALUE_OPTIONS = {"--password", "--source-password", "--left-password", "--right-password", "--yazi"}
 
@@ -30,9 +30,9 @@ BASE = {
     "--show-native", "--native-style", "--execution", "--source-password-file", "--source-password-env",
 }
 FILTERS = {"--exclude", "--include", "--exclude-from", "--include-from"}
-CREATE = {"--level", "--threads", "--add-extension", "--follow-symlinks", "--one-file-system", "--preserve-owner", "--preserve-acls", "--preserve-xattrs"}
+CREATE = {"--destination-policy", "--backup-existing", "--level", "--threads", "--add-extension", "--follow-symlinks", "--one-file-system", "--preserve-owner", "--preserve-acls", "--preserve-xattrs"}
 CREATE_SUFFIX_FLAGS = {flag for flag, _fmt, _suffix in CREATE_SUFFIX_SHORTCUTS}
-EXTRACT = {"-o", "--output", "--overwrite", "--skip-existing", "--rename-existing", "--unsafe-paths", "--stdout", "--preserve-owner", "--preserve-acls", "--preserve-xattrs"}
+EXTRACT = {"--destination-policy", "-o", "--output", "--overwrite", "--skip-existing", "--rename-existing", "--unsafe-paths", "--stdout", "--preserve-owner", "--preserve-acls", "--preserve-xattrs"}
 VERIFY = {"--verify-level", "--allow-verification-downgrade"}
 CONVERT = CREATE | FILTERS | CREATE_SUFFIX_FLAGS | VERIFY | {"-f", "--force", "--replace-source", "--prove-equivalent", "--batch", "--resume", "--batch-id", "--source-password", "--source-password-file", "--source-password-env"}
 INFO = {"--format", "-F", "--backend", "--no-fallback", "--profile", "--password", "--password-file", "--password-env", "--members", "--fingerprint", "--verify", "--technical", "--json", "-q", "--quiet", "-v", "--verbose", "--progress", "--show-command", "--show-native", "--native-style"} | VERIFY

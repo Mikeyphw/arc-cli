@@ -155,7 +155,7 @@ _add(
         options=(
             "-F, --format FORMAT\n"
             + _FORMAT_LINES
-            + "\n--add-extension\n--overwrite\n--level 0..9\n--threads N\n"
+            + "\n--add-extension\n--destination-policy fail|replace|rename|skip-identical\n--backup-existing [PATH]\n--overwrite (legacy replace alias)\n--level 0..9\n--threads N\n"
             "--include/--exclude and rule files\n--follow-symlinks\n--one-file-system"
         ),
         semantics=(
@@ -172,7 +172,7 @@ _add(
         "Safely extract selected archive members or a compressed stream. Arc indexes archive members first and "
         "enforces normalized traversal, link-parent, conflict, and filtering rules.",
         options=(
-            "-o, --output DIR\n--overwrite | --skip-existing | --rename-existing\n--stdout\n--unsafe-paths\n"
+            "-o, --output DIR\n--destination-policy fail|replace|rename|skip-identical\n--overwrite | --skip-existing | --rename-existing\n--stdout\n--unsafe-paths\n"
             "--include/--exclude and rule files\n--password/--password-file/--password-env"
         ),
         examples="arcx backup.zip -o restored/\narc extract backup.7z docs/readme.txt --stdout",
@@ -273,7 +273,7 @@ _add(
         options=(
             "-F, --format FORMAT\n"
             + _FORMAT_LINES
-            + "\n--add-extension\n-f, --force\n--batch\n--resume\n--batch-id ID\n--replace-source\n--prove-equivalent\n"
+            + "\n--add-extension\n--destination-policy fail|replace|rename|skip-identical\n--backup-existing [PATH]\n-f, --force (legacy replace alias)\n--batch\n--resume\n--batch-id ID\n--replace-source\n--prove-equivalent\n"
             "--source-password/--source-password-file/--source-password-env\n"
             "--password/--password-file/--password-env\n--include/--exclude and rule files\n"
             "--level 0..9\n--threads N\n--backend NAME\n--no-fallback\n--dry-run\n"

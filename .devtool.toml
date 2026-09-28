@@ -263,6 +263,20 @@ command = [
   "tests/test_distribution_contract.py",
 ]
 
+[test_profiles.r10]
+pytest_tests = [
+  "tests/test_r10_mutation_policy_progress.py",
+  "tests/test_convert_command.py",
+  "tests/test_cli_integration.py",
+  "tests/test_r07_execution_recovery_resume.py",
+  "tests/test_r09b_remote_capability_publication.py",
+  "tests/test_completion.py",
+  "tests/test_manpages.py",
+  "tests/test_distribution_contract.py",
+]
+pytest_args = ["--maxfail=1"]
+pytest_include_defaults = false
+
 [[test]]
 id = "arc-r09b-remote-capability-publication"
 name = "ARC-R09B remote capability, cache provenance, and publication truth"
@@ -300,6 +314,23 @@ command = [
   "tests/test_safety.py",
   "tests/test_info_command.py",
   "tests/test_command_aliases.py",
+  "tests/test_completion.py",
+  "tests/test_manpages.py",
+  "tests/test_distribution_contract.py",
+]
+
+[[test]]
+id = "arc-r10-mutation-policy-progress"
+name = "ARC-R10 destructive policy and semantic execution UX"
+runner = "pytest"
+command = [
+  "python3", "-m", "pytest", "-q",
+  "--junitxml=.devtool/reports/roadmap/arc-r10-mutation-policy-progress.xml",
+  "tests/test_r10_mutation_policy_progress.py",
+  "tests/test_convert_command.py",
+  "tests/test_cli_integration.py",
+  "tests/test_r07_execution_recovery_resume.py",
+  "tests/test_r09b_remote_capability_publication.py",
   "tests/test_completion.py",
   "tests/test_manpages.py",
   "tests/test_distribution_contract.py",
@@ -577,6 +608,15 @@ r09b_gate = [
   { id = "gate", ref = "test:arc-r09b-gate", depends_on = ["gate-contract"] },
 ]
 
+r10 = [
+  { id = "syntax", ref = "job:syntax", depends_on = [] },
+  { id = "docs", ref = "job:command-docs-contract", depends_on = ["syntax"] },
+  { id = "completion", ref = "job:completion-contract", depends_on = ["syntax"] },
+  { id = "devtool-contract", ref = "job:devtool-contract", depends_on = ["syntax"] },
+  { id = "r10", ref = "test:arc-r10-mutation-policy-progress", depends_on = ["docs", "completion", "devtool-contract"] },
+]
+
+
 refresh_install = [
   { id = "alias-contract", ref = "job:alias-contract", depends_on = [] },
   { id = "refresh", ref = "job:refresh-install", depends_on = ["alias-contract"] },
@@ -679,7 +719,7 @@ aliases = ["t"]
 [wrapper.commands.test.options.profile]
 type = "choice"
 description = "Select a repository test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "final_gate", "full"]
 command_argv = ["--profile", "{value}"]
 
 [wrapper.commands.test.options.node]
@@ -731,7 +771,7 @@ aliases = ["val"]
 [wrapper.commands.validate.options.profile]
 type = "choice"
 description = "Select the validation test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "final_gate", "full"]
 command_argv = ["--test-profile", "{value}"]
 
 [wrapper.commands.validate.options.affected]
@@ -831,6 +871,11 @@ target = "arc"
 [wrapper.commands.r09b-gate]
 description = "Run the cumulative ARC-R09B remote capability/publication qualification gate"
 workflow = "r09b_gate"
+target = "arc"
+
+[wrapper.commands.r10]
+description = "Run ARC-R10 destructive-policy and semantic-progress targeted validation"
+workflow = "r10"
 target = "arc"
 
 [wrapper.commands.refresh-install]

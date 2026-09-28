@@ -1,3 +1,9 @@
+## ARC-R10 destructive policy and execution UX
+
+- Centralize destination collision policy as fail/replace/rename/skip-identical with optional recoverable backup-existing and legacy flag compatibility.
+- Add stable semantic scan/encode/verify/publish progress primitives with batch and ratio context while preserving clean JSON/non-TTY output.
+- Add first-class R10 Devtool profile/workflow/wrapper ownership and regression coverage.
+
 ## ARC final gate/seal v6
 - ARC-R08: introduce the stable `arc.machine/v1` envelope behind explicit `--json=v1` while retaining bare-`--json` compatibility; bundle public JSON Schemas, preserve/redact literal+canonical invocation identity, and emit parser/runtime failures as typed machine errors. Replace backend capability string authority with typed profiles covering operations, stream I/O, encryption, solid/multipart, metadata/mutation, random access, remote suitability, threading, safe indexing, and verification depth. Add explicit `none|structure|members|full` verification evidence, fail-closed proof negotiation, opt-in downgrade evidence, and prevent unverified conversion from authorizing source deletion/resume reuse.
 

@@ -64,6 +64,7 @@ Arguments after `--` remain native Devtool passthrough only on wrapper commands 
 ./devtoolw test --profile r09a
 ./devtoolw test --profile r09b
 ./devtoolw test --profile r09b_gate
+./devtoolw test --profile r10
 ./devtoolw test --profile full
 ./devtoolw test --node tests/test_formats.py::test_name
 ./devtoolw test --failed
@@ -185,3 +186,7 @@ Run the separate cumulative transport-capability/publication gate with:
 ```
 
 This resolves to the `r09b_gate` EXO workflow. It rechecks machine, provenance, remote, generated-doc, completion, and Devtool contracts before the first-class `arc-r09b-gate` transport matrix. The targeted implementation entry point remains `./devtoolw r09b`; the gate is intentionally separate and R10 remains the next implementation boundary.
+
+## ARC-R10
+
+`./devtoolw r10` runs the repository-owned destructive-policy and semantic-progress implementation workflow. It keeps R10 targeted validation separate from its later cumulative gate.

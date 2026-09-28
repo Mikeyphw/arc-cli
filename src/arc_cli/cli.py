@@ -37,7 +37,7 @@ from . import __version__
 from .formats import CREATE_SUFFIX_SHORTCUTS, detect, extension_for, infer_from_name, parse_format, resolve_create_format, strip_archive_suffix
 from .interactive import choose_auto, filesystem_candidates, rg_files, yazi_choose
 from .model import FilterRule, Member
-from .progress import ProgressReporter, console, progress_enabled, stdout_console
+from .progress import ProgressReporter, SemanticProgress, console, progress_enabled, stdout_console
 from .provenance import FINGERPRINT_NORMALIZATION, build_fingerprint, compare_fingerprints, fingerprint_summary, materialized_member_map, member_record, validate_logical_member_set
 from .verification import VerificationEvidence, choose_level, verify_with_backend
 from .remote import (
@@ -63,6 +63,7 @@ from .remote import (
     stream_remote_to_local,
     upload_remote,
 )
+from .mutation_policy import DestinationPolicy, backup_existing, decide_destination, policy_from_args, validate_backup_policy
 from .safety import validate_members
 from .transactions import (
     BatchManifest,
@@ -156,6 +157,9 @@ def add_common(
     p.add_argument("-v", "--verbose", action="count", default=0)
     _add_json_option(p)
     p.add_argument("--progress", choices=["auto", "always", "never"], default=None)
+    if create:
+        p.add_argument("--destination-policy", choices=[p.value for p in DestinationPolicy], help="destination collision policy; legacy --overwrite/--force map to replace")
+        p.add_argument("--backup-existing", nargs="?", const="auto", metavar="PATH", help="preserve an existing destination before replacement")
     p.add_argument("--yazi", nargs="?", const="auto", choices=["auto", "archive", "inputs", "output"])
     p.add_argument("--password", nargs="?", const="__PROMPT__", help="archive password; omit value to prompt securely")
     p.add_argument("--password-file", help="read password from first line of file")
@@ -184,6 +188,7 @@ def add_common(
         group.add_argument("--overwrite", action="store_true")
         group.add_argument("--skip-existing", action="store_true")
         group.add_argument("--rename-existing", action="store_true")
+        p.add_argument("--destination-policy", choices=[p.value for p in DestinationPolicy], help="destination collision policy")
         p.add_argument("--unsafe-paths", action="store_true")
         p.add_argument("--stdout", action="store_true", help="write one extracted member to stdout")
         p.add_argument("--preserve-owner", action="store_true")
@@ -1043,8 +1048,10 @@ def _create_like_local(args, extra: list[str], config: dict) -> int:
     if operation == "create":
         fmt, archive = _resolve_create_target(args, args.archive)
         _warn_extension_mismatch(archive, fmt, args)
-        if not stdout_archive and archive.exists() and not args.overwrite:
-            raise ConflictError(f"archive already exists: {archive}; use --overwrite")
+        destination_policy = policy_from_args(args)
+        validate_backup_policy(destination_policy, getattr(args, "backup_existing", None))
+        if not stdout_archive and archive.exists() and destination_policy is DestinationPolicy.FAIL:
+            raise ConflictError(f"archive already exists: {archive}; choose --destination-policy replace, rename, or skip-identical")
     else:
         if stdout_archive:
             raise UsageError(f"{operation} cannot mutate an archive on stdout")
@@ -1143,9 +1150,23 @@ def _create_like_local(args, extra: list[str], config: dict) -> int:
                     shutil.copyfileobj(fh, sys.stdout.buffer)
                 tx_event("publish", destination="stdout", publication="stream-copy")
             else:
-                _atomic_replace(temp_archive, final_archive)
-                tx_cleanup_done(temp_archive)
-                tx_event("publish", destination=os.fspath(final_archive), publication="local-atomic-replace")
+                destination_policy = policy_from_args(args)
+                decision = decide_destination(final_archive, destination_policy, candidate=temp_archive)
+                if decision.action == "skip-identical":
+                    temp_archive.unlink(missing_ok=True)
+                    tx_cleanup_done(temp_archive)
+                    tx_event("publish", destination=os.fspath(final_archive), publication="skip-identical", destination_policy=destination_policy.value)
+                else:
+                    if decision.action == "rename" and decision.backup is not None:
+                        os.replace(final_archive, decision.backup)
+                        tx_event("destination-preserved", destination=os.fspath(final_archive), preserved_as=os.fspath(decision.backup), policy="rename")
+                    elif decision.action == "replace":
+                        backup = backup_existing(final_archive, getattr(args, "backup_existing", None))
+                        if backup is not None:
+                            tx_event("destination-preserved", destination=os.fspath(final_archive), preserved_as=os.fspath(backup), policy="backup-existing")
+                    _atomic_replace(temp_archive, final_archive)
+                    tx_cleanup_done(temp_archive)
+                    tx_event("publish", destination=os.fspath(final_archive), publication="local-atomic-replace", destination_policy=destination_policy.value)
                 compressed_bytes = final_archive.stat().st_size
         elif operation == "create" and not args.dry_run and not stdout_archive and final_archive.exists():
             compressed_bytes = final_archive.stat().st_size
@@ -2792,12 +2813,16 @@ def _resolve_convert_jobs(args, config: dict) -> list[dict]:
         identities.add(src_id)
         destinations.add(dst_id)
     for job in jobs:
-        if args.force or args.dry_run or getattr(args, "resume", False):
+        destination_policy = policy_from_args(args)
+        validate_backup_policy(destination_policy, getattr(args, "backup_existing", None))
+        if args.dry_run or getattr(args, "resume", False):
             continue
         dst_remote = parse_remote(job["destination"], config, probe_rclone=True)
         exists = remote_exists(dst_remote, config) if dst_remote else Path(job["destination"]).expanduser().exists()
-        if exists:
-            raise ConflictError(f"conversion destination already exists: {job['destination']}; use --force")
+        if exists and destination_policy is DestinationPolicy.FAIL:
+            raise ConflictError(f"conversion destination already exists: {job['destination']}; choose --destination-policy replace, rename, or skip-identical")
+        if dst_remote and exists and destination_policy in {DestinationPolicy.RENAME, DestinationPolicy.SKIP_IDENTICAL}:
+            raise UsageError(f"--destination-policy {destination_policy.value} requires local destination evidence for convert")
     return jobs
 
 
@@ -3124,8 +3149,10 @@ def _local_conversion_candidate(destination: Path, target_fmt) -> Path:
     return candidate
 
 
-def _convert_one(job: dict, args, config: dict, source_password: str | None, destination_password: str | None) -> dict:
+def _convert_one(job: dict, args, config: dict, source_password: str | None, destination_password: str | None, semantic_progress: SemanticProgress | None = None) -> dict:
     started = time.monotonic()
+    if semantic_progress is not None:
+        semantic_progress.phase("scan")
     source_raw = str(job["source"])
     destination_raw = str(job["destination"])
     target_fmt = job["target_format"]
@@ -3182,6 +3209,9 @@ def _convert_one(job: dict, args, config: dict, source_password: str | None, des
                 validate_members(inspected)
                 member_count = len(inspected)
 
+            if semantic_progress is not None:
+                semantic_progress.phase("encode", input_bytes=source_size)
+
             if source_fmt.is_stream and target_fmt.is_stream:
                 if source_password or destination_password:
                     raise UnsupportedFormat("single-stream compression formats do not support archive passwords")
@@ -3199,6 +3229,9 @@ def _convert_one(job: dict, args, config: dict, source_password: str | None, des
                     args,
                     config,
                 )
+
+            if semantic_progress is not None:
+                semantic_progress.phase("verify", input_bytes=source_size, output_bytes=local_destination.stat().st_size if local_destination.exists() else 0)
 
             # Verification happens against the unpublished local candidate.  A
             # failed test therefore cannot leave a new/corrupt final local path
@@ -3232,6 +3265,9 @@ def _convert_one(job: dict, args, config: dict, source_password: str | None, des
                     tx_event("equivalence", status="failed", destination=destination_raw, scope="unpublished-candidate", evidence=equivalence_proof)
                     raise CorruptArchive("converted destination is not logically equivalent to the source")
                 tx_event("equivalence", status="passed", destination=destination_raw, scope="unpublished-candidate", evidence=equivalence_proof)
+
+            if semantic_progress is not None:
+                semantic_progress.phase("publish", input_bytes=source_size, output_bytes=local_destination.stat().st_size if local_destination.exists() else 0)
 
             if destination_remote:
                 tx_event("remote-transfer", direction="upload", destination=destination_raw)
@@ -3294,6 +3330,26 @@ def _convert_one(job: dict, args, config: dict, source_password: str | None, des
             else:
                 assert final_local_destination is not None
                 converted_size = local_destination.stat().st_size
+                destination_policy = policy_from_args(args, legacy_replace=bool(getattr(args, "resume", False)))
+                decision = decide_destination(final_local_destination, destination_policy, candidate=local_destination)
+                if decision.action == "skip-identical":
+                    local_destination.unlink(missing_ok=True)
+                    tx_cleanup_done(local_destination)
+                    publication_guarantee = {"strategy": "skip-identical", "scope": "local-filesystem", "atomicity": "not-required", "guaranteed_atomic": True, "replace_semantics": "skip-identical"}
+                    tx_event("publish", destination=os.fspath(final_local_destination), publication="skip-identical", publication_guarantee=publication_guarantee, destination_policy=destination_policy.value)
+                    unpublished_candidate = None
+                    if args.replace_source:
+                        tx_event("source-removal", status="started", source=source_raw)
+                        _remove_conversion_source(source_raw, config)
+                        tx_event("source-removal", status="done", source=source_raw)
+                    return {"operation":"convert","source":source_raw,"destination":destination_raw,"source_format":source_fmt.canonical,"destination_format":target_fmt.canonical,"strategy":strategy,"original_bytes":source_size,"converted_bytes":converted_size,"size_change_bytes":converted_size-source_size,"ratio":(source_size/converted_size) if converted_size else None,"publication_guarantee":publication_guarantee,"skipped_identical":True}
+                if decision.action == "rename" and decision.backup is not None:
+                    os.replace(final_local_destination, decision.backup)
+                    tx_event("destination-preserved", destination=os.fspath(final_local_destination), preserved_as=os.fspath(decision.backup), policy="rename")
+                elif decision.action == "replace":
+                    backup = backup_existing(final_local_destination, getattr(args, "backup_existing", None))
+                    if backup is not None:
+                        tx_event("destination-preserved", destination=os.fspath(final_local_destination), preserved_as=os.fspath(backup), policy="backup-existing")
                 _atomic_replace(local_destination, final_local_destination)
                 tx_cleanup_done(local_destination)
                 publication_guarantee = {
@@ -3562,7 +3618,10 @@ def _convert(args, config: dict) -> int:
                     "started_at": time.time(),
                 })
             try:
-                result = _convert_one(job, args, config, source_password, destination_password)
+                semantic_enabled = progress_enabled(args.progress, args.json, args.quiet)
+                with SemanticProgress(semantic_enabled, "convert", batch_index=len(results) + 1, batch_total=len(jobs)) as semantic:
+                    result = _convert_one(job, args, config, source_password, destination_password, semantic)
+                    semantic.complete(input_bytes=int(result.get("original_bytes") or 0), output_bytes=int(result.get("converted_bytes") or 0))
                 if batch_id:
                     result["batch_id"] = batch_id
                     result["resumed"] = False

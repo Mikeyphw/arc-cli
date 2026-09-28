@@ -78,7 +78,9 @@ Acceptance: `arc.remote-capability/v1` is bundled and queryable; live/cache prov
 13. Centralize destination/destructive policies: fail/replace/rename/skip-identical, recoverable removal when supported, optional backup-existing, and one publication policy shared by all mutating commands.
 14. Improve interactive progress around semantic phases (`scan → encode → verify → publish`), batch/member progress, throughput/ratio, and safe cancellation/cleanup while keeping non-TTY and JSON output clean.
 
-Item 15 is inspected in the same merge window but should merge only if configuration provenance is part of the same UI/policy implementation boundary.
+Merge-window decision: items 13–14 form one mutation-policy/execution-UX authority and ship together in R10. Item 15 remains R11 because configuration provenance has a distinct ownership and validation boundary.
+
+R10 implementation owns the shared `fail/replace/rename/skip-identical` destination policy, optional recoverable `backup-existing`, compatibility aliases for legacy overwrite/force flags, and semantic `scan → encode → verify → publish` progress that remains silent for JSON/non-TTY/quiet output.
 
 ## R11 — Configuration provenance and explainability
 

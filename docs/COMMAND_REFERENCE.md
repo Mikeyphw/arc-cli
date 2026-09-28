@@ -303,7 +303,9 @@ Transform one logical archive representation into another through Arc's normaliz
   -zst       zstd       default suffix .zst
   -zstd      zstd       default suffix .zstd
 --add-extension
--f, --force
+--destination-policy fail|replace|rename|skip-identical
+--backup-existing [PATH]
+-f, --force (legacy replace alias)
 --batch
 --resume
 --batch-id ID
@@ -393,7 +395,9 @@ Create a new archive or compressed stream transactionally. Format may be inferre
   -zst       zstd       default suffix .zst
   -zstd      zstd       default suffix .zstd
 --add-extension
---overwrite
+--destination-policy fail|replace|rename|skip-identical
+--backup-existing [PATH]
+--overwrite (legacy replace alias)
 --level 0..9
 --threads N
 --include/--exclude and rule files
@@ -540,6 +544,7 @@ Safely extract selected archive members or a compressed stream. Arc indexes arch
 ### Options
 
 -o, --output DIR
+--destination-policy fail|replace|rename|skip-identical
 --overwrite | --skip-existing | --rename-existing
 --stdout
 --unsafe-paths
