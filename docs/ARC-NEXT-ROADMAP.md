@@ -106,7 +106,11 @@ The next artifact remains the separate widened R10 gate, now auditing R10 + R10A
 
 15. Add `arc config show --effective`, `arc config explain KEY`, and resolved-profile inspection with provenance for built-in defaults, config, environment, profile, and CLI. Invalid/unknown configuration should be diagnosable without silently becoming `{}` in doctor/config-audit surfaces.
 
-This may merge with R10 only if the next-three merge-window audit proves a coherent implementation boundary; otherwise it stays independent.
+**Merge-window decision:** keep R11 standalone. R12 consumes configuration provenance but owns advisory recommendations, benchmarking, and support evidence rather than configuration authority.
+
+R11 implementation owns one typed load/validation/result model, one effective-setting resolver, `arc.config-inspection/v1`, raw/effective/explain/profile inspection, runtime fail-closed behavior for invalid configuration, warning-level unknown-key diagnostics, doctor parity, backend environment provenance, generated command/docs/completion parity, and first-class Devtool workflow/test ownership. Precedence is built-in → config → supported environment → selected profile → explicit CLI.
+
+**Separate R11 gate:** audit the full provenance/diagnostic promise ledger and cumulative compatibility surface before R12 begins.
 
 ## R12 — Advisory intelligence, benchmarking, and support evidence
 

@@ -132,6 +132,7 @@ SCHEMA_FILES = {
     "archive-diff-v1": "archive-diff-v1.schema.json",
     "remote-capability-v1": "remote-capability-v1.schema.json",
     "batch-input-v1": "batch-input-v1.schema.json",
+    "config-inspection-v1": "config-inspection-v1.schema.json",
 }
 
 

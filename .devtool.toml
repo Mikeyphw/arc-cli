@@ -340,6 +340,19 @@ pytest_tests = [
 pytest_args = ["--maxfail=1", "-ra"]
 pytest_include_defaults = false
 
+[test_profiles.r11]
+pytest_tests = [
+  "tests/test_r11_config_provenance.py",
+  "tests/test_r08_machine_capability_verification.py",
+  "tests/test_r06_runtime_install_truth.py",
+  "tests/test_cli_integration.py",
+  "tests/test_completion.py",
+  "tests/test_manpages.py",
+  "tests/test_distribution_contract.py",
+]
+pytest_args = ["--maxfail=1"]
+pytest_include_defaults = false
+
 [[test]]
 id = "arc-r09b-remote-capability-publication"
 name = "ARC-R09B remote capability, cache provenance, and publication truth"
@@ -469,6 +482,22 @@ command = [
   "tests/test_safety.py",
   "tests/test_create_ui_shortcuts.py",
   "tests/test_command_aliases.py",
+  "tests/test_completion.py",
+  "tests/test_manpages.py",
+  "tests/test_distribution_contract.py",
+]
+
+[[test]]
+id = "arc-r11-config-provenance"
+name = "ARC-R11 configuration provenance and explainability"
+runner = "pytest"
+command = [
+  "python3", "-m", "pytest", "-q",
+  "--junitxml=.devtool/reports/roadmap/arc-r11-config-provenance.xml",
+  "tests/test_r11_config_provenance.py",
+  "tests/test_r08_machine_capability_verification.py",
+  "tests/test_r06_runtime_install_truth.py",
+  "tests/test_cli_integration.py",
   "tests/test_completion.py",
   "tests/test_manpages.py",
   "tests/test_distribution_contract.py",
@@ -689,6 +718,12 @@ command = ["python3", "scripts/check_r10_gate_contract.py"]
 inputs = [".devtool.toml", "docs/ARC-R10-GATE.md", "docs/ARC-NEXT-ROADMAP.md", "docs/WRAPPER.md", "scripts/check_r10_gate_contract.py", "tests/test_r10_gate.py"]
 metadata = { read_only = true, purpose = "arc-r10-cumulative-gate-contract", contract = "arc-r10-gate-v1" }
 
+[targets.arc.jobs.config-contract]
+runner = "command"
+command = ["python3", "scripts/check_config_contract.py"]
+inputs = ["src/arc_cli/config.py", "src/arc_cli/cli.py", "src/arc_cli/doctor.py", "src/arc_cli/command_docs.py", "src/arc_cli/completion.py", "src/arc_cli/machine.py", "src/arc_cli/schemas/config-inspection-v1.schema.json", "src/arc_cli/man/arc-config.1", "src/arc_cli/man/arc-config.5", "docs/ARC-R11-AUDIT.md", "docs/ARC-NEXT-ROADMAP.md", "scripts/check_config_contract.py", ".devtool.toml"]
+metadata = { read_only = true, purpose = "configuration-provenance-contract", contract = "arc-r11" }
+
 [targets.arc.jobs.backend-smoke]
 runner = "command"
 command = [".devtool/venvs/arc/bin/python", "scripts/devtool_backend_smoke.py"]
@@ -804,6 +839,16 @@ r10_gate = [
 ]
 
 
+r11 = [
+  { id = "syntax", ref = "job:syntax", depends_on = [] },
+  { id = "machine-contract", ref = "job:machine-contract", depends_on = ["syntax"] },
+  { id = "config-contract", ref = "job:config-contract", depends_on = ["syntax"] },
+  { id = "docs", ref = "job:command-docs-contract", depends_on = ["syntax"] },
+  { id = "completion", ref = "job:completion-contract", depends_on = ["syntax"] },
+  { id = "devtool-contract", ref = "job:devtool-contract", depends_on = ["syntax"] },
+  { id = "r11", ref = "test:arc-r11-config-provenance", depends_on = ["machine-contract", "config-contract", "docs", "completion", "devtool-contract"] },
+]
+
 refresh_install = [
   { id = "alias-contract", ref = "job:alias-contract", depends_on = [] },
   { id = "refresh", ref = "job:refresh-install", depends_on = ["alias-contract"] },
@@ -906,7 +951,7 @@ aliases = ["t"]
 [wrapper.commands.test.options.profile]
 type = "choice"
 description = "Select a repository test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "r10c", "r10_gate", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "r10c", "r10_gate", "r11", "final_gate", "full"]
 command_argv = ["--profile", "{value}"]
 
 [wrapper.commands.test.options.node]
@@ -958,7 +1003,7 @@ aliases = ["val"]
 [wrapper.commands.validate.options.profile]
 type = "choice"
 description = "Select the validation test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "r10c", "r10_gate", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "r10c", "r10_gate", "r11", "final_gate", "full"]
 command_argv = ["--test-profile", "{value}"]
 
 [wrapper.commands.validate.options.affected]
@@ -1083,6 +1128,11 @@ target = "arc"
 [wrapper.commands.r10-gate]
 description = "Run the cumulative ARC-R10 mutation policy/command truth/machine batch qualification gate"
 workflow = "r10_gate"
+target = "arc"
+
+[wrapper.commands.r11]
+description = "Run ARC-R11 configuration provenance and explainability validation"
+workflow = "r11"
 target = "arc"
 
 [wrapper.commands.refresh-install]

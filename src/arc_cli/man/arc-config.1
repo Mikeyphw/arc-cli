@@ -1,0 +1,25 @@
+.TH "ARC-CONFIG" "1" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-config \- inspect effective configuration and provenance
+.SH "SYNOPSIS"
+arc config {show,explain,profile} ...
+.SH "DESCRIPTION"
+Inspect Arc configuration, effective precedence, named\-profile resolution, and the provenance of each resolved setting.
+.SH "OPTIONS"
+show [\-\-effective] [\-\-profile NAME] [\-\-cli OPTION=VALUE] [\-\-json[=v1]]
+.PP
+explain KEY [\-\-profile NAME] [\-\-cli OPTION=VALUE] [\-\-json[=v1]]
+.PP
+profile NAME [\-\-cli OPTION=VALUE] [\-\-json[=v1]]
+.SH "SEMANTICS"
+Resolution records built\-in defaults, TOML configuration, supported ARC_* environment overrides, the selected profile, and modeled explicit CLI values in precedence order. Invalid TOML and invalid configuration types are retained as diagnostics instead of silently collapsing to an empty configuration. Unknown keys are reported as warnings. Use arc config(5) for the file\-format reference; config show \-\-effective and config explain consume the same normalized settings authority used by runtime defaults.
+.SH "EXAMPLES"
+arc config show \-\-effective
+.PP
+arc config explain ui.progress
+.PP
+arc config profile backup \-\-cli level=9
+.PP
+arc config show \-\-effective \-\-json
+.SH "SEE ALSO"
+arc\-config(5), arc\-profiles(5), arc\-doctor(1)

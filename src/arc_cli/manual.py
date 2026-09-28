@@ -464,14 +464,29 @@ _add(
 
 _add(
     _command_page(
+        "config",
+        "Inspect Arc configuration, effective precedence, named-profile resolution, and the provenance of each resolved setting.",
+        options="show [--effective] [--profile NAME] [--cli OPTION=VALUE] [--json[=v1]]\nexplain KEY [--profile NAME] [--cli OPTION=VALUE] [--json[=v1]]\nprofile NAME [--cli OPTION=VALUE] [--json[=v1]]",
+        semantics=(
+            "Resolution records built-in defaults, TOML configuration, supported ARC_* environment overrides, the selected profile, and modeled explicit CLI values in precedence order. "
+            "Invalid TOML and invalid configuration types are retained as diagnostics instead of silently collapsing to an empty configuration. Unknown keys are reported as warnings. "
+            "Use arc config(5) for the file-format reference; config show --effective and config explain consume the same normalized settings authority used by runtime defaults."
+        ),
+        examples="arc config show --effective\narc config explain ui.progress\narc config profile backup --cli level=9\narc config show --effective --json",
+        see_also="arc-config(5), arc-profiles(5), arc-doctor(1)",
+    )
+)
+
+_add(
+    _command_page(
         "schema",
         "Print the bundled JSON Schemas that define Arc's stable machine envelope, backend/verification contracts, and archive provenance/diff records.",
-        options="--list\nmachine-v1 | backend-capability-v1 | verification-evidence-v1 | logical-fingerprint-v1 | archive-diff-v1",
+        options="--list\nmachine-v1 | backend-capability-v1 | verification-evidence-v1 | logical-fingerprint-v1 | archive-diff-v1 | remote-capability-v1 | batch-input-v1 | config-inspection-v1",
         semantics=(
             "Schemas are shipped as package data and are the public validation contract for --json=v1 consumers. "
             "Bare --json remains the compatibility surface and is intentionally not covered by the versioned envelope schema."
         ),
-        examples="arc schema --list\narc schema machine-v1\narc schema logical-fingerprint-v1\narc schema archive-diff-v1",
+        examples="arc schema --list\narc schema machine-v1\narc schema logical-fingerprint-v1\narc schema archive-diff-v1\narc schema config-inspection-v1",
         see_also="arc(1), arc-backends(1), arc-test(1)",
     )
 )
@@ -493,7 +508,7 @@ for page in (
         "ARC-CONFIG",
         (
             ("NAME", "arc-config - Arc TOML configuration"),
-            ("DESCRIPTION", "Arc reads ~/.config/arc/config.toml, or $XDG_CONFIG_HOME/arc/config.toml. Configuration supplies backend preference lists, UI defaults, remote definitions, completion cache policy, and named profiles."),
+            ("DESCRIPTION", "Arc reads ~/.config/arc/config.toml, or $XDG_CONFIG_HOME/arc/config.toml. Configuration supplies backend preference lists, UI defaults, remote definitions, completion cache policy, and named profiles. arc config show/explain/profile exposes effective values and provenance; invalid TOML/types remain visible to config and doctor instead of silently becoming an empty configuration."),
             ("BACKENDS", "[backends] keys correspond to normalized roles such as tar, zip_create, zip_extract, 7z, rar_create, rar_extract, gzip, bzip2, xz, and zstd. ARC_BACKEND_* environment variables override configured lists."),
             ("REMOTES", "[remotes.NAME] may define type='ssh' with host/user/port/identity_file/proxy_jump/ssh_args, or type='rclone' with a provider remote name."),
             ("UI", "[ui] may set progress, show_native, and native_command_style."),
@@ -579,7 +594,7 @@ DEFAULT_TOPIC_SECTIONS: dict[str, int] = {
     "completion": 1,
     "formats": 7,
     "remote": 7,
-    "config": 5,
+    "config": 1,
     "profiles": 5,
 }
 

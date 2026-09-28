@@ -13,7 +13,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from arc_cli.capabilities import BACKEND_PROFILES, VerificationLevel, verification_rank
 from arc_cli.machine import load_schema, schema_names
 
-EXPECTED = {"machine-v1", "backend-capability-v1", "verification-evidence-v1", "logical-fingerprint-v1", "archive-diff-v1", "remote-capability-v1", "batch-input-v1"}
+EXPECTED = {"machine-v1", "backend-capability-v1", "verification-evidence-v1", "logical-fingerprint-v1", "archive-diff-v1", "remote-capability-v1", "batch-input-v1", "config-inspection-v1"}
 
 
 def main() -> int:

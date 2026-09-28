@@ -16,7 +16,7 @@ from . import __version__
 from .backends import backend_inventory
 from .command_docs import alias_specs, console_script_mapping
 from .completion import zsh_completion
-from .config import config_path, load_config
+from .config import config_path, load_config, load_config_result
 from .manual import generated_pages
 
 
@@ -112,22 +112,19 @@ def alias_status_rows(which: Callable[[str], str | None] = shutil.which) -> list
     return rows
 
 
-def _config_check() -> DoctorCheck:
-    path = config_path()
-    if not path.exists():
-        return DoctorCheck("config", "pass", "configuration", f"no config file; defaults active ({path})")
-    try:
-        with path.open("rb") as fh:
-            data = tomllib.load(fh)
-    except (OSError, tomllib.TOMLDecodeError) as exc:
-        return DoctorCheck("config", "fail", "configuration", f"invalid {path}: {exc}")
-    profiles = data.get("profiles", {})
-    if profiles is not None and not isinstance(profiles, dict):
-        return DoctorCheck("config", "fail", "configuration", f"[profiles] must be a table in {path}")
-    bad = sorted(name for name, value in (profiles or {}).items() if not isinstance(value, dict))
-    if bad:
-        return DoctorCheck("config", "fail", "configuration", f"profile(s) must be tables: {', '.join(bad)}")
-    return DoctorCheck("config", "pass", "configuration", f"parsed {path}")
+def _config_check(result=None) -> DoctorCheck:
+    result = result or load_config_result()
+    if not result.exists:
+        return DoctorCheck("config", "pass", "configuration", f"no config file; defaults active ({result.path})")
+    errors = [issue for issue in result.issues if issue.severity == "error"]
+    warnings = [issue for issue in result.issues if issue.severity == "warning"]
+    if errors:
+        detail = "; ".join(issue.message for issue in errors)
+        return DoctorCheck("config", "fail", "configuration", f"{result.path}: {detail}")
+    if warnings:
+        detail = "; ".join(issue.message for issue in warnings)
+        return DoctorCheck("config", "warn", "configuration", f"{result.path}: {detail}")
+    return DoctorCheck("config", "pass", "configuration", f"parsed and validated {result.path}")
 
 
 def _generated_surface_checks(root: Path | None) -> list[DoctorCheck]:
@@ -190,9 +187,12 @@ def collect_doctor_report(
     else:
         checks.append(DoctorCheck("path-aliases", "pass", "executables on PATH", f"all {len(expected)} console scripts resolve"))
 
-    checks.append(_config_check())
+    config_result = load_config_result()
+    checks.append(_config_check(config_result))
 
-    config = load_config()
+    # Once an invalid configuration has been reported, downstream doctor
+    # checks must remain diagnostic rather than crashing on malformed tables.
+    config = config_result.data if config_result.valid else {}
     inventory = backend_inventory(config)
     usable_roles = 0
     for role in inventory:

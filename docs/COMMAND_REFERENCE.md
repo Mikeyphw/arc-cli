@@ -36,6 +36,7 @@ Arc provides one normalized interface over native archive and compression backen
   backends     inspect native backend capabilities
   formats      show supported formats
   profiles     show configured profiles
+  config       inspect effective configuration and provenance
   aliases      inspect installed executable aliases
   doctor       audit Arc installation and runtime health
   explain      explain an execution plan without mutating data
@@ -311,6 +312,41 @@ arc completion cache --json
 ### See Also
 
 arc(1), arc-formats(7), arc-backends(7), arc-remote(7)
+
+## arc-config(1)
+
+### Name
+
+arc-config - inspect effective configuration and provenance
+
+### Synopsis
+
+arc config {show,explain,profile} ...
+
+### Description
+
+Inspect Arc configuration, effective precedence, named-profile resolution, and the provenance of each resolved setting.
+
+### Options
+
+show [--effective] [--profile NAME] [--cli OPTION=VALUE] [--json[=v1]]
+explain KEY [--profile NAME] [--cli OPTION=VALUE] [--json[=v1]]
+profile NAME [--cli OPTION=VALUE] [--json[=v1]]
+
+### Semantics
+
+Resolution records built-in defaults, TOML configuration, supported ARC_* environment overrides, the selected profile, and modeled explicit CLI values in precedence order. Invalid TOML and invalid configuration types are retained as diagnostics instead of silently collapsing to an empty configuration. Unknown keys are reported as warnings. Use arc config(5) for the file-format reference; config show --effective and config explain consume the same normalized settings authority used by runtime defaults.
+
+### Examples
+
+arc config show --effective
+arc config explain ui.progress
+arc config profile backup --cli level=9
+arc config show --effective --json
+
+### See Also
+
+arc-config(5), arc-profiles(5), arc-doctor(1)
 
 ## arc-convert(1)
 
@@ -802,7 +838,7 @@ arc-schema - show Arc machine-contract JSON Schemas
 
 ### Synopsis
 
-arc schema [machine-v1|backend-capability-v1|verification-evidence-v1|logical-fingerprint-v1|archive-diff-v1|remote-capability-v1|batch-input-v1] [--list]
+arc schema [machine-v1|backend-capability-v1|verification-evidence-v1|logical-fingerprint-v1|archive-diff-v1|remote-capability-v1|batch-input-v1|config-inspection-v1] [--list]
 
 ### Description
 
@@ -811,7 +847,7 @@ Print the bundled JSON Schemas that define Arc's stable machine envelope, backen
 ### Options
 
 --list
-machine-v1 | backend-capability-v1 | verification-evidence-v1 | logical-fingerprint-v1 | archive-diff-v1
+machine-v1 | backend-capability-v1 | verification-evidence-v1 | logical-fingerprint-v1 | archive-diff-v1 | remote-capability-v1 | batch-input-v1 | config-inspection-v1
 
 ### Semantics
 
@@ -823,6 +859,7 @@ arc schema --list
 arc schema machine-v1
 arc schema logical-fingerprint-v1
 arc schema archive-diff-v1
+arc schema config-inspection-v1
 
 ### See Also
 
@@ -910,7 +947,7 @@ arc-config - Arc TOML configuration
 
 ### Description
 
-Arc reads ~/.config/arc/config.toml, or $XDG_CONFIG_HOME/arc/config.toml. Configuration supplies backend preference lists, UI defaults, remote definitions, completion cache policy, and named profiles.
+Arc reads ~/.config/arc/config.toml, or $XDG_CONFIG_HOME/arc/config.toml. Configuration supplies backend preference lists, UI defaults, remote definitions, completion cache policy, and named profiles. arc config show/explain/profile exposes effective values and provenance; invalid TOML/types remain visible to config and doctor instead of silently becoming an empty configuration.
 
 ### Backends
 

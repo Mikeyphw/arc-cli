@@ -31,7 +31,16 @@ from .completion import FORMATS, completion_candidates, completion_mode, encode_
 from .command_docs import COMMAND_DOCS, EXECUTABLE_ALIASES
 from .doctor import alias_status_rows, collect_doctor_report, fix_and_recheck
 from .manpages import available_topics, show_manpage
-from .config import get_profile, load_config
+from .config import (
+    CONFIG_INSPECTION_SCHEMA,
+    config_inspection_payload,
+    configuration_keys,
+    get_profile,
+    load_config,
+    load_config_result,
+    parse_cli_overrides,
+    resolve_config_value,
+)
 from .errors import ArcError, BackendUnavailable, ConflictError, CorruptArchive, PasswordError, UnsafeArchive, UnsupportedFormat, UsageError
 from .execution import begin_plan, emit_after, emit_command, mark_mutation, plan_dict, record_decision, record_stage
 from .filtering import build_manifest, expand_rule_files, filter_members
@@ -351,6 +360,23 @@ def parser() -> argparse.ArgumentParser:
     q.add_argument("--remote")
     q = sub.add_parser("profiles", help=COMMAND_DOCS["profiles"].summary)
     _add_json_option(q)
+
+    q = sub.add_parser("config", help=COMMAND_DOCS["config"].summary)
+    config_sub = q.add_subparsers(dest="config_action", required=True)
+    show = config_sub.add_parser("show", help="show raw or effective configuration")
+    show.add_argument("--effective", action="store_true", help="resolve built-in/config/environment/profile/CLI precedence")
+    show.add_argument("--profile", help="include a named profile in effective resolution")
+    show.add_argument("--cli", action="append", default=[], metavar="OPTION=VALUE", help="model an explicit CLI override in the resolution trace")
+    _add_json_option(show)
+    explain = config_sub.add_parser("explain", help="explain one resolved configuration key")
+    explain.add_argument("key", help="configuration key to explain")
+    explain.add_argument("--profile", help="include a named profile in resolution")
+    explain.add_argument("--cli", action="append", default=[], metavar="OPTION=VALUE", help="model an explicit CLI override in the resolution trace")
+    _add_json_option(explain)
+    profile = config_sub.add_parser("profile", help="inspect one resolved profile with provenance")
+    profile.add_argument("name")
+    profile.add_argument("--cli", action="append", default=[], metavar="OPTION=VALUE", help="model an explicit CLI override after the profile")
+    _add_json_option(profile)
     q = sub.add_parser("aliases", help=COMMAND_DOCS["aliases"].summary)
     _add_json_option(q)
     q.add_argument("--missing", action="store_true", help="show only aliases missing from PATH")
@@ -537,48 +563,24 @@ def _apply_profile(args, config: dict) -> None:
     if unknown:
         raise UsageError(f"profile {name!r} contains unsupported option(s): {', '.join(unknown)}")
 
-    normalized_scalars: dict[str, object] = {}
-    if "backend" in profile:
-        if not isinstance(profile["backend"], str):
-            raise UsageError(f"profile {name!r} option 'backend' must be a string")
-        normalized_scalars["backend"] = profile["backend"]
-    if "progress" in profile:
-        if profile["progress"] not in {"auto", "always", "never"}:
-            raise UsageError(f"profile {name!r} option 'progress' must be auto, always, or never")
-        normalized_scalars["progress"] = profile["progress"]
-    if "level" in profile:
-        try:
-            value = int(profile["level"])
-        except (TypeError, ValueError) as exc:
-            raise UsageError(f"profile {name!r} option 'level' must be an integer") from exc
-        if not 0 <= value <= 9:
-            raise UsageError(f"profile {name!r} option 'level' must be between 0 and 9")
-        normalized_scalars["level"] = value
-    if "threads" in profile:
-        try:
-            normalized_scalars["threads"] = int(profile["threads"])
-        except (TypeError, ValueError) as exc:
-            raise UsageError(f"profile {name!r} option 'threads' must be an integer") from exc
+    scalar_keys = {
+        "backend": ("command.backend", "backend"),
+        "progress": ("ui.progress", "progress"),
+        "level": ("create.level", "level"),
+        "threads": ("create.threads", "threads"),
+        "show_native": ("ui.show_native", "show_native"),
+        "native_style": ("ui.native_command_style", "native_style"),
+        "execution": ("remote.execution", "execution"),
+    }
+    for profile_key, (config_key, attr) in scalar_keys.items():
+        if profile_key in profile and hasattr(args, attr) and getattr(args, attr) is None:
+            setattr(args, attr, resolve_config_value(config_key, config, profile=name).value)
+
     if "yazi" in profile:
         if profile["yazi"] not in {"auto", "archive", "inputs", "output"}:
             raise UsageError(f"profile {name!r} option 'yazi' is invalid")
-        normalized_scalars["yazi"] = profile["yazi"]
-    if "show_native" in profile:
-        if profile["show_native"] not in {"before", "after", "both"}:
-            raise UsageError(f"profile {name!r} option 'show_native' is invalid")
-        normalized_scalars["show_native"] = profile["show_native"]
-    if "native_style" in profile:
-        if profile["native_style"] not in {"exact", "reproducible"}:
-            raise UsageError(f"profile {name!r} option 'native_style' is invalid")
-        normalized_scalars["native_style"] = profile["native_style"]
-    if "execution" in profile:
-        if profile["execution"] not in {"auto", "local", "remote"}:
-            raise UsageError(f"profile {name!r} option 'execution' is invalid")
-        normalized_scalars["execution"] = profile["execution"]
-
-    for key, value in normalized_scalars.items():
-        if hasattr(args, key) and getattr(args, key) is None:
-            setattr(args, key, value)
+        if hasattr(args, "yazi") and getattr(args, "yazi") is None:
+            args.yazi = profile["yazi"]
 
     profile_rules: list[tuple[str, str]] = []
     for key, kind in (("exclude", "exclude"), ("include", "include"), ("exclude_from", "exclude-from"), ("include_from", "include-from")):
@@ -617,45 +619,19 @@ def _validate_yazi_context(args) -> None:
 
 
 def _apply_defaults(args, config: dict) -> None:
-    if hasattr(args, "progress") and args.progress is None:
-        value = os.environ.get("ARC_PROGRESS") or config.get("ui", {}).get("progress") or "auto"
-        if value not in {"auto", "always", "never"}:
-            raise UsageError(f"invalid configured progress mode: {value}")
-        args.progress = value
-    if hasattr(args, "level") and args.level is None:
-        raw = os.environ.get("ARC_LEVEL", config.get("create", {}).get("level"))
-        if raw is not None:
-            try:
-                value = int(raw)
-            except (TypeError, ValueError) as exc:
-                raise UsageError(f"invalid configured compression level: {raw}") from exc
-            if not 0 <= value <= 9:
-                raise UsageError("configured compression level must be between 0 and 9")
-            args.level = value
-    if hasattr(args, "threads") and args.threads is None:
-        raw = os.environ.get("ARC_THREADS", config.get("create", {}).get("threads"))
-        if raw is not None:
-            try:
-                args.threads = int(raw)
-            except (TypeError, ValueError) as exc:
-                raise UsageError(f"invalid configured thread count: {raw}") from exc
-
-    if hasattr(args, "show_native") and args.show_native is None:
-        value = config.get("ui", {}).get("show_native")
-        if value is not None:
-            if value not in {"before", "after", "both"}:
-                raise UsageError(f"invalid configured show_native mode: {value}")
-            args.show_native = value
-    if hasattr(args, "native_style") and args.native_style is None:
-        value = config.get("ui", {}).get("native_command_style", "reproducible")
-        if value not in {"exact", "reproducible"}:
-            raise UsageError(f"invalid configured native command style: {value}")
-        args.native_style = value
-    if hasattr(args, "execution") and args.execution is None:
-        value = config.get("remote", {}).get("execution", "auto")
-        if value not in {"auto", "local", "remote"}:
-            raise UsageError(f"invalid configured remote execution strategy: {value}")
-        args.execution = value
+    defaults = {
+        "progress": "ui.progress",
+        "level": "create.level",
+        "threads": "create.threads",
+        "show_native": "ui.show_native",
+        "native_style": "ui.native_command_style",
+        "execution": "remote.execution",
+    }
+    for attr, key in defaults.items():
+        if hasattr(args, attr) and getattr(args, attr) is None:
+            value = resolve_config_value(key, config).value
+            if value is not None:
+                setattr(args, attr, value)
 
 
 def _warn_extension_mismatch(path: Path, fmt, args) -> None:
@@ -3861,6 +3837,81 @@ def _show_profiles(config: dict, *, json_mode: bool = False) -> int:
     return 0
 
 
+def _print_config_issues(result) -> None:
+    if not result.issues:
+        return
+    table = Table(title="Configuration diagnostics")
+    table.add_column("Severity")
+    table.add_column("Key")
+    table.add_column("Diagnostic")
+    for issue in result.issues:
+        style = "red" if issue.severity == "error" else "yellow"
+        table.add_row(f"[{style}]{issue.severity.upper()}[/]", issue.key or "—", issue.message)
+    stdout_console.print(table)
+
+
+def _print_resolution(resolution: dict) -> None:
+    table = Table(title=f"Configuration resolution · {resolution['key']}")
+    table.add_column("Layer")
+    table.add_column("Value")
+    table.add_column("Selected")
+    table.add_column("Detail")
+    for layer in resolution["layers"]:
+        value = json.dumps(layer["value"], ensure_ascii=False) if not isinstance(layer["value"], str) else layer["value"]
+        table.add_row(layer["source"], value, "yes" if layer["selected"] else "", str(layer.get("detail") or ""))
+    stdout_console.print(table)
+    stdout_console.print(f"Effective: [bold]{resolution['value']}[/] · source={resolution['source']}")
+
+
+def _config_command(args) -> int:
+    result = load_config_result()
+    cli_overrides = parse_cli_overrides(getattr(args, "cli", []) or [])
+    action = args.config_action
+    if action == "show" and not args.effective:
+        payload = {
+            "schema": CONFIG_INSPECTION_SCHEMA,
+            "config": result.as_dict(),
+            "raw": result.data,
+        }
+    elif action == "show":
+        payload = config_inspection_payload(result, profile=args.profile, cli=cli_overrides)
+    elif action == "explain":
+        payload = config_inspection_payload(result, profile=args.profile, cli=cli_overrides, key=args.key)
+    elif action == "profile":
+        payload = config_inspection_payload(result, profile=args.name, cli=cli_overrides)
+    else:
+        raise UsageError(f"unknown config action: {action}")
+
+    if getattr(args, "json", False):
+        print(json.dumps(payload, ensure_ascii=False, sort_keys=True))
+        return 0 if result.valid else 2
+
+    stdout_console.print(f"Config: {result.path} · {'present' if result.exists else 'not present'} · {'valid' if result.valid else 'invalid'}")
+    _print_config_issues(result)
+    if action == "show" and not args.effective:
+        if result.data:
+            stdout_console.print_json(json.dumps(result.data, ensure_ascii=False))
+        elif result.valid:
+            stdout_console.print("[dim]No configured values; built-in defaults are active.[/]")
+    elif action == "explain":
+        _print_resolution(payload["resolution"])
+    else:
+        if action == "profile":
+            stdout_console.print(f"Resolved profile: [bold]{args.name}[/]")
+        table = Table(title="Effective Arc configuration")
+        table.add_column("Key")
+        table.add_column("Value")
+        table.add_column("Source")
+        for key, resolution in payload["effective"].items():
+            value = resolution["value"]
+            rendered = json.dumps(value, ensure_ascii=False) if not isinstance(value, str) else value
+            table.add_row(key, rendered, resolution["source"])
+        stdout_console.print(table)
+        if payload.get("resolved_profile"):
+            stdout_console.print("Profile options: " + json.dumps(payload["resolved_profile"], ensure_ascii=False, sort_keys=True))
+    return 0 if result.valid else 2
+
+
 def _man_command(args) -> int:
     if args.list_topics:
         for topic in available_topics():
@@ -4284,6 +4335,8 @@ def _dispatch_command(args, extra: list[str], config: dict) -> int:
         return _show_formats(args.json, args.remote, config)
     if args.command == "profiles":
         return _show_profiles(config, args.json)
+    if args.command == "config":
+        return _config_command(args)
     if args.command == "aliases":
         return _aliases_command(args)
     if args.command == "doctor":
@@ -4412,8 +4465,12 @@ def main(argv: list[str] | None = None) -> int:
         raise
     args._invoked_program = invoked_program
     args._display_argv = display_argv
-    config = load_config()
+    config_result = load_config_result()
+    config = config_result.data
     try:
+        if args.command not in {"config", "doctor", "schema", "man", "help"} and not config_result.valid:
+            errors = "; ".join(issue.message for issue in config_result.issues if issue.severity == "error")
+            raise UsageError(errors or f"invalid configuration: {config_result.path}")
         _apply_profile(args, config)
         _validate_yazi_context(args)
         _apply_defaults(args, config)

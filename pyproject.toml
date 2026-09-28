@@ -54,7 +54,7 @@ where = ["src"]
 arc_cli = ["man/*", "schemas/*.json"]
 
 [tool.setuptools.data-files]
-"share/man/man1" = ["src/arc_cli/man/arc.1", "src/arc_cli/man/arc-identify.1", "src/arc_cli/man/arc-create.1", "src/arc_cli/man/arc-extract.1", "src/arc_cli/man/arc-list.1", "src/arc_cli/man/arc-info.1", "src/arc_cli/man/arc-diff.1", "src/arc_cli/man/arc-test.1", "src/arc_cli/man/arc-convert.1", "src/arc_cli/man/arc-add.1", "src/arc_cli/man/arc-update.1", "src/arc_cli/man/arc-remove.1", "src/arc_cli/man/arc-backends.1", "src/arc_cli/man/arc-aliases.1", "src/arc_cli/man/arc-doctor.1", "src/arc_cli/man/arc-explain.1", "src/arc_cli/man/arc-recover.1", "src/arc_cli/man/arc-batch.1", "src/arc_cli/man/arc-schema.1", "src/arc_cli/man/arc-completion.1"]
+"share/man/man1" = ["src/arc_cli/man/arc.1", "src/arc_cli/man/arc-identify.1", "src/arc_cli/man/arc-create.1", "src/arc_cli/man/arc-extract.1", "src/arc_cli/man/arc-list.1", "src/arc_cli/man/arc-info.1", "src/arc_cli/man/arc-diff.1", "src/arc_cli/man/arc-test.1", "src/arc_cli/man/arc-convert.1", "src/arc_cli/man/arc-add.1", "src/arc_cli/man/arc-update.1", "src/arc_cli/man/arc-remove.1", "src/arc_cli/man/arc-backends.1", "src/arc_cli/man/arc-aliases.1", "src/arc_cli/man/arc-doctor.1", "src/arc_cli/man/arc-explain.1", "src/arc_cli/man/arc-recover.1", "src/arc_cli/man/arc-batch.1", "src/arc_cli/man/arc-config.1", "src/arc_cli/man/arc-schema.1", "src/arc_cli/man/arc-completion.1"]
 "share/man/man5" = ["src/arc_cli/man/arc-config.5", "src/arc_cli/man/arc-profiles.5"]
 "share/man/man7" = ["src/arc_cli/man/arc-formats.7", "src/arc_cli/man/arc-backends.7", "src/arc_cli/man/arc-remote.7"]
 

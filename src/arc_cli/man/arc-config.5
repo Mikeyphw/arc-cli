@@ -2,7 +2,7 @@
 .SH "NAME"
 arc\-config \- Arc TOML configuration
 .SH "DESCRIPTION"
-Arc reads ~/.config/arc/config.toml, or $XDG_CONFIG_HOME/arc/config.toml. Configuration supplies backend preference lists, UI defaults, remote definitions, completion cache policy, and named profiles.
+Arc reads ~/.config/arc/config.toml, or $XDG_CONFIG_HOME/arc/config.toml. Configuration supplies backend preference lists, UI defaults, remote definitions, completion cache policy, and named profiles. arc config show/explain/profile exposes effective values and provenance; invalid TOML/types remain visible to config and doctor instead of silently becoming an empty configuration.
 .SH "BACKENDS"
 [backends] keys correspond to normalized roles such as tar, zip_create, zip_extract, 7z, rar_create, rar_extract, gzip, bzip2, xz, and zstd. ARC_BACKEND_* environment variables override configured lists.
 .SH "REMOTES"

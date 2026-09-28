@@ -541,7 +541,16 @@ gzip = ["pigz", "gzip"]
 zstd = ["pzstd", "zstd"]
 ```
 
-Precedence is CLI > environment > TOML > built-in defaults. Supported environment overrides include `ARC_PROGRESS`, `ARC_LEVEL`, `ARC_THREADS`, and per-role backend variables such as `ARC_BACKEND_TAR` or `ARC_BACKEND_ZSTD`.
+Configuration resolution is inspectable and provenance-aware:
+
+```bash
+arc config show --effective
+arc config explain ui.progress
+arc config explain create.level --profile backup --cli level=9
+arc config profile backup --json
+```
+
+The effective precedence is built-in defaults → TOML → supported environment overrides → selected profile → explicit CLI. `arc config explain KEY` shows every participating layer and the selected source. `arc config show` retains invalid TOML/type/unknown-key diagnostics instead of silently presenting `{}`; `arc doctor` consumes the same diagnostic model. Supported environment overrides include `ARC_PROGRESS`, `ARC_LEVEL`, `ARC_THREADS`, and per-role backend variables such as `ARC_BACKEND_TAR` or `ARC_BACKEND_ZSTD`. The machine shape is `arc.config-inspection/v1`, available with `arc schema config-inspection-v1`; `--json=v1` wraps it in `arc.machine/v1`.
 
 Backend selection is capability-aware. R08 makes that authority typed: every backend profile describes normalized operations, stdin/stdout, encryption read/write, solid/multipart support, metadata, mutation, random access, thread support, safe indexing, remote suitability, and the verification levels Arc can prove. Legacy capability strings are generated from that profile for compatibility. If the first configured backend cannot satisfy a requested normalized feature (for example `--threads`), Arc tries the next compatible installed backend. Use `--no-fallback` to restrict selection to the first configured preference, or `--backend NAME` for a strict explicit backend.
 

@@ -1,5 +1,14 @@
 ## ARC-R10 cumulative gate
 
+### ARC-R11 — configuration provenance and explainability
+
+- Added `arc config show --effective`, `arc config explain KEY`, and `arc config profile NAME` with typed built-in/config/environment/profile/CLI resolution traces.
+- Added `arc.config-inspection/v1` as a bundled/queryable schema and `--json=v1` machine-envelope compatibility.
+- Replaced silent invalid-config collapse with retained diagnostics; normal runtime commands fail closed on invalid configuration while `arc config` and `arc doctor` remain diagnostic.
+- Centralized runtime scalar profile/default normalization on the same resolver used by inspection, including backend environment precedence and profile/CLI authority.
+- Added unknown-key/type/value diagnostics for supported config tables, profiles, remotes, and completion/cache settings.
+
+
 - Qualify R10 through R10C with a separate 240-test gate spanning mutation policy, recoverability, backend-command truth, machine batch, transport/recovery dependencies, docs/completion, and packaging.
 - Add gate-only regressions for extract rename, symlink skip-identical proof, update snapshot/non-clobbering behavior, clean aggregate batch JSON, and command secret redaction.
 - Add first-class `arc-r10-gate` / `r10_gate` / `./devtoolw r10-gate` ownership and close R10 before R11 configuration provenance begins.

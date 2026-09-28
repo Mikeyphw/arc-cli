@@ -203,3 +203,8 @@ This resolves to the `r09b_gate` EXO workflow. It rechecks machine, provenance, 
 `./devtoolw r10c` runs the ARC-R10C mutation-policy convergence and recoverability workflow.
 
 `./devtoolw r10-gate` runs the separate cumulative R10 gate. It rechecks machine, remote, batch, generated-doc, completion, and Devtool contracts before the first-class 240-test R10 gate matrix. R11 remains a separate implementation boundary.
+
+
+## ARC-R11 configuration provenance
+
+`./devtoolw r11` runs the repository-owned R11 configuration provenance workflow: syntax, machine/config contracts, generated documentation/completion parity, Devtool contract, and focused R11 regression tests. The separate R11 gate remains a later artifact.

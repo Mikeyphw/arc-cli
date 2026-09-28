@@ -4,7 +4,7 @@ import os
 import shutil
 from pathlib import Path
 
-from .config import load_config, profile_names
+from .config import configuration_keys, load_config, profile_names
 from .formats import CREATE_SUFFIX_SHORTCUTS
 from .command_docs import COMMAND_DOCS, EXECUTABLE_ALIASES
 from .interactive import filesystem_candidates, rg_files
@@ -54,6 +54,7 @@ COMMAND_OPTIONS: dict[str, set[str]] = {
     "backends": {"--json", "--remote", "--verbose", "--refresh"},
     "formats": {"--json", "--remote"},
     "profiles": {"--json"},
+    "config": {"--effective", "--profile", "--cli", "--json"},
     "aliases": {"--json", "--missing"},
     "doctor": {"--json", "--fix", "--source"},
     "explain": {"--json"},
@@ -264,6 +265,15 @@ def completion_candidates(words: list[str]) -> list[str]:
     pos = _positionals(before_current)
     if op == "schema":
         return [x for x in schema_names() if x.startswith(prefix)]
+    if op == "config":
+        if not pos:
+            return [x for x in ["show", "explain", "profile"] if x.startswith(prefix)]
+        action = pos[0]
+        if action == "explain" and len(pos) == 1:
+            return [x for x in configuration_keys() if x.startswith(prefix)]
+        if action == "profile" and len(pos) == 1:
+            return [x for x in profile_names(load_config()) if x.startswith(prefix)]
+        return []
     if op in {"extract", "list", "remove"}:
         if not pos:
             return _path_candidates(prefix, op=op, refresh=refresh_remote)

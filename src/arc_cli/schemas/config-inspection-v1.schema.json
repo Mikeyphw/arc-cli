@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "arc.config-inspection/v1",
+  "title": "Arc configuration inspection v1",
+  "type": "object",
+  "required": ["schema", "config"],
+  "properties": {
+    "schema": {"const": "arc.config-inspection/v1"},
+    "config": {
+      "type": "object",
+      "required": ["path", "exists", "valid", "issues"],
+      "properties": {
+        "path": {"type": "string"},
+        "exists": {"type": "boolean"},
+        "valid": {"type": "boolean"},
+        "issues": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["severity", "code", "key", "message"],
+            "properties": {
+              "severity": {"enum": ["warning", "error"]},
+              "code": {"type": "string"},
+              "key": {"type": "string"},
+              "message": {"type": "string"}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "profile": {"type": ["string", "null"]},
+    "cli_overrides": {"type": "object"},
+    "raw": {"type": "object"},
+    "resolved_profile": {"type": "object"},
+    "resolution": {"$ref": "#/$defs/resolution"},
+    "effective": {
+      "type": "object",
+      "additionalProperties": {"$ref": "#/$defs/resolution"}
+    }
+  },
+  "$defs": {
+    "layer": {
+      "type": "object",
+      "required": ["source", "key", "value", "selected"],
+      "properties": {
+        "source": {"enum": ["builtin", "config", "environment", "profile", "cli"]},
+        "key": {"type": "string"},
+        "value": {},
+        "selected": {"type": "boolean"},
+        "detail": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "resolution": {
+      "type": "object",
+      "required": ["key", "value", "source", "layers"],
+      "properties": {
+        "key": {"type": "string"},
+        "value": {},
+        "source": {"enum": ["builtin", "config", "environment", "profile", "cli"]},
+        "layers": {"type": "array", "items": {"$ref": "#/$defs/layer"}, "minItems": 1}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
