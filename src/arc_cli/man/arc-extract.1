@@ -25,6 +25,8 @@ Safely extract selected archive members or a compressed stream. Arc indexes arch
 \-\-include/\-\-exclude and rule files
 .PP
 \-\-password/\-\-password\-file/\-\-password\-env
+.SH "SEMANTICS"
+An explicit \-\-destination\-policy is authoritative over legacy collision flags. replace maps to overwrite; rename preserves an existing target as .old.N; skip\-identical extracts only conflicting members into a same\-filesystem comparison area and skips them only after byte/link identity is proven. Legacy \-\-skip\-existing keeps its historical weaker skip\-without\-identity behavior when no explicit policy is supplied.
 .SH "EXAMPLES"
 arcx backup.zip \-o restored/
 .PP

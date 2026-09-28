@@ -155,6 +155,17 @@ arc-add ...
 
 Add new archive members under Arc's normalized input/filter/backend policy. Existing member names are conflicts; use update when replacement is intended.
 
+### Options
+
+--backup-existing [PATH]   snapshot the archive before in-place mutation
+--level 0..9
+--threads N
+--include/--exclude and rule files
+
+### Semantics
+
+Add mutates the archive in place. --backup-existing copies the pre-mutation archive to a non-clobbering backup; destination collision policy is not applicable to the archive itself.
+
 ### Examples
 
 arca files.zip new.txt
@@ -590,6 +601,10 @@ Safely extract selected archive members or a compressed stream. Arc indexes arch
 --include/--exclude and rule files
 --password/--password-file/--password-env
 
+### Semantics
+
+An explicit --destination-policy is authoritative over legacy collision flags. replace maps to overwrite; rename preserves an existing target as .old.N; skip-identical extracts only conflicting members into a same-filesystem comparison area and skips them only after byte/link identity is proven. Legacy --skip-existing keeps its historical weaker skip-without-identity behavior when no explicit policy is supplied.
+
 ### Examples
 
 arcx backup.zip -o restored/
@@ -764,11 +779,16 @@ Remove explicitly selected members when the selected format/backend can provide 
 
 --backend NAME
 --password/--password-file/--password-env
+--backup-existing [PATH]
 --dry-run
+
+### Semantics
+
+Remove mutates the archive in place. --backup-existing snapshots the complete pre-removal archive so destructive member removal has an explicit recovery artifact when requested.
 
 ### Examples
 
-arcrm plain.tar old/path.txt
+arcrm plain.tar old/path.txt --backup-existing
 
 ### See Also
 
@@ -862,6 +882,17 @@ arc-update ...
 ### Description
 
 Update existing members or add changed inputs where the selected backend and format support normalized update semantics.
+
+### Options
+
+--backup-existing [PATH]   snapshot the archive before in-place mutation
+--level 0..9
+--threads N
+--include/--exclude and rule files
+
+### Semantics
+
+Update mutates the archive in place. --backup-existing copies the pre-mutation archive to a non-clobbering backup before the backend runs.
 
 ### Examples
 

@@ -1,3 +1,9 @@
+## ARC-R10C mutation-policy convergence
+
+- Make explicit extract `--destination-policy` authoritative over legacy collision flags and prove `skip-identical` conflicts before mutation.
+- Add real non-clobbering `--backup-existing` snapshots for in-place add/update/remove and remove misleading add/update destination-policy flags.
+- Forward mutation policy/backup authority through remote-native Arc delegation and add first-class R10C Devtool ownership.
+
 ## ARC-R10B versioned machine batch input
 
 - Add generic `arc batch` for heterogeneous sequential operations submitted as argv arrays.

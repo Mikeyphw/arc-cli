@@ -9,6 +9,16 @@ arca ...
 arc\-add ...
 .SH "DESCRIPTION"
 Add new archive members under Arc's normalized input/filter/backend policy. Existing member names are conflicts; use update when replacement is intended.
+.SH "OPTIONS"
+\-\-backup\-existing [PATH]   snapshot the archive before in\-place mutation
+.PP
+\-\-level 0..9
+.PP
+\-\-threads N
+.PP
+\-\-include/\-\-exclude and rule files
+.SH "SEMANTICS"
+Add mutates the archive in place. \-\-backup\-existing copies the pre\-mutation archive to a non\-clobbering backup; destination collision policy is not applicable to the archive itself.
 .SH "EXAMPLES"
 arca files.zip new.txt
 .SH "SEE ALSO"

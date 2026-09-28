@@ -86,13 +86,19 @@ R10 implementation owns the shared `fail/replace/rename/skip-identical` destinat
 
 Inserted before the R10 gate after operator feedback. Human interactive `Command` output must show the exact redacted native execution stage Arc actually launches—not echo the Arc wrapper invocation. Received Arc argv remains authoritative machine/provenance identity. `--show-command`, dry-run, and `--show-native` continue to expose native execution without inventing shell syntax.
 
-The R10 gate is deferred until R10A and R10B are complete and will audit all three implementation overlays together.
+The R10 gate is deferred until R10C is complete and will audit R10 + R10A + R10B + R10C together.
 
 ### R10B — Machine batch input
 
 A generic `arc batch` operation accepts the bundled `arc.batch-input/v1` JSON Schema contract for heterogeneous machine-submitted Arc operations. Each item is a NUL-free argv string array with a unique ID; shell command strings, recursive batches, malformed nested argv, and prompt-style credentials are rejected during whole-batch preflight before execution. The batch owns explicit stop/continue behavior, per-item allowed failures, unconditional interrupt propagation, secret-redacted results, bounded input/operation sizes, validate-only mode, and stable JSON output. This is distinct from `arc convert --batch`, which remains the resumable multi-conversion feature.
 
-R10B completes the inserted implementation pair. The next artifact is the widened separate R10 gate, which audits R10 + R10A + R10B before R11 begins.
+R10B completes the inserted implementation pair. The widened R10 gate audit then found one remaining R10 ownership gap: extract exposed an explicit destination policy without enforcing it, in-place add/update accepted backup syntax without using it, remove had no recoverable snapshot surface, and remote-native mutation did not forward those policy/backup decisions.
+
+### R10C — Mutation-policy convergence and recoverability
+
+R10C closes that gate-discovered gap without changing the R11 boundary. Extract now normalizes explicit `--destination-policy` over legacy flags; `skip-identical` proves conflicting members in a same-filesystem comparison area before skipping them. In-place `add`, `update`, and `remove` expose a real non-clobbering `--backup-existing` archive snapshot. Remote-native delegation forwards destination policy and backup authority instead of silently dropping it. Add/update no longer advertise destination-collision policy that is meaningless for an already-existing archive mutated in place.
+
+The next artifact remains the separate widened R10 gate, now auditing R10 + R10A + R10B + R10C before R11 begins.
 
 ## R11 — Configuration provenance and explainability
 

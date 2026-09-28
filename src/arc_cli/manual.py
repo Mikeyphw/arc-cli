@@ -183,6 +183,11 @@ _add(
             "-o, --output DIR\n--destination-policy fail|replace|rename|skip-identical\n--overwrite | --skip-existing | --rename-existing\n--stdout\n--unsafe-paths\n"
             "--include/--exclude and rule files\n--password/--password-file/--password-env"
         ),
+        semantics=(
+            "An explicit --destination-policy is authoritative over legacy collision flags. replace maps to overwrite; rename preserves an existing target as .old.N; "
+            "skip-identical extracts only conflicting members into a same-filesystem comparison area and skips them only after byte/link identity is proven. "
+            "Legacy --skip-existing keeps its historical weaker skip-without-identity behavior when no explicit policy is supplied."
+        ),
         examples="arcx backup.zip -o restored/\narc extract backup.7z docs/readme.txt --stdout",
     )
 )
@@ -339,6 +344,8 @@ _add(
     _command_page(
         "add",
         "Add new archive members under Arc's normalized input/filter/backend policy. Existing member names are conflicts; use update when replacement is intended.",
+        options="--backup-existing [PATH]   snapshot the archive before in-place mutation\n--level 0..9\n--threads N\n--include/--exclude and rule files",
+        semantics="Add mutates the archive in place. --backup-existing copies the pre-mutation archive to a non-clobbering backup; destination collision policy is not applicable to the archive itself.",
         examples="arca files.zip new.txt",
         see_also="arc-create(1), arc-update(1), arc-remove(1)",
     )
@@ -347,6 +354,8 @@ _add(
     _command_page(
         "update",
         "Update existing members or add changed inputs where the selected backend and format support normalized update semantics.",
+        options="--backup-existing [PATH]   snapshot the archive before in-place mutation\n--level 0..9\n--threads N\n--include/--exclude and rule files",
+        semantics="Update mutates the archive in place. --backup-existing copies the pre-mutation archive to a non-clobbering backup before the backend runs.",
         examples="arcu files.7z changed/",
         see_also="arc-create(1), arc-add(1), arc-remove(1)",
     )
@@ -355,8 +364,9 @@ _add(
     _command_page(
         "remove",
         "Remove explicitly selected members when the selected format/backend can provide normalized mutation semantics. Unsupported compressed-container mutations fail rather than silently recreating with different semantics.",
-        options="--backend NAME\n--password/--password-file/--password-env\n--dry-run",
-        examples="arcrm plain.tar old/path.txt",
+        options="--backend NAME\n--password/--password-file/--password-env\n--backup-existing [PATH]\n--dry-run",
+        semantics="Remove mutates the archive in place. --backup-existing snapshots the complete pre-removal archive so destructive member removal has an explicit recovery artifact when requested.",
+        examples="arcrm plain.tar old/path.txt --backup-existing",
         see_also="arc-add(1), arc-update(1)",
     )
 )

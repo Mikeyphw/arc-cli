@@ -9,6 +9,16 @@ arcu ...
 arc\-update ...
 .SH "DESCRIPTION"
 Update existing members or add changed inputs where the selected backend and format support normalized update semantics.
+.SH "OPTIONS"
+\-\-backup\-existing [PATH]   snapshot the archive before in\-place mutation
+.PP
+\-\-level 0..9
+.PP
+\-\-threads N
+.PP
+\-\-include/\-\-exclude and rule files
+.SH "SEMANTICS"
+Update mutates the archive in place. \-\-backup\-existing copies the pre\-mutation archive to a non\-clobbering backup before the backend runs.
 .SH "EXAMPLES"
 arcu files.7z changed/
 .SH "SEE ALSO"

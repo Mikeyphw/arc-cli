@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import filecmp
 import os
+import shutil
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -69,6 +70,45 @@ def decide_destination(path: Path, policy: DestinationPolicy, *, candidate: Path
         return DestinationDecision(policy, path, True, "skip-identical")
     raise ConflictError(f"destination exists but is not identical: {path}")
 
+
+
+
+def identical_paths(left: Path, right: Path) -> bool:
+    """Return True only when two filesystem objects are safely equivalent.
+
+    Directories are equivalent as containers (their children are evaluated
+    separately by callers), symlinks require the same link target, and regular
+    files require a full byte comparison.  Mixed object types never compare
+    equal.
+    """
+    if left.is_symlink() or right.is_symlink():
+        return left.is_symlink() and right.is_symlink() and os.readlink(left) == os.readlink(right)
+    if left.is_dir() or right.is_dir():
+        return left.is_dir() and right.is_dir()
+    return identical_files(left, right)
+
+
+def snapshot_existing(path: Path, requested: str | None) -> Path | None:
+    """Copy an existing archive before an in-place mutation without clobbering.
+
+    Unlike ``backup_existing`` (which moves the destination out of the way for
+    replacement publication), this helper leaves the original in place for a
+    backend that mutates it directly.
+    """
+    if not requested or not (path.exists() or path.is_symlink()):
+        return None
+    if requested == "auto":
+        backup = next_available(path, marker=".bak")
+    else:
+        backup = Path(requested).expanduser()
+        if backup.exists() or backup.is_symlink():
+            raise ConflictError(f"backup destination already exists: {backup}")
+    backup.parent.mkdir(parents=True, exist_ok=True)
+    if path.is_symlink():
+        os.symlink(os.readlink(path), backup)
+    else:
+        shutil.copy2(path, backup)
+    return backup
 
 def backup_existing(path: Path, requested: str | None) -> Path | None:
     if not requested or not (path.exists() or path.is_symlink()):

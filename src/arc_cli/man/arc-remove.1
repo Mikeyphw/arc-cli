@@ -14,8 +14,12 @@ Remove explicitly selected members when the selected format/backend can provide 
 .PP
 \-\-password/\-\-password\-file/\-\-password\-env
 .PP
+\-\-backup\-existing [PATH]
+.PP
 \-\-dry\-run
+.SH "SEMANTICS"
+Remove mutates the archive in place. \-\-backup\-existing snapshots the complete pre\-removal archive so destructive member removal has an explicit recovery artifact when requested.
 .SH "EXAMPLES"
-arcrm plain.tar old/path.txt
+arcrm plain.tar old/path.txt \-\-backup\-existing
 .SH "SEE ALSO"
 arc\-add(1), arc\-update(1)

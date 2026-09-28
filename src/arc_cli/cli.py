@@ -65,7 +65,7 @@ from .remote import (
     stream_remote_to_local,
     upload_remote,
 )
-from .mutation_policy import DestinationPolicy, backup_existing, decide_destination, policy_from_args, validate_backup_policy
+from .mutation_policy import DestinationPolicy, backup_existing, decide_destination, identical_paths, policy_from_args, snapshot_existing, validate_backup_policy
 from .safety import validate_members
 from .transactions import (
     BatchManifest,
@@ -144,6 +144,7 @@ def add_common(
     extract: bool = False,
     member_filter: bool = False,
     format_option: bool = True,
+    destination_policy: bool | None = None,
 ):
     if format_option:
         p.add_argument("-F", "--format")
@@ -159,7 +160,9 @@ def add_common(
     p.add_argument("-v", "--verbose", action="count", default=0)
     _add_json_option(p)
     p.add_argument("--progress", choices=["auto", "always", "never"], default=None)
-    if create:
+    if destination_policy is None:
+        destination_policy = create
+    if destination_policy:
         p.add_argument("--destination-policy", choices=[p.value for p in DestinationPolicy], help="destination collision policy; legacy --overwrite/--force map to replace")
         p.add_argument("--backup-existing", nargs="?", const="auto", metavar="PATH", help="preserve an existing destination before replacement")
     p.add_argument("--yazi", nargs="?", const="auto", choices=["auto", "archive", "inputs", "output"])
@@ -248,15 +251,18 @@ def parser() -> argparse.ArgumentParser:
         q = sub.add_parser(name, help=COMMAND_DOCS[name].summary)
         q.add_argument("archive")
         q.add_argument("inputs", nargs="*")
-        add_common(q, create=True, format_option=name != "create")
+        add_common(q, create=True, format_option=name != "create", destination_policy=name == "create")
         if name == "create":
             _add_create_suffix_shortcuts(q)
             q.add_argument("--overwrite", action="store_true")
+        else:
+            q.add_argument("--backup-existing", nargs="?", const="auto", metavar="PATH", help="snapshot the archive before in-place mutation")
 
     q = sub.add_parser("remove", help=COMMAND_DOCS["remove"].summary)
     q.add_argument("archive", nargs="?")
     q.add_argument("members", nargs="*")
     add_common(q)
+    q.add_argument("--backup-existing", nargs="?", const="auto", metavar="PATH", help="snapshot the archive before in-place member removal")
 
     q = sub.add_parser("info", help=COMMAND_DOCS["info"].summary)
     q.add_argument("archives", nargs="+")
@@ -792,6 +798,84 @@ def _preflight_conflicts(output: Path, members: list[Member], args) -> None:
         raise ConflictError(f"extraction targets already exist; use --overwrite, --skip-existing, or --rename-existing:\n{sample}")
 
 
+def _normalized_extract_policy(args) -> tuple[object, DestinationPolicy | None]:
+    """Apply an explicit R10 destination policy over legacy extract flags.
+
+    Legacy --skip-existing deliberately keeps its historical "skip regardless
+    of identity" behavior when no explicit policy is supplied.  Explicit
+    --destination-policy is authoritative and normalizes the three legacy
+    collision flags before extraction begins.
+    """
+    raw = getattr(args, "destination_policy", None)
+    if not raw:
+        return args, None
+    policy = DestinationPolicy(raw)
+    changes = {"overwrite": False, "skip_existing": False, "rename_existing": False}
+    if policy is DestinationPolicy.REPLACE:
+        changes["overwrite"] = True
+    elif policy is DestinationPolicy.RENAME:
+        changes["rename_existing"] = True
+    return _clone_args(args, **changes), policy
+
+
+def _verify_extract_skip_identical(
+    archive: Path,
+    fmt,
+    backend,
+    output: Path,
+    members: list[Member],
+    *,
+    password: str | None,
+    extra: list[str],
+    args,
+    config: dict,
+) -> set[str]:
+    """Prove every conflicting extraction target identical before skipping it.
+
+    The comparison candidate is extracted into a same-filesystem temporary
+    directory.  Nothing under the requested output tree is mutated until all
+    conflicts have been proven equivalent.  Returned names are the conflicts
+    that may be omitted from the real extraction.
+    """
+    conflicts = [
+        member for member in members
+        if member.kind != "dir" and ((output / member.name).exists() or (output / member.name).is_symlink())
+    ]
+    if not conflicts:
+        return set()
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix=".arc-skip-identical-", dir=output.parent) as td:
+        staged = Path(td)
+        probe_args = _clone_args(args, overwrite=True, skip_existing=False, rename_existing=False, dry_run=False)
+        if _needs_exact_name_extraction(backend, conflicts):
+            rc = _extract_infozip_exact_names(
+                backend, archive, staged, conflicts, password=password, extra=extra, args=probe_args, enabled=False
+            )
+        else:
+            names = [] if fmt.is_stream else [member.name for member in conflicts]
+            cmd, meta = backend.command(
+                "extract", archive, fmt=fmt, output=staged, members=names, extra=extra,
+                overwrite=True, skip_existing=False, password=password,
+                preserve_owner=getattr(args, "preserve_owner", False),
+                preserve_acls=getattr(args, "preserve_acls", False),
+                preserve_xattrs=getattr(args, "preserve_xattrs", False),
+                config=config, dry_run=False, no_fallback=getattr(args, "no_fallback", False),
+            )
+            rc = run_backend(cmd, meta, None, {}, show_command=False, dry_run=False, verbose=getattr(args, "verbose", 0))
+        if rc != 0:
+            _raise_backend_failure(rc, meta if 'meta' in locals() else {}, password=password, operation="extract identity probe")
+        proven: set[str] = set()
+        for member in conflicts:
+            candidate = staged / member.name
+            target = output / member.name
+            if not (candidate.exists() or candidate.is_symlink()):
+                raise ConflictError(f"cannot prove extraction target identical: {target}; backend did not materialize comparison candidate")
+            if not identical_paths(candidate, target):
+                raise ConflictError(f"extraction target exists but is not identical: {target}")
+            proven.add(member.name)
+        return proven
+
+
 def _filter_rules(args) -> list[FilterRule]:
     return expand_rule_files(getattr(args, "filter_rules", []) or [])
 
@@ -882,6 +966,7 @@ def _extract(args, extra: list[str], config: dict) -> int:
     archive_arg = _resolve_archive_arg(args)
     archive, stdin_temp = _materialize_stdin(archive_arg, args.format, dry_run=args.dry_run)
     password = _resolve_password(args)
+    args, extract_policy = _normalized_extract_policy(args)
     stdout_temp_dir: Path | None = None
     renamed: list[tuple[Path, Path]] = []
     success = False
@@ -939,13 +1024,25 @@ def _extract(args, extra: list[str], config: dict) -> int:
         if selected_members and not args.stdout:
             if not args.unsafe_paths:
                 _validate_destination_parents(output, selected_members)
-            _preflight_conflicts(output, selected_members, args)
-            if args.skip_existing:
-                selected_members = [m for m in selected_members if m.kind == "dir" or not (output / m.name).exists()]
-                if fmt.is_stream and not selected_members:
-                    if args.json:
-                        print(json.dumps({"operation": "extract", "archive": str(archive_arg), "format": fmt.canonical, "backend": backend.info.binary, "output": str(output), "members": 0, "bytes": 0, "skipped": True}))
-                    return 0
+            skip_identical_names: set[str] = set()
+            if extract_policy is DestinationPolicy.SKIP_IDENTICAL:
+                if not args.dry_run:
+                    skip_identical_names = _verify_extract_skip_identical(
+                        archive, fmt, backend, output, selected_members, password=password, extra=extra, args=args, config=config
+                    )
+                    selected_members = [m for m in selected_members if m.kind == "dir" or m.name not in skip_identical_names]
+                    if fmt.is_stream and not selected_members:
+                        if args.json:
+                            print(json.dumps({"operation": "extract", "archive": str(archive_arg), "format": fmt.canonical, "backend": backend.info.binary, "output": str(output), "members": 0, "bytes": 0, "skipped": True, "destination_policy": "skip-identical"}))
+                        return 0
+            else:
+                _preflight_conflicts(output, selected_members, args)
+                if args.skip_existing:
+                    selected_members = [m for m in selected_members if m.kind == "dir" or not ((output / m.name).exists() or (output / m.name).is_symlink())]
+                    if fmt.is_stream and not selected_members:
+                        if args.json:
+                            print(json.dumps({"operation": "extract", "archive": str(archive_arg), "format": fmt.canonical, "backend": backend.info.binary, "output": str(output), "members": 0, "bytes": 0, "skipped": True}))
+                        return 0
             if args.rename_existing and not args.dry_run:
                 for m in selected_members:
                     if m.kind == "dir":
@@ -955,12 +1052,13 @@ def _extract(args, extra: list[str], config: dict) -> int:
                         i = 1
                         while True:
                             candidate = target.with_name(target.name + f".old.{i}")
-                            if not candidate.exists():
+                            if not candidate.exists() and not candidate.is_symlink():
                                 target.rename(candidate)
                                 renamed.append((target, candidate))
                                 break
                             i += 1
-        selected_names = [m.name for m in selected_members] if (args.members or _filter_rules(args) or args.skip_existing or args.stdout) and not fmt.is_stream else ([] if fmt.is_stream else args.members)
+        policy_select = extract_policy is DestinationPolicy.SKIP_IDENTICAL
+        selected_names = [m.name for m in selected_members] if (args.members or _filter_rules(args) or args.skip_existing or args.stdout or policy_select) and not fmt.is_stream else ([] if fmt.is_stream else args.members)
         enabled = progress_enabled(args.progress, args.json, args.quiet) and not args.stdout
         sizes = _member_sizes(selected_members)
         total = sum(sizes.values())
@@ -1142,6 +1240,11 @@ def _create_like_local(args, extra: list[str], config: dict) -> int:
         _show_create_plan(final_archive, fmt, backend, meta, len(sizes), original_bytes)
 
     compressed_bytes: int | None = None
+    inplace_backup: Path | None = None
+    if operation in {"add", "update"} and not args.dry_run:
+        inplace_backup = snapshot_existing(final_archive, getattr(args, "backup_existing", None))
+        if inplace_backup is not None:
+            tx_event("destination-preserved", destination=os.fspath(final_archive), preserved_as=os.fspath(inplace_backup), policy="backup-existing-inplace")
     try:
         progress_total = 0 if meta.get("progress_indeterminate") else original_bytes
         progress_files = 0 if meta.get("progress_indeterminate") else len(sizes)
@@ -1200,6 +1303,8 @@ def _create_like_local(args, extra: list[str], config: dict) -> int:
                 payload["compression_percent_of_original"] = metrics["compressed_percent"]
                 payload["compression_saved_percent"] = metrics["saved_percent"]
                 payload["compression_ratio"] = metrics["ratio"]
+        if inplace_backup is not None:
+            payload["backup_existing"] = os.fspath(inplace_backup)
         print(json.dumps(payload))
     elif not args.quiet and not stdout_archive:
         if operation == "create" and not args.dry_run and compressed_bytes is not None:
@@ -1381,6 +1486,11 @@ def _remove(args, extra: list[str], config: dict) -> int:
         members = choose_auto(choices, multi=True, prompt="members> ")
     if not members:
         raise UsageError("no members selected")
+    inplace_backup: Path | None = None
+    if not args.dry_run:
+        inplace_backup = snapshot_existing(archive, getattr(args, "backup_existing", None))
+        if inplace_backup is not None:
+            tx_event("destination-preserved", destination=os.fspath(archive), preserved_as=os.fspath(inplace_backup), policy="backup-existing-inplace")
     cmd, meta = backend.command("remove", archive, fmt=fmt, members=members, extra=extra, password=password, config=config, no_fallback=args.no_fallback)
     with ProgressReporter("Removing", 0, len(members), progress_enabled(args.progress, args.json, args.quiet)) as rep:
         rc = run_backend(cmd, meta, rep, {m: 0 for m in members}, show_command=args.show_command, dry_run=args.dry_run, verbose=args.verbose)
@@ -1390,7 +1500,10 @@ def _remove(args, extra: list[str], config: dict) -> int:
         tx_event("backend-complete", operation="remove", archive=os.fspath(archive), backend=backend.info.binary, members=len(members))
         tx_event("publish", destination=os.fspath(archive), publication="backend-in-place")
     if args.json:
-        print(json.dumps({"operation": "remove", "archive": str(archive), "format": fmt.canonical, "backend": backend.info.binary, "members": members}))
+        payload = {"operation": "remove", "archive": str(archive), "format": fmt.canonical, "backend": backend.info.binary, "members": members}
+        if inplace_backup is not None:
+            payload["backup_existing"] = os.fspath(inplace_backup)
+        print(json.dumps(payload))
     return 0
 
 
@@ -1583,6 +1696,16 @@ def _remote_common_native_args(args) -> list[str]:
     return out
 
 
+def _remote_backup_native_args(args) -> list[str]:
+    requested = getattr(args, "backup_existing", None)
+    if not requested:
+        return []
+    out = ["--backup-existing"]
+    if requested != "auto":
+        out.append(str(requested))
+    return out
+
+
 def _remote_create_native_args(args) -> list[str]:
     out: list[str] = []
     if getattr(args, "level", None) is not None:
@@ -1601,6 +1724,9 @@ def _remote_create_native_args(args) -> list[str]:
         out.append("--preserve-acls")
     if getattr(args, "preserve_xattrs", False):
         out.append("--preserve-xattrs")
+    if getattr(args, "destination_policy", None):
+        out += ["--destination-policy", str(args.destination_policy)]
+    out += _remote_backup_native_args(args)
     if getattr(args, "overwrite", False):
         out.append("--overwrite")
     out += _remote_filter_args(args)
@@ -1621,6 +1747,8 @@ def _remote_extract_native_args(args, config: dict, location: RemoteLocation) ->
                 "--execution=remote extract requires --stdout or an SSH output on the same remote"
             )
         out += ["--output", target.path]
+    if getattr(args, "destination_policy", None):
+        out += ["--destination-policy", str(args.destination_policy)]
     for name in ("overwrite", "skip_existing", "rename_existing", "unsafe_paths", "preserve_owner", "preserve_acls", "preserve_xattrs"):
         if getattr(args, name, False):
             out.append("--" + name.replace("_", "-"))
@@ -1693,6 +1821,7 @@ def _remote_native_execution(args, extra: list[str], config: dict, location: Rem
         remote_argv += _remote_extract_native_args(args, config, location)
         remote_argv += list(getattr(args, "members", []) or [])
     elif operation == "remove":
+        remote_argv += _remote_backup_native_args(args)
         members = list(getattr(args, "members", []) or [])
         if not members:
             raise UsageError("--execution=remote remove requires explicit member names")
@@ -1841,6 +1970,9 @@ def _stream_remote_read(args, extra: list[str], config: dict, location: RemoteLo
     if operation not in {"extract", "test"}:
         raise UnsupportedFormat("remote streaming reads are available for stream extract/test")
     password = _resolve_password(args)
+    extract_policy = None
+    if operation == "extract":
+        args, extract_policy = _normalized_extract_policy(args)
     backend = resolve_backend(
         fmt,
         operation,
@@ -1885,12 +2017,34 @@ def _stream_remote_read(args, extra: list[str], config: dict, location: RemoteLo
     name = _stream_output_name(Path(location.path))
     target = output / name
     if target.exists() or target.is_symlink():
+        if extract_policy is DestinationPolicy.SKIP_IDENTICAL:
+            if args.dry_run:
+                stream_remote_to_local(
+                    location, config, consumer, dry_run=True, progress=False, show_command=args.show_command, destination=target
+                )
+                return 0
+            output.mkdir(parents=True, exist_ok=True)
+            fd, probe_name = tempfile.mkstemp(prefix=f".{target.name}.arc-compare-", dir=output)
+            os.close(fd)
+            probe = Path(probe_name)
+            probe.unlink(missing_ok=True)
+            try:
+                stream_remote_to_local(
+                    location, config, consumer, destination=probe, dry_run=False, progress=enabled, show_command=args.show_command
+                )
+                if not identical_paths(probe, target):
+                    raise ConflictError(f"extraction target exists but is not identical: {target}")
+            finally:
+                probe.unlink(missing_ok=True)
+            if args.json:
+                print(json.dumps({"operation": "extract", "archive": location.raw, "format": fmt.canonical, "backend": backend.info.binary, "output": str(output), "members": 0, "bytes": 0, "skipped": True, "streamed": True, "destination_policy": "skip-identical"}))
+            return 0
         if args.skip_existing:
             if args.json:
                 print(json.dumps({"operation": "extract", "archive": location.raw, "format": fmt.canonical, "backend": backend.info.binary, "output": str(output), "members": 0, "bytes": 0, "skipped": True, "streamed": True}))
             return 0
         if not (args.overwrite or args.rename_existing):
-            raise ConflictError(f"extraction target already exists: {target}; use --overwrite, --skip-existing, or --rename-existing")
+            raise ConflictError(f"extraction target already exists: {target}; use --overwrite, --skip-existing, --rename-existing, or --destination-policy")
     renamed: Path | None = None
     if args.rename_existing and not args.dry_run and (target.exists() or target.is_symlink()):
         index = 1

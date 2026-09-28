@@ -30,7 +30,9 @@ BASE = {
     "--show-native", "--native-style", "--execution", "--source-password-file", "--source-password-env",
 }
 FILTERS = {"--exclude", "--include", "--exclude-from", "--include-from"}
-CREATE = {"--destination-policy", "--backup-existing", "--level", "--threads", "--add-extension", "--follow-symlinks", "--one-file-system", "--preserve-owner", "--preserve-acls", "--preserve-xattrs"}
+CREATE_TUNING = {"--level", "--threads", "--add-extension", "--follow-symlinks", "--one-file-system", "--preserve-owner", "--preserve-acls", "--preserve-xattrs"}
+CREATE = {"--destination-policy", "--backup-existing"} | CREATE_TUNING
+INPLACE_MUTATION = {"--backup-existing"} | CREATE_TUNING
 CREATE_SUFFIX_FLAGS = {flag for flag, _fmt, _suffix in CREATE_SUFFIX_SHORTCUTS}
 EXTRACT = {"--destination-policy", "-o", "--output", "--overwrite", "--skip-existing", "--rename-existing", "--unsafe-paths", "--stdout", "--preserve-owner", "--preserve-acls", "--preserve-xattrs"}
 VERIFY = {"--verify-level", "--allow-verification-downgrade"}
@@ -43,9 +45,9 @@ COMMAND_OPTIONS: dict[str, set[str]] = {
     "test": BASE | FILTERS | VERIFY,
     "extract": BASE | FILTERS | EXTRACT,
     "create": BASE | FILTERS | CREATE | CREATE_SUFFIX_FLAGS | {"--overwrite"},
-    "add": BASE | FILTERS | CREATE,
-    "update": BASE | FILTERS | CREATE,
-    "remove": BASE,
+    "add": BASE | FILTERS | INPLACE_MUTATION,
+    "update": BASE | FILTERS | INPLACE_MUTATION,
+    "remove": BASE | {"--backup-existing"},
     "info": INFO,
     "diff": {"--backend", "--no-fallback", "--password", "--password-file", "--password-env", "--left-password", "--left-password-file", "--left-password-env", "--right-password", "--right-password-file", "--right-password-env", "--json", "-q", "--quiet", "-v", "--verbose", "--progress", "--show-command", "--show-native", "--native-style"},
     "convert": BASE | CONVERT,
