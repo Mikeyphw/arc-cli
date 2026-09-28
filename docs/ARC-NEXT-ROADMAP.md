@@ -7,7 +7,7 @@ Status: active implementation roadmap after the ARC-R01..R05 final seal and the 
 - Before each implementation overlay, inspect the next three unimplemented roadmap items as one merge window.
 - Merge only items that share a coherent ownership and validation boundary; never reduce scope merely to reduce overlay count.
 - Keep implementation overlays separate from milestone gates and final seals.
-- Ordinary implementation overlays are applied with `--no-validate`; they still add and exercise native Devtool `[[test]]`, target-local jobs, workflows, and EXO-visible identities.
+- Implementation overlays run bounded targeted validation for the exact changed non-Gradle boundary. They add and exercise native Devtool `[[test]]`, target-local jobs, workflows, and EXO-visible identities. Targeted implementation validation does not replace milestone-gate or final-seal evidence.
 - Gate overlays reference the same repository-owned test IDs through artifact validation rather than duplicating test orchestration in shell scripts.
 - Lifecycle hooks are reserved for lifecycle-specific work such as refreshing the active editable install; they are not a replacement for tests or workflows.
 - Machine output, human output, documentation, completion, packaging metadata, and runtime behavior must derive from common typed contracts wherever practical.
@@ -28,13 +28,15 @@ Acceptance: explicit regression for “declared alias but missing on PATH”; re
 
 ## R07 — Explainable plans, transaction journal, and resumable batches
 
-Merge window: inspect items 4–6 before implementation.
+**Merge-window decision:** merge items 4–6. Explainable dry-run planning, durable mutation journals, and resumable batch conversion share one execution-plan/transaction/evidence boundary; splitting them would create competing state models.
 
 4. Add `arc explain` and richer `--dry-run` planning. Plans expose chosen format/backend, capability reasoning, staging, temp/publication paths, overwrite/source-removal policy, remote locality, and verification strategy without mutation.
 5. Generalize transactional publication into a durable transaction journal for mutating create/add/update/remove/convert paths. Track staging, publication, source deletion, verification, remote transfer, cleanup, and interruption state; add `arc recover`/cleanup semantics.
 6. Add resumable batch conversion using durable manifests keyed by source identity, target policy, and completed verification evidence. Unchanged proven items can be reused; changed inputs invalidate only affected work.
 
-Potential merge: all three likely share execution-plan/transaction ownership, but the merge decision is made only when R07 starts.
+Acceptance: explain/dry-run must be mutation-free; mutating commands emit durable phase evidence; recovery only removes transaction-owned temporary state; resumable batches reuse only matching source + verified-destination evidence, selectively invalidate changed items, and require explicit force before replacing externally changed outputs.
+
+**Separate R07 gate:** qualify the complete execution/recovery/resume promise ledger and broader regression surface after this targeted implementation validation; do not merge the gate into R07 implementation.
 
 ## R08 — Stable machine schema, backend capabilities, and verification policy
 

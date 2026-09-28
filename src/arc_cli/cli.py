@@ -29,7 +29,7 @@ from .doctor import alias_status_rows, collect_doctor_report, fix_and_recheck
 from .manpages import available_topics, show_manpage
 from .config import get_profile, load_config
 from .errors import ArcError, BackendUnavailable, ConflictError, CorruptArchive, PasswordError, UnsafeArchive, UnsupportedFormat, UsageError
-from .execution import begin_plan, emit_after, record_stage
+from .execution import begin_plan, emit_after, mark_mutation, plan_dict, record_decision, record_stage
 from .filtering import build_manifest, expand_rule_files, filter_members
 from . import __version__
 from .formats import CREATE_SUFFIX_SHORTCUTS, detect, extension_for, infer_from_name, parse_format, resolve_create_format, strip_archive_suffix
@@ -59,6 +59,19 @@ from .remote import (
     upload_remote,
 )
 from .safety import validate_members
+from .transactions import (
+    BatchManifest,
+    TransactionJournal,
+    batch_policy_key,
+    current_transaction,
+    file_fingerprint,
+    list_transactions,
+    same_fingerprint,
+    transaction_scope,
+    tx_cleanup,
+    tx_cleanup_done,
+    tx_event,
+)
 
 
 class RuleAction(argparse.Action):
@@ -220,9 +233,21 @@ def parser() -> argparse.ArgumentParser:
     q.add_argument("-f", "--force", action="store_true", help="replace an existing destination")
     q.add_argument("--replace-source", action="store_true", help="remove each source only after destination verification")
     q.add_argument("--batch", action="store_true", help="treat every positional path as an independent source and derive each destination")
+    q.add_argument("--resume", action="store_true", help="reuse completed batch items only when source and verified destination evidence still match")
+    q.add_argument("--batch-id", help="override the deterministic resumable batch identity")
     q.add_argument("--source-password", nargs="?", const="__PROMPT__")
     q.add_argument("--source-password-file")
     q.add_argument("--source-password-env", metavar="NAME")
+
+    q = sub.add_parser("explain", help=COMMAND_DOCS["explain"].summary)
+    q.add_argument("--json", action="store_true")
+    q.add_argument("argv", nargs=argparse.REMAINDER, help="Arc command and arguments to plan without mutation")
+
+    q = sub.add_parser("recover", help=COMMAND_DOCS["recover"].summary)
+    q.add_argument("transaction_id", nargs="?")
+    q.add_argument("--cleanup", action="store_true", help="remove only paths explicitly registered as transaction-owned temporary state")
+    q.add_argument("--all", action="store_true", help="include completed transactions when listing")
+    q.add_argument("--json", action="store_true")
 
     q = sub.add_parser("backends", help=COMMAND_DOCS["backends"].summary)
     q.add_argument("--json", action="store_true")
@@ -969,6 +994,13 @@ def _create_like_local(args, extra: list[str], config: dict) -> int:
         no_fallback=args.no_fallback,
     )
     _require_tar_metadata_backend(args, backend)
+    record_decision("format", fmt.canonical, reason="resolved from explicit selector or archive destination")
+    record_decision("backend", backend.info.binary, reason=f"compatible backend selected for {operation}/{fmt.canonical}")
+    record_decision("publication", "local-atomic-replace" if operation == "create" and not stdout_archive else ("stdout" if stdout_archive else "backend-in-place"), reason="mutation boundary for this operation")
+    record_decision("overwrite", bool(getattr(args, "overwrite", False)), reason="explicit destination collision policy")
+    mark_mutation(not bool(args.dry_run))
+    if not args.dry_run:
+        tx_event("preflight", operation=operation, archive=os.fspath(final_archive if 'final_archive' in locals() else archive), format=fmt.canonical, backend=backend.info.binary)
 
     if operation == "add":
         existing = {m.name.rstrip("/") for m in backend.list_members(archive, password=password)}
@@ -996,6 +1028,9 @@ def _create_like_local(args, extra: list[str], config: dict) -> int:
         archive_for_backend = temp_archive
     else:
         archive_for_backend = final_archive
+    if temp_archive is not None and not args.dry_run:
+        tx_cleanup(temp_archive, reason="unpublished create candidate")
+        tx_event("staging", candidate=os.fspath(temp_archive), destination=os.fspath(final_archive))
 
     cmd, meta = backend.command(
         operation, archive_for_backend, fmt=fmt, entries=manifest, extra=extra,
@@ -1018,18 +1053,25 @@ def _create_like_local(args, extra: list[str], config: dict) -> int:
             rc = run_backend(cmd, meta, rep, sizes, show_command=args.show_command, dry_run=args.dry_run, verbose=args.verbose)
         if rc != 0:
             _raise_backend_failure(rc, meta, password=password, operation=operation)
+        if not args.dry_run:
+            tx_event("backend-complete", operation=operation, backend=backend.info.binary)
         if temp_archive and temp_archive.exists():
             if stdout_archive:
                 with temp_archive.open("rb") as fh:
                     shutil.copyfileobj(fh, sys.stdout.buffer)
+                tx_event("publish", destination="stdout", publication="stream-copy")
             else:
                 _atomic_replace(temp_archive, final_archive)
+                tx_cleanup_done(temp_archive)
+                tx_event("publish", destination=os.fspath(final_archive), publication="local-atomic-replace")
                 compressed_bytes = final_archive.stat().st_size
         elif operation == "create" and not args.dry_run and not stdout_archive and final_archive.exists():
             compressed_bytes = final_archive.stat().st_size
     finally:
         if temp_archive and temp_archive.exists():
             temp_archive.unlink(missing_ok=True)
+            tx_cleanup_done(temp_archive)
+            tx_event("cleanup", path=os.fspath(temp_archive))
 
     if args.json and not stdout_archive:
         payload = {
@@ -1168,6 +1210,10 @@ def _remove(args, extra: list[str], config: dict) -> int:
         required_capabilities=_backend_requirements(args, fmt, "remove", password),
         no_fallback=args.no_fallback,
     )
+    record_decision("format", fmt.canonical, reason="detected archive format")
+    record_decision("backend", backend.info.binary, reason=f"compatible backend selected for remove/{fmt.canonical}")
+    record_decision("publication", "backend-in-place", reason="remove mutates the existing archive")
+    mark_mutation(not bool(args.dry_run))
     members = args.members
     if not members:
         choices = [m.name for m in backend.list_members(archive, password=password)]
@@ -1179,6 +1225,9 @@ def _remove(args, extra: list[str], config: dict) -> int:
         rc = run_backend(cmd, meta, rep, {m: 0 for m in members}, show_command=args.show_command, dry_run=args.dry_run, verbose=args.verbose)
     if rc != 0:
         _raise_backend_failure(rc, meta, password=password, operation="remove")
+    if not args.dry_run:
+        tx_event("backend-complete", operation="remove", archive=os.fspath(archive), backend=backend.info.binary, members=len(members))
+        tx_event("publish", destination=os.fspath(archive), publication="backend-in-place")
     if args.json:
         print(json.dumps({"operation": "remove", "archive": str(archive), "format": fmt.canonical, "backend": backend.info.binary, "members": members}))
     return 0
@@ -2317,7 +2366,7 @@ def _resolve_convert_jobs(args, config: dict) -> list[dict]:
         identities.add(src_id)
         destinations.add(dst_id)
     for job in jobs:
-        if args.force or args.dry_run:
+        if args.force or args.dry_run or getattr(args, "resume", False):
             continue
         dst_remote = parse_remote(job["destination"], config, probe_rclone=True)
         exists = remote_exists(dst_remote, config) if dst_remote else Path(job["destination"]).expanduser().exists()
@@ -2348,6 +2397,18 @@ def _convert_backend_summary(source_fmt, target_fmt, args, config: dict) -> str:
 
 
 def _show_convert_plan(source: str, destination: str, source_fmt, target_fmt, strategy: str, args, config: dict) -> None:
+    destination_remote = parse_remote(
+        destination, config, probe_rclone=not bool(getattr(args, "dry_run", False))
+    )
+    publication = "local-same-filesystem-atomic-replace" if destination_remote is None else "transport-dependent-remote-publish-with-reread"
+    record_decision("source_format", source_fmt.canonical, reason="detected from source bytes/name during planning")
+    record_decision("destination_format", target_fmt.canonical, reason="explicit selector or destination suffix")
+    record_decision("backend_chain", _convert_backend_summary(source_fmt, target_fmt, args, config), reason="compatible source/target backend resolution")
+    record_decision("strategy", strategy, reason="selected from source/target representation and filters")
+    record_decision("publication", publication, reason="locality determines publication guarantees")
+    record_decision("verification", "verify-unpublished-candidate-then-published-remote-reread" if destination_remote else "verify-unpublished-candidate-before-publish", reason="destination must be proven before source removal")
+    record_decision("source_removal", "after-verified-publish" if args.replace_source else "keep", reason="--replace-source policy")
+    mark_mutation(not bool(getattr(args, "dry_run", False)))
     if args.quiet or args.json:
         return
     t = Table(title="Convert", show_header=False, box=None, pad_edge=False)
@@ -2359,14 +2420,11 @@ def _show_convert_plan(source: str, destination: str, source_fmt, target_fmt, st
     t.add_row("Format", target_fmt.canonical + (" (explicit)" if _explicit_format(args) else ""))
     t.add_row("Backend", _convert_backend_summary(source_fmt, target_fmt, args, config))
     t.add_row("Strategy", strategy)
-    destination_remote = parse_remote(
-        destination, config, probe_rclone=not bool(getattr(args, "dry_run", False))
-    )
     if destination_remote is None:
-        publication = "yes (local same-filesystem publish)"
+        publication_label = "yes (local same-filesystem publish)"
     else:
-        publication = "transport-dependent; remote re-read verified"
-    t.add_row("Atomic", publication)
+        publication_label = "transport-dependent; remote re-read verified"
+    t.add_row("Atomic", publication_label)
     t.add_row("Source kept", "no, after verified publish" if args.replace_source else "yes")
     stdout_console.print(t)
 
@@ -2377,6 +2435,8 @@ def _atomic_pipeline_convert(source: Path, destination: Path, source_fmt, target
     os.close(fd)
     temp = Path(tmp_name)
     temp.unlink(missing_ok=True)
+    tx_cleanup(temp, reason="conversion pipeline temporary output")
+    tx_event("staging", candidate=os.fspath(temp), destination=os.fspath(destination))
     try:
         if source_fmt.container == "tar" and source_fmt.compression:
             producer = _decompression_command(source_fmt.compression, config, source, no_fallback=args.no_fallback)
@@ -2398,8 +2458,11 @@ def _atomic_pipeline_convert(source: Path, destination: Path, source_fmt, target
         if rc != 0:
             _raise_backend_failure(rc, meta, operation="convert")
         _atomic_replace(temp, destination)
+        tx_cleanup_done(temp)
+        tx_event("pipeline-publish", destination=os.fspath(destination), publication="local-atomic-replace")
     finally:
         temp.unlink(missing_ok=True)
+        tx_cleanup_done(temp)
 
 
 
@@ -2576,7 +2639,9 @@ def _convert_one(job: dict, args, config: dict, source_password: str | None, des
             work = Path(td)
             if source_remote:
                 local_source = work / (source_remote.basename or "source.arc")
+                tx_event("remote-transfer", direction="download", source=source_raw, staging=os.fspath(local_source))
                 download_remote(source_remote, local_source, config, progress=transfer_progress)
+                tx_event("remote-transfer-complete", direction="download", source=source_raw)
             else:
                 local_source = Path(source_raw).expanduser().absolute()
             source_fmt = detect(local_source)
@@ -2594,9 +2659,12 @@ def _convert_one(job: dict, args, config: dict, source_password: str | None, des
             else:
                 final_local_destination = Path(destination_raw).expanduser().absolute()
                 unpublished_candidate = _local_conversion_candidate(final_local_destination, target_fmt)
+                tx_cleanup(unpublished_candidate, reason="unpublished verified conversion candidate")
+                tx_event("staging", candidate=os.fspath(unpublished_candidate), destination=os.fspath(final_local_destination))
                 local_destination = unpublished_candidate
 
             source_size = local_source.stat().st_size
+            tx_event("conversion-start", source=source_raw, destination=destination_raw, source_format=source_fmt.canonical, destination_format=target_fmt.canonical, strategy=strategy)
             member_count: int | None = 1 if source_fmt.is_stream else None
             if source_fmt.container == "tar" and target_fmt.container == "tar" and not _filter_rules(args):
                 inspect_backend = resolve_backend(source_fmt, "list", config, args.backend, no_fallback=args.no_fallback)
@@ -2631,10 +2699,14 @@ def _convert_one(job: dict, args, config: dict, source_password: str | None, des
                 )
                 verification.complete()
             if not verified:
+                tx_event("verify", status="failed", destination=destination_raw, detail=verify_error)
                 raise CorruptArchive(f"converted destination failed verification: {verify_error}")
+            tx_event("verify", status="passed", destination=destination_raw, backend=verify_backend, scope="unpublished-candidate")
 
             if destination_remote:
+                tx_event("remote-transfer", direction="upload", destination=destination_raw)
                 upload_remote(local_destination, destination_remote, config, progress=transfer_progress)
+                tx_event("remote-transfer-complete", direction="upload", destination=destination_raw)
                 # Verify the published remote object, not merely the pre-upload
                 # staging bytes.  Only a successful re-read can authorize source
                 # removal.
@@ -2651,16 +2723,23 @@ def _convert_one(job: dict, args, config: dict, source_password: str | None, des
                     )
                     remote_verification.complete()
                 if not verified:
+                    tx_event("verify", status="failed", destination=destination_raw, detail=verify_error, scope="published-remote-reread")
                     raise CorruptArchive(f"published remote destination failed verification: {verify_error}")
+                tx_event("verify", status="passed", destination=destination_raw, backend=verify_backend, scope="published-remote-reread")
+                tx_event("publish", destination=destination_raw, publication="transport-dependent-verified-reread")
                 converted_size = published.stat().st_size
             else:
                 assert final_local_destination is not None
                 converted_size = local_destination.stat().st_size
                 _atomic_replace(local_destination, final_local_destination)
+                tx_cleanup_done(local_destination)
+                tx_event("publish", destination=os.fspath(final_local_destination), publication="local-same-filesystem-atomic-replace")
                 unpublished_candidate = None
 
             if args.replace_source:
+                tx_event("source-removal", status="started", source=source_raw)
                 _remove_conversion_source(source_raw, config)
+                tx_event("source-removal", status="done", source=source_raw)
 
             size_change = ((converted_size - source_size) / source_size * 100.0) if source_size else None
             ratio = (source_size / converted_size) if converted_size else None
@@ -2686,7 +2765,70 @@ def _convert_one(job: dict, args, config: dict, source_password: str | None, des
     finally:
         if unpublished_candidate is not None:
             unpublished_candidate.unlink(missing_ok=True)
+            tx_cleanup_done(unpublished_candidate)
+            tx_event("cleanup", path=os.fspath(unpublished_candidate))
 
+
+
+def _batch_policy(args, jobs: list[dict]) -> dict:
+    rules = [list(item) for item in (getattr(args, "filter_rules", []) or [])]
+    return {
+        "target_formats": [job["target_format"].canonical for job in jobs],
+        "backend": getattr(args, "backend", None),
+        "no_fallback": bool(getattr(args, "no_fallback", False)),
+        "level": getattr(args, "level", None),
+        "threads": getattr(args, "threads", None),
+        "filters": rules,
+        "replace_source": bool(getattr(args, "replace_source", False)),
+        "execution": getattr(args, "execution", None),
+    }
+
+
+def _resume_source_fingerprint(raw: str, config: dict) -> dict | None:
+    remote = parse_remote(raw, config, probe_rclone=False)
+    if remote is not None:
+        return {"kind": "remote-unproven", "path": remote.raw, "reusable": False}
+    path = Path(raw).expanduser()
+    if not path.is_file():
+        return None
+    return file_fingerprint(path)
+
+
+def _resume_destination_fingerprint(raw: str, config: dict) -> dict | None:
+    remote = parse_remote(raw, config, probe_rclone=False)
+    if remote is not None:
+        return {"kind": "remote-unproven", "path": remote.raw, "reusable": False}
+    path = Path(raw).expanduser()
+    if not path.is_file():
+        return None
+    return file_fingerprint(path)
+
+
+def _resume_entry_valid(entry: dict | None, job: dict, config: dict) -> bool:
+    if not entry or entry.get("status") != "completed":
+        return False
+    prior_destination = entry.get("destination_fingerprint")
+    current_destination = _resume_destination_fingerprint(str(job["destination"]), config)
+    if not same_fingerprint(prior_destination, current_destination):
+        return False
+    current_source = _resume_source_fingerprint(str(job["source"]), config)
+    prior_source = entry.get("source_fingerprint")
+    if current_source is None and entry.get("source_removed") is True:
+        # The original source was deliberately removed only after verified
+        # publication. The still-matching destination fingerprint is the
+        # durable proof that this completed item can be reused.
+        return True
+    if not current_source or current_source.get("reusable") is False:
+        return False
+    return same_fingerprint(prior_source, current_source)
+
+
+def _resumed_result(entry: dict, *, batch_id: str) -> dict:
+    result = dict(entry.get("result") or {})
+    result["resumed"] = True
+    result["reused_evidence"] = True
+    result["batch_id"] = batch_id
+    return result
 
 def _print_convert_success(result: dict) -> None:
     t = Table(title="Conversion complete", show_header=False, box=None, pad_edge=False)
@@ -2737,16 +2879,125 @@ def _convert(args, config: dict) -> int:
                 transport_staged=bool(remote or destination_remote),
             )
             _show_convert_plan(source, job["destination"], source_fmt, job["target_format"], strategy, args, config)
-            plans.append({"source": source, "destination": job["destination"], "source_format": source_fmt.canonical, "destination_format": job["target_format"].canonical, "strategy": strategy, "dry_run": True})
+            plans.append({
+                "source": source,
+                "destination": job["destination"],
+                "source_format": source_fmt.canonical,
+                "destination_format": job["target_format"].canonical,
+                "strategy": strategy,
+                "publication": "transport-dependent-remote-publish-with-reread" if destination_remote else "local-same-filesystem-atomic-replace",
+                "verification": "verify-unpublished-candidate-then-published-remote-reread" if destination_remote else "verify-unpublished-candidate-before-publish",
+                "source_removal": "after-verified-publish" if args.replace_source else "keep",
+                "dry_run": True,
+            })
+        plan = plan_dict()
+        for item in plans:
+            item["plan"] = plan
         if args.json:
             print(json.dumps(plans[0] if len(plans) == 1 else plans, ensure_ascii=False))
         return 0
-    results = [_convert_one(job, args, config, source_password, destination_password) for job in jobs]
+
+    is_batch = bool(args.batch or len(jobs) > 1)
+    if args.resume and not is_batch:
+        raise UsageError("--resume requires batch conversion")
+    policy = _batch_policy(args, jobs)
+    batch_id = args.batch_id or batch_policy_key(jobs, policy) if is_batch else None
+    try:
+        batch = BatchManifest.open(batch_id, policy=policy, reset=not args.resume) if batch_id else None
+    except ValueError as exc:
+        raise ConflictError(str(exc)) from exc
+    metadata = {
+        "batch_id": batch_id,
+        "jobs": len(jobs),
+        "resume": bool(args.resume),
+        "replace_source": bool(args.replace_source),
+    }
+    results: list[dict] = []
+    with transaction_scope("convert-batch" if is_batch else "convert", metadata=metadata) as transaction:
+        for job in jobs:
+            source = str(job["source"])
+            entry = batch.item(source) if batch else None
+            if batch and args.resume and _resume_entry_valid(entry, job, config):
+                result = _resumed_result(entry, batch_id=batch_id or "")
+                tx_event("resume-reuse", source=source, destination=str(job["destination"]), batch_id=batch_id)
+                results.append(result)
+                continue
+            if batch and args.resume:
+                destination = str(job["destination"])
+                destination_remote = parse_remote(destination, config, probe_rclone=False)
+                destination_exists = False
+                if destination_remote is None:
+                    destination_exists = Path(destination).expanduser().exists()
+                if destination_remote is not None and not args.force:
+                    raise ConflictError(
+                        f"resume cannot prove remote destination identity for {destination}; use --force to authorize a fresh remote publish"
+                    )
+                if destination_exists and not args.force:
+                    if not entry or entry.get("destination") != destination:
+                        raise ConflictError(
+                            f"resume destination exists but is not owned by batch {batch_id}: {destination}; use --force to replace it"
+                        )
+                    prior_destination = entry.get("destination_fingerprint")
+                    current_destination = _resume_destination_fingerprint(destination, config)
+                    if prior_destination and current_destination and not same_fingerprint(prior_destination, current_destination):
+                        raise ConflictError(
+                            f"resume destination changed since the last verified batch result: {destination}; use --force to replace user-modified output"
+                        )
+            source_fingerprint = _resume_source_fingerprint(source, config) if batch else None
+            if batch:
+                batch.update_item(source, {
+                    "status": "running",
+                    "source": source,
+                    "destination": str(job["destination"]),
+                    "source_fingerprint": source_fingerprint,
+                    "started_at": time.time(),
+                })
+            try:
+                result = _convert_one(job, args, config, source_password, destination_password)
+                if batch_id:
+                    result["batch_id"] = batch_id
+                    result["resumed"] = False
+                destination_fingerprint = _resume_destination_fingerprint(str(job["destination"]), config) if batch else None
+                if batch:
+                    batch.update_item(source, {
+                        "status": "completed",
+                        "source": source,
+                        "destination": str(job["destination"]),
+                        "source_fingerprint": source_fingerprint,
+                        "destination_fingerprint": destination_fingerprint,
+                        "source_removed": bool(result.get("source_removed")),
+                        "verified": bool(result.get("verified")),
+                        "verify_backend": result.get("verify_backend"),
+                        "result": result,
+                        "completed_at": time.time(),
+                    })
+                results.append(result)
+            except BaseException as exc:
+                if batch:
+                    batch.update_item(source, {
+                        "status": "interrupted" if isinstance(exc, KeyboardInterrupt) else "failed",
+                        "source": source,
+                        "destination": str(job["destination"]),
+                        "source_fingerprint": source_fingerprint,
+                        "error": str(exc),
+                        "failed_at": time.time(),
+                    })
+                raise
+        transaction.complete({
+            "batch": batch.to_summary() if batch else None,
+            "items": len(results),
+            "reused": sum(1 for result in results if result.get("resumed")),
+        })
     if args.json:
         print(json.dumps(results[0] if len(results) == 1 else results, ensure_ascii=False))
     elif not args.quiet:
         for result in results:
-            _print_convert_success(result)
+            if result.get("resumed"):
+                stdout_console.print(f"[green]REUSED[/] {result['destination']} (verified batch evidence)")
+            else:
+                _print_convert_success(result)
+        if batch:
+            stdout_console.print(f"[dim]Batch {batch_id} · manifest {batch.path}[/]")
     return 0
 
 
@@ -2919,24 +3170,158 @@ def _doctor_command(args) -> int:
     return 1 if report["summary"]["fail"] else 0
 
 
+
+def _explain_command(args, config: dict) -> int:
+    target_argv = list(args.argv)
+    if target_argv and target_argv[0] == "--":
+        target_argv = target_argv[1:]
+    if not target_argv:
+        raise UsageError("arc explain requires an Arc command to plan")
+    wrapper_argv, extra = split_passthrough(target_argv)
+    inner = parser().parse_args(wrapper_argv)
+    if inner.command in {"explain", "recover", "doctor", "aliases", "man", "help", "completion"}:
+        raise UsageError(f"arc explain does not plan the {inner.command!r} command")
+    if not hasattr(inner, "dry_run"):
+        raise UsageError(f"arc explain requires an operation with dry-run support; {inner.command!r} is read-only or informational")
+    inner._invoked_program = "arc"
+    inner._display_argv = target_argv
+    _apply_profile(inner, config)
+    _validate_yazi_context(inner)
+    _apply_defaults(inner, config)
+    if inner.command in {"create", "convert"}:
+        _create_format_options(inner)
+    inner.dry_run = True
+    inner.json = True
+    inner.quiet = True
+    inner.progress = "never"
+    inner.show_native = None
+    inner.show_command = False
+    begin_plan(inner.command, mode=None, style=getattr(inner, "native_style", None) or "reproducible")
+    captured = io.StringIO()
+    with redirect_stdout(captured):
+        rc = _dispatch_command(inner, extra, config)
+    raw_result = captured.getvalue().strip()
+    result = None
+    if raw_result:
+        try:
+            result = json.loads(raw_result)
+        except json.JSONDecodeError:
+            result = {"raw": raw_result}
+    plan = plan_dict()
+    payload = {
+        "schema_version": 1,
+        "operation": inner.command,
+        "dry_run": True,
+        "mutation": False,
+        "result": result,
+        "plan": plan,
+    }
+    if args.json:
+        print(json.dumps(payload, ensure_ascii=False))
+        return rc
+    t = Table(title=f"Arc explain · {inner.command}", show_header=False, box=None, pad_edge=False)
+    t.add_column("Field", style="bold")
+    t.add_column("Value")
+    t.add_row("Mutation", "no")
+    for decision in plan.get("decisions", []):
+        reason = decision.get("reason")
+        value = str(decision.get("value"))
+        t.add_row(str(decision.get("name")), value + (f" · {reason}" if reason else ""))
+    stdout_console.print(t)
+    if plan.get("stages"):
+        stdout_console.print("[bold]Native stages[/]")
+        for stage in plan["stages"]:
+            stdout_console.print(f"  {stage.get('reproducible') or stage.get('display')}")
+    return rc
+
+
+def _recover_command(args) -> int:
+    if args.transaction_id:
+        try:
+            journal = TransactionJournal.load(args.transaction_id)
+        except KeyError as exc:
+            raise UsageError(f"unknown transaction: {args.transaction_id}") from exc
+        except ValueError as exc:
+            raise UsageError(str(exc)) from exc
+        cleanup = journal.cleanup() if args.cleanup else None
+        payload = dict(journal.data)
+        if cleanup is not None:
+            payload["cleanup_result"] = cleanup
+        if args.json:
+            print(json.dumps(payload, ensure_ascii=False, sort_keys=True))
+            return 0
+        t = Table(title=f"Arc transaction {journal.id}", show_header=False, box=None, pad_edge=False)
+        t.add_column("Field", style="bold")
+        t.add_column("Value")
+        t.add_row("Operation", str(payload.get("operation")))
+        t.add_row("Status", str(payload.get("status")))
+        t.add_row("Updated", str(payload.get("updated_at")))
+        t.add_row("Events", str(len(payload.get("events", []))))
+        pending = [item for item in payload.get("cleanup_paths", []) if not item.get("cleaned")]
+        t.add_row("Pending cleanup", str(len(pending)))
+        stdout_console.print(t)
+        if cleanup is None and pending:
+            stdout_console.print(f"Run [bold]arc recover {journal.id} --cleanup[/bold] to remove only registered transaction-owned temporary paths.")
+        return 0
+
+    rows = list_transactions(include_completed=args.all)
+    if args.cleanup:
+        for row in rows:
+            try:
+                TransactionJournal.load(str(row.get("id"))).cleanup()
+            except (KeyError, ValueError):
+                continue
+        rows = list_transactions(include_completed=args.all)
+    if args.json:
+        print(json.dumps({"schema_version": 1, "transactions": rows}, ensure_ascii=False, sort_keys=True))
+        return 0
+    t = Table(title="Arc transactions")
+    t.add_column("ID")
+    t.add_column("Operation")
+    t.add_column("Status")
+    t.add_column("Updated")
+    for row in rows:
+        t.add_row(str(row.get("id")), str(row.get("operation")), str(row.get("status")), str(row.get("updated_at")))
+    if not rows:
+        t.add_row("—", "—", "no recoverable transactions", "—")
+    stdout_console.print(t)
+    return 0
+
 def _dispatch_command(args, extra: list[str], config: dict) -> int:
     if args.command == "identify":
         return _identify(args, config)
     if args.command == "info":
         return _info(args, config)
+    if args.command == "explain":
+        return _explain_command(args, config)
+    if args.command == "recover":
+        return _recover_command(args)
     if args.command == "convert":
         return _convert(args, config)
     if args.command in {"create", "add", "update", "list", "test", "extract", "remove"}:
-        remote_rc = _dispatch_remote_archive(args, extra, config)
-        if remote_rc is not None:
-            return remote_rc
-        if args.command in {"create", "add", "update"}:
-            return _create_like(args, extra, config)
-        if args.command in {"list", "test"}:
-            return _list_or_test(args, extra, config)
-        if args.command == "extract":
-            return _extract(args, extra, config)
-        return _remove(args, extra, config)
+        def run_archive_command() -> int:
+            remote_rc = _dispatch_remote_archive(args, extra, config)
+            if remote_rc is not None:
+                if args.command in {"create", "add", "update", "remove"} and not args.dry_run:
+                    tx_event("remote-operation-complete", operation=args.command)
+                return remote_rc
+            if args.command in {"create", "add", "update"}:
+                return _create_like(args, extra, config)
+            if args.command in {"list", "test"}:
+                return _list_or_test(args, extra, config)
+            if args.command == "extract":
+                return _extract(args, extra, config)
+            return _remove(args, extra, config)
+
+        if args.command in {"create", "add", "update", "remove"} and not args.dry_run and current_transaction() is None:
+            with transaction_scope(
+                args.command,
+                metadata={"invocation": _display_invocation([], args), "remote_execution": getattr(args, "execution", None)},
+            ) as journal:
+                rc = run_archive_command()
+                journal.complete({"exit_code": rc})
+                return rc
+        return run_archive_command()
     if args.command == "backends":
         return _show_backends(config, args.json, args.remote)
     if args.command == "formats":

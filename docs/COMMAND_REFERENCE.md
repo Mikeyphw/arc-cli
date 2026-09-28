@@ -37,6 +37,8 @@ Arc provides one normalized interface over native archive and compression backen
   profiles     show configured profiles
   aliases      inspect installed executable aliases
   doctor       audit Arc installation and runtime health
+  explain      explain an execution plan without mutating data
+  recover      inspect and clean interrupted Arc transactions
   completion   manage shell completion
   help         open detailed bundled help
   man          open Arc manual pages
@@ -110,12 +112,14 @@ SSH locations use ssh://NAME/path or configured NAME:path syntax. rclone locatio
 
 ### Environment
 
-ARC_PROGRESS, ARC_LEVEL, ARC_THREADS, ARC_BACKEND_*, ARC_CACHE_HOME, XDG_CONFIG_HOME, XDG_CACHE_HOME, RCLONE_CONFIG, PAGER, MANPAGER, NO_COLOR.
+ARC_PROGRESS, ARC_LEVEL, ARC_THREADS, ARC_BACKEND_*, ARC_CACHE_HOME, ARC_STATE_HOME, XDG_CONFIG_HOME, XDG_CACHE_HOME, XDG_STATE_HOME, RCLONE_CONFIG, PAGER, MANPAGER, NO_COLOR.
 
 ### Files
 
 ~/.config/arc/config.toml
 ~/.cache/arc/
+~/.local/state/arc/transactions/
+~/.local/state/arc/batches/
 Installed manual pages under share/man.
 
 ### Exit Status
@@ -290,6 +294,8 @@ Transform one logical archive representation into another through Arc's normaliz
 --add-extension
 -f, --force
 --batch
+--resume
+--batch-id ID
 --replace-source
 --source-password/--source-password-file/--source-password-env
 --password/--password-file/--password-env
@@ -313,7 +319,7 @@ Container-to-gzip/bzip2/xz/zstd requires exactly one selected regular file. Incl
 
 ### Batch Conversion
 
-Multiple sources with an explicit target format are independent batch jobs. Arc resolves and collision-checks the complete destination set before starting the first conversion, so a late filename conflict cannot leave an earlier batch item already published. --batch resolves the ambiguous two-source case.
+Multiple sources with an explicit target format are independent batch jobs. Arc resolves and collision-checks the complete destination set before starting the first conversion, so a late filename conflict cannot leave an earlier batch item already published. --batch resolves the ambiguous two-source case. Batch runs persist a manifest under Arc's state directory. --resume reuses a completed item only when its source fingerprint and verified destination fingerprint still match; changed inputs invalidate only the affected item. Remote items are not reused unless Arc can prove a stable remote identity.
 
 ### Publication And Verification
 
@@ -426,6 +432,37 @@ arc doctor --fix --source ~/Code/arc-cli
 ### See Also
 
 arc-aliases(1), arc-backends(1), arc-config(5)
+
+## arc-explain(1)
+
+### Name
+
+arc-explain - explain an execution plan without mutating data
+
+### Synopsis
+
+arc explain [--json] COMMAND ...
+
+### Description
+
+Plan an Arc operation through its real dry-run path and show the decisions and native stages without mutating archives, destinations, transaction state, or remote content.
+
+### Options
+
+--json
+
+### Semantics
+
+Explain forces the nested operation into dry-run mode. The plan records format/backend selection, publication and verification policy, locality/staging decisions, and source-removal policy where applicable. It is diagnostic evidence, not a promise that external state will remain unchanged between planning and execution.
+
+### Examples
+
+arc explain convert a.zip -tzst
+arc explain --json create backup.tar src/
+
+### See Also
+
+arc-convert(1), arc-recover(1), arc-backends(7)
 
 ## arc-extract(1)
 
@@ -567,6 +604,41 @@ arc list private.7z --password-env ARCHIVE_PASS --json
 ### See Also
 
 arc-info(1), arc-test(1), arc-extract(1)
+
+## arc-recover(1)
+
+### Name
+
+arc-recover - inspect and clean interrupted Arc transactions
+
+### Synopsis
+
+arc recover [TRANSACTION_ID] [--cleanup] [--json]
+
+### Description
+
+Inspect durable mutation journals and clean transaction-owned temporary paths left by failed or interrupted operations.
+
+### Options
+
+TRANSACTION_ID
+--cleanup
+--all
+--json
+
+### Semantics
+
+Mutating create/add/update/remove/convert commands record phase evidence under Arc's state directory. Recovery cleanup is deliberately conservative: it removes only exact paths registered as transaction-owned temporary state and never rolls back an already-published destination automatically. Resumable conversion work is continued with arc convert --resume, using the batch manifest's source/destination verification evidence.
+
+### Examples
+
+arc recover
+arc recover TXID --json
+arc recover TXID --cleanup
+
+### See Also
+
+arc-convert(1), arc-explain(1)
 
 ## arc-remove(1)
 

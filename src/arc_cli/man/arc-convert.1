@@ -80,6 +80,10 @@ Transform one logical archive representation into another through Arc's normaliz
 .PP
 \-\-batch
 .PP
+\-\-resume
+.PP
+\-\-batch\-id ID
+.PP
 \-\-replace\-source
 .PP
 \-\-source\-password/\-\-source\-password\-file/\-\-source\-password\-env
@@ -108,7 +112,7 @@ A short selector or \-F/\-\-format controls the actual target encoding even when
 .SH "STREAM AND MEMBER SELECTION"
 Container\-to\-gzip/bzip2/xz/zstd requires exactly one selected regular file. Include\-only filters act as an explicit selection, so \-\-include file can narrow a multi\-member container. Stream\-to\-container conversion uses a logical filename derived from the stream source rather than Arc's temporary staging path.
 .SH "BATCH CONVERSION"
-Multiple sources with an explicit target format are independent batch jobs. Arc resolves and collision\-checks the complete destination set before starting the first conversion, so a late filename conflict cannot leave an earlier batch item already published. \-\-batch resolves the ambiguous two\-source case.
+Multiple sources with an explicit target format are independent batch jobs. Arc resolves and collision\-checks the complete destination set before starting the first conversion, so a late filename conflict cannot leave an earlier batch item already published. \-\-batch resolves the ambiguous two\-source case. Batch runs persist a manifest under Arc's state directory. \-\-resume reuses a completed item only when its source fingerprint and verified destination fingerprint still match; changed inputs invalidate only the affected item. Remote items are not reused unless Arc can prove a stable remote identity.
 .SH "PUBLICATION AND VERIFICATION"
 Local output is created at an unpublished same\-filesystem candidate, integrity\-tested there, and atomically replaced into the requested final path only after verification. A failed conversion therefore leaves no new corrupt final path and does not clobber an existing \-\-force destination. Remote output is atomically uploaded, re\-read, and verified before \-\-replace\-source may delete any source.
 .SH "EXAMPLES"

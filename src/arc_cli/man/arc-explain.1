@@ -1,0 +1,17 @@
+.TH "ARC-EXPLAIN" "1" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-explain \- explain an execution plan without mutating data
+.SH "SYNOPSIS"
+arc explain [\-\-json] COMMAND ...
+.SH "DESCRIPTION"
+Plan an Arc operation through its real dry\-run path and show the decisions and native stages without mutating archives, destinations, transaction state, or remote content.
+.SH "OPTIONS"
+\-\-json
+.SH "SEMANTICS"
+Explain forces the nested operation into dry\-run mode. The plan records format/backend selection, publication and verification policy, locality/staging decisions, and source\-removal policy where applicable. It is diagnostic evidence, not a promise that external state will remain unchanged between planning and execution.
+.SH "EXAMPLES"
+arc explain convert a.zip \-tzst
+.PP
+arc explain \-\-json create backup.tar src/
+.SH "SEE ALSO"
+arc\-convert(1), arc\-recover(1), arc\-backends(7)

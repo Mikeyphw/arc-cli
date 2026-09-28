@@ -1,0 +1,25 @@
+.TH "ARC-RECOVER" "1" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-recover \- inspect and clean interrupted Arc transactions
+.SH "SYNOPSIS"
+arc recover [TRANSACTION_ID] [\-\-cleanup] [\-\-json]
+.SH "DESCRIPTION"
+Inspect durable mutation journals and clean transaction\-owned temporary paths left by failed or interrupted operations.
+.SH "OPTIONS"
+TRANSACTION_ID
+.PP
+\-\-cleanup
+.PP
+\-\-all
+.PP
+\-\-json
+.SH "SEMANTICS"
+Mutating create/add/update/remove/convert commands record phase evidence under Arc's state directory. Recovery cleanup is deliberately conservative: it removes only exact paths registered as transaction\-owned temporary state and never rolls back an already\-published destination automatically. Resumable conversion work is continued with arc convert \-\-resume, using the batch manifest's source/destination verification evidence.
+.SH "EXAMPLES"
+arc recover
+.PP
+arc recover TXID \-\-json
+.PP
+arc recover TXID \-\-cleanup
+.SH "SEE ALSO"
+arc\-convert(1), arc\-explain(1)

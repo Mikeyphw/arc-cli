@@ -120,10 +120,10 @@ _add(
             ),
             (
                 "ENVIRONMENT",
-                "ARC_PROGRESS, ARC_LEVEL, ARC_THREADS, ARC_BACKEND_*, ARC_CACHE_HOME, XDG_CONFIG_HOME, "
-                "XDG_CACHE_HOME, RCLONE_CONFIG, PAGER, MANPAGER, NO_COLOR.",
+                "ARC_PROGRESS, ARC_LEVEL, ARC_THREADS, ARC_BACKEND_*, ARC_CACHE_HOME, ARC_STATE_HOME, XDG_CONFIG_HOME, "
+                "XDG_CACHE_HOME, XDG_STATE_HOME, RCLONE_CONFIG, PAGER, MANPAGER, NO_COLOR.",
             ),
-            ("FILES", "~/.config/arc/config.toml\n~/.cache/arc/\nInstalled manual pages under share/man."),
+            ("FILES", "~/.config/arc/config.toml\n~/.cache/arc/\n~/.local/state/arc/transactions/\n~/.local/state/arc/batches/\nInstalled manual pages under share/man."),
             (
                 "EXIT STATUS",
                 "0 means success. Usage, unsupported format/backend, conflict, password, corruption, and "
@@ -231,7 +231,7 @@ _add(
         options=(
             "-F, --format FORMAT\n"
             + _FORMAT_LINES
-            + "\n--add-extension\n-f, --force\n--batch\n--replace-source\n"
+            + "\n--add-extension\n-f, --force\n--batch\n--resume\n--batch-id ID\n--replace-source\n"
             "--source-password/--source-password-file/--source-password-env\n"
             "--password/--password-file/--password-env\n--include/--exclude and rule files\n"
             "--level 0..9\n--threads N\n--backend NAME\n--no-fallback\n--dry-run\n"
@@ -256,7 +256,10 @@ _add(
                 "BATCH CONVERSION",
                 "Multiple sources with an explicit target format are independent batch jobs. Arc resolves and collision-checks "
                 "the complete destination set before starting the first conversion, so a late filename conflict cannot leave an "
-                "earlier batch item already published. --batch resolves the ambiguous two-source case.",
+                "earlier batch item already published. --batch resolves the ambiguous two-source case. Batch runs persist a "
+                "manifest under Arc's state directory. --resume reuses a completed item only when its source fingerprint and "
+                "verified destination fingerprint still match; changed inputs invalidate only the affected item. Remote items are "
+                "not reused unless Arc can prove a stable remote identity.",
             ),
             (
                 "PUBLICATION AND VERIFICATION",
@@ -338,6 +341,33 @@ _add(
         see_also="arc-aliases(1), arc-backends(1), arc-config(5)",
     )
 )
+_add(
+    _command_page(
+        "explain",
+        "Plan an Arc operation through its real dry-run path and show the decisions and native stages without mutating archives, destinations, transaction state, or remote content.",
+        options="--json",
+        semantics=(
+            "Explain forces the nested operation into dry-run mode. The plan records format/backend selection, publication and verification policy, locality/staging decisions, and source-removal policy where applicable. "
+            "It is diagnostic evidence, not a promise that external state will remain unchanged between planning and execution."
+        ),
+        examples="arc explain convert a.zip -tzst\narc explain --json create backup.tar src/",
+        see_also="arc-convert(1), arc-recover(1), arc-backends(7)",
+    )
+)
+_add(
+    _command_page(
+        "recover",
+        "Inspect durable mutation journals and clean transaction-owned temporary paths left by failed or interrupted operations.",
+        options="TRANSACTION_ID\n--cleanup\n--all\n--json",
+        semantics=(
+            "Mutating create/add/update/remove/convert commands record phase evidence under Arc's state directory. Recovery cleanup is deliberately conservative: it removes only exact paths registered as transaction-owned temporary state and never rolls back an already-published destination automatically. "
+            "Resumable conversion work is continued with arc convert --resume, using the batch manifest's source/destination verification evidence."
+        ),
+        examples="arc recover\narc recover TXID --json\narc recover TXID --cleanup",
+        see_also="arc-convert(1), arc-explain(1)",
+    )
+)
+
 _add(
     _command_page(
         "completion",
@@ -432,6 +462,8 @@ DEFAULT_TOPIC_SECTIONS: dict[str, int] = {
     "backends": 1,
     "aliases": 1,
     "doctor": 1,
+    "explain": 1,
+    "recover": 1,
     "completion": 1,
     "formats": 7,
     "remote": 7,

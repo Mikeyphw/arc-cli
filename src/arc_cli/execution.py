@@ -75,12 +75,27 @@ class ExecutionStage:
 class ExecutionPlan:
     operation: str = ""
     stages: list[ExecutionStage] = field(default_factory=list)
+    decisions: list[dict] = field(default_factory=list)
+    mutation: bool = False
 
     def add(self, stage: ExecutionStage) -> None:
         self.stages.append(stage)
 
+    def decide(self, name: str, value, *, reason: str = "", evidence: str | None = None) -> None:
+        item = {"name": name, "value": value}
+        if reason:
+            item["reason"] = reason
+        if evidence:
+            item["evidence"] = evidence
+        self.decisions.append(item)
+
     def to_dict(self) -> dict:
-        return {"operation": self.operation, "stages": [stage.to_dict() for stage in self.stages]}
+        return {
+            "operation": self.operation,
+            "mutation": self.mutation,
+            "decisions": list(self.decisions),
+            "stages": [stage.to_dict() for stage in self.stages],
+        }
 
     def render(self, *, style: str = "reproducible") -> list[str]:
         reproducible = style != "exact"
@@ -98,6 +113,14 @@ def begin_plan(operation: str, *, mode: str | None = None, style: str = "reprodu
     _mode_var.set(mode)
     _style_var.set(style)
     return plan
+
+
+def mark_mutation(value: bool = True) -> None:
+    current_plan().mutation = value
+
+
+def record_decision(name: str, value, *, reason: str = "", evidence: str | None = None) -> None:
+    current_plan().decide(name, value, reason=reason, evidence=evidence)
 
 
 def current_plan() -> ExecutionPlan:

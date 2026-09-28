@@ -56,6 +56,12 @@ aliases      inspect installed executable aliases
 doctor       audit Arc installation and runtime health
 .fi
 .nf
+explain      explain an execution plan without mutating data
+.fi
+.nf
+recover      inspect and clean interrupted Arc transactions
+.fi
+.nf
 completion   manage shell completion
 .fi
 .nf
@@ -217,11 +223,15 @@ Arc rejects traversal, absolute member paths, unsafe link parents, and special o
 .SH "REMOTE PATHS"
 SSH locations use ssh://NAME/path or configured NAME:path syntax. rclone locations use rclone://NAME/path or normal remote:path syntax. Operations that need random access or local safety inspection may stage data; diagnostic strategy labels say so instead of claiming a direct stream.
 .SH "ENVIRONMENT"
-ARC_PROGRESS, ARC_LEVEL, ARC_THREADS, ARC_BACKEND_*, ARC_CACHE_HOME, XDG_CONFIG_HOME, XDG_CACHE_HOME, RCLONE_CONFIG, PAGER, MANPAGER, NO_COLOR.
+ARC_PROGRESS, ARC_LEVEL, ARC_THREADS, ARC_BACKEND_*, ARC_CACHE_HOME, ARC_STATE_HOME, XDG_CONFIG_HOME, XDG_CACHE_HOME, XDG_STATE_HOME, RCLONE_CONFIG, PAGER, MANPAGER, NO_COLOR.
 .SH "FILES"
 ~/.config/arc/config.toml
 .PP
 ~/.cache/arc/
+.PP
+~/.local/state/arc/transactions/
+.PP
+~/.local/state/arc/batches/
 .PP
 Installed manual pages under share/man.
 .SH "EXIT STATUS"

@@ -594,3 +594,26 @@ The final qualification after ARC-R01 through ARC-R05 is wrapper-first and inten
 `gate` runs the cumulative EXO qualification: syntax/source hygiene, completion and repository contracts, the complete pytest tree, full installed-native-backend R03 qualification (including the large-manifest case), package build verification, metadata/CLI coherence, and campaign promise checks. `seal` repeats that gate, runs Devtool's own wrapper final seal, then computes and verifies a byte-exact content ledger from the actual post-gate transaction worktree. The committed `release/ARC-FINAL-SEAL.json` is a static seal contract that defines the scope and evidence locations; the live content root is written to `.devtool/evidence/arc-final-gate/candidate-seal.json` and the final `SEALED` verdict. A read-only `before_commit` finalizer re-verifies that exact candidate ledger immediately before Devtool commits.
 
 The committed content contract is `release/ARC-FINAL-SEAL.json`. See [`docs/ARC-FINAL-GATE-SEAL.md`](docs/ARC-FINAL-GATE-SEAL.md) for every required gate and its evidence mapping.
+
+### Explain, recover, and resume
+
+Arc can explain a mutating operation through its real dry-run planner without publishing data or creating transaction state:
+
+```bash
+arc explain convert archive.zip -tzst
+arc explain --json create backup.tar src/
+```
+
+Mutating create/add/update/remove/convert operations keep durable journals under the Arc state directory. Inspect or conservatively clean interrupted temporary state with:
+
+```bash
+arc recover
+arc recover TRANSACTION_ID --cleanup
+```
+
+Batch conversion writes a durable per-item manifest. Resume reuses only unchanged source/output pairs backed by prior verification evidence; changed inputs or tampered outputs rerun independently:
+
+```bash
+arc convert a.zip b.zip c.zip -tzst --batch
+arc convert a.zip b.zip c.zip -tzst --batch --resume
+```

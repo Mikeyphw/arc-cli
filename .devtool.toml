@@ -112,6 +112,19 @@ pytest_tests = [
 pytest_args = ["--maxfail=1"]
 pytest_include_defaults = false
 
+[test_profiles.r07]
+pytest_tests = [
+  "tests/test_r07_execution_recovery_resume.py",
+  "tests/test_convert_command.py",
+  "tests/test_r01_semantics.py",
+  "tests/test_r04_execution_plan.py",
+  "tests/test_completion.py",
+  "tests/test_manpages.py",
+  "tests/test_distribution_contract.py",
+]
+pytest_args = ["--maxfail=1"]
+pytest_include_defaults = false
+
 [[test]]
 id = "arc-r06-runtime-install-truth"
 name = "ARC-R06 runtime, alias, and installation truth"
@@ -121,6 +134,22 @@ command = [
   "--junitxml=.devtool/reports/roadmap/arc-r06-runtime-install-truth.xml",
   "tests/test_r06_runtime_install_truth.py",
   "tests/test_command_aliases.py",
+  "tests/test_completion.py",
+  "tests/test_manpages.py",
+  "tests/test_distribution_contract.py",
+]
+
+[[test]]
+id = "arc-r07-execution-recovery-resume"
+name = "ARC-R07 explainable plans, transaction recovery, and resumable batches"
+runner = "pytest"
+command = [
+  "python3", "-m", "pytest", "-q",
+  "--junitxml=.devtool/reports/roadmap/arc-r07-execution-recovery-resume.xml",
+  "tests/test_r07_execution_recovery_resume.py",
+  "tests/test_convert_command.py",
+  "tests/test_r01_semantics.py",
+  "tests/test_r04_execution_plan.py",
   "tests/test_completion.py",
   "tests/test_manpages.py",
   "tests/test_distribution_contract.py",
@@ -293,6 +322,12 @@ command = ["python3", "scripts/check_completion_contract.py"]
 inputs = ["src/arc_cli/completion.py", "src/arc_cli/interactive.py", "completions/_arc"]
 metadata = { read_only = true, purpose = "completion-contract", contract = "arc-devtool-v2" }
 
+[targets.arc.jobs.command-docs-contract]
+runner = "command"
+command = ["python3", "scripts/generate_command_docs.py", "--check"]
+inputs = ["src/arc_cli/manual.py", "src/arc_cli/command_docs.py", "src/arc_cli/man/**", "docs/COMMAND_REFERENCE.md", "scripts/generate_command_docs.py"]
+metadata = { read_only = true, purpose = "generated-command-docs", contract = "arc-r07" }
+
 [targets.arc.jobs.devtool-contract]
 runner = "command"
 command = ["python3", "scripts/check_devtool_contract.py"]
@@ -318,6 +353,13 @@ r06 = [
   { id = "syntax", ref = "job:syntax", depends_on = [] },
   { id = "alias-contract", ref = "job:alias-contract", depends_on = ["syntax"] },
   { id = "r06-contract", ref = "test:arc-r06-runtime-install-truth", depends_on = ["alias-contract"] },
+]
+
+r07 = [
+  { id = "syntax", ref = "job:syntax", depends_on = [] },
+  { id = "docs", ref = "job:command-docs-contract", depends_on = ["syntax"] },
+  { id = "completion", ref = "job:completion-contract", depends_on = ["syntax"] },
+  { id = "r07-contract", ref = "test:arc-r07-execution-recovery-resume", depends_on = ["docs", "completion"] },
 ]
 
 refresh_install = [
@@ -422,7 +464,7 @@ aliases = ["t"]
 [wrapper.commands.test.options.profile]
 type = "choice"
 description = "Select a repository test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "final_gate", "full"]
 command_argv = ["--profile", "{value}"]
 
 [wrapper.commands.test.options.node]
@@ -474,7 +516,7 @@ aliases = ["val"]
 [wrapper.commands.validate.options.profile]
 type = "choice"
 description = "Select the validation test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "final_gate", "full"]
 command_argv = ["--test-profile", "{value}"]
 
 [wrapper.commands.validate.options.affected]
@@ -549,6 +591,11 @@ aliases = ["s"]
 [wrapper.commands.r06]
 description = "Run ARC-R06 runtime, alias, and installation truth qualification"
 workflow = "r06"
+target = "arc"
+
+[wrapper.commands.r07]
+description = "Run ARC-R07 explain/recovery/resumable-batch targeted validation"
+workflow = "r07"
 target = "arc"
 
 [wrapper.commands.refresh-install]

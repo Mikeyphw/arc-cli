@@ -17,7 +17,7 @@ BACKEND_NAMES = ["tar", "bsdtar", "7z", "7zz", "zip", "unzip", "rar", "unrar", "
 VALUE_OPTIONS = {
     "--format", "-F", "--backend", "-o", "--output", "--level", "--threads", "--exclude", "--include",
     "--exclude-from", "--include-from", "--progress", "--password-file", "--password-env", "--profile",
-    "--show-native", "--native-style", "--execution", "--source-password-file", "--source-password-env", "--source",
+    "--show-native", "--native-style", "--execution", "--source-password-file", "--source-password-env", "--source", "--batch-id",
 }
 OPTIONAL_VALUE_OPTIONS = {"--password", "--source-password", "--yazi"}
 
@@ -30,7 +30,7 @@ FILTERS = {"--exclude", "--include", "--exclude-from", "--include-from"}
 CREATE = {"--level", "--threads", "--add-extension", "--follow-symlinks", "--one-file-system", "--preserve-owner", "--preserve-acls", "--preserve-xattrs"}
 CREATE_SUFFIX_FLAGS = {flag for flag, _fmt, _suffix in CREATE_SUFFIX_SHORTCUTS}
 EXTRACT = {"-o", "--output", "--overwrite", "--skip-existing", "--rename-existing", "--unsafe-paths", "--stdout", "--preserve-owner", "--preserve-acls", "--preserve-xattrs"}
-CONVERT = CREATE | FILTERS | CREATE_SUFFIX_FLAGS | {"-f", "--force", "--replace-source", "--batch", "--source-password", "--source-password-file", "--source-password-env"}
+CONVERT = CREATE | FILTERS | CREATE_SUFFIX_FLAGS | {"-f", "--force", "--replace-source", "--batch", "--resume", "--batch-id", "--source-password", "--source-password-file", "--source-password-env"}
 INFO = {"--format", "-F", "--backend", "--no-fallback", "--profile", "--password", "--password-file", "--password-env", "--members", "--verify", "--technical", "--json", "-q", "--quiet", "-v", "--verbose", "--progress", "--show-command", "--show-native", "--native-style", "--execution"}
 
 COMMAND_OPTIONS: dict[str, set[str]] = {
@@ -49,6 +49,8 @@ COMMAND_OPTIONS: dict[str, set[str]] = {
     "profiles": {"--json"},
     "aliases": {"--json", "--missing"},
     "doctor": {"--json", "--fix", "--source"},
+    "explain": {"--json"},
+    "recover": {"--cleanup", "--all", "--json"},
     "man": {"--list", "--plain"},
     "help": set(),
     "completion": set(),
@@ -149,6 +151,11 @@ def completion_candidates(words: list[str]) -> list[str]:
     op = words[0]
     if op not in COMMAND_OPTIONS:
         return []
+    if op == "explain":
+        inner = [word for word in words[1:] if word != "--json"]
+        if not inner:
+            return [name for name in OPERATIONS if name not in {"explain", "recover"}]
+        return completion_candidates(inner)
     cur = words[-1]
     prev = words[-2] if len(words) >= 2 else ""
     before_current = words[1:-1]
