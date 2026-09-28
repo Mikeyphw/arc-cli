@@ -114,7 +114,11 @@ R11 implementation owns one typed load/validation/result model, one effective-se
 
 The first R11 gate audit found an implementation gap inside the existing R11 boundary: supported environment overrides were explainable when valid but invalid values were not part of the typed load/diagnostic result, allowing doctor to report a healthy default configuration when no TOML file existed. It also found TOML integer fields accepting float/boolean coercion through Python `int(...)`. R11A closes both gaps without changing the R12 boundary: supported environment failures are typed and fail closed across runtime/config/doctor/machine surfaces, invalid effective inspection remains structured, backend environment lists cannot normalize to empty, and TOML/profile integer fields require actual integers.
 
-**Separate R11 gate:** audit R11 + R11A across the full provenance/diagnostic promise ledger and cumulative compatibility surface before R12 begins.
+### R11B — Doctor environment isolation
+
+The widened R11 gate audit found one final convergence gap: after diagnosing an invalid `ARC_BACKEND_*` override, doctor rebuilt backend inventory with an empty config but implicitly re-read the same invalid process environment and could crash. R11B makes backend inventory environment-explicit and makes doctor use safe built-in preferences only after the shared configuration result is invalid, while preserving normal runtime/environment behavior when configuration is valid.
+
+**Separate R11 gate:** audit R11 + R11A + R11B across the full provenance/diagnostic promise ledger and cumulative compatibility surface before R12 begins.
 
 ## R12 — Advisory intelligence, benchmarking, and support evidence
 

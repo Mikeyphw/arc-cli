@@ -193,7 +193,11 @@ def collect_doctor_report(
     # Once an invalid configuration has been reported, downstream doctor
     # checks must remain diagnostic rather than crashing on malformed tables.
     config = config_result.data if config_result.valid else {}
-    inventory = backend_inventory(config)
+    # When configuration/environment validation already failed, downstream
+    # checks must not re-read the same invalid environment and raise again.
+    # Use built-in backend defaults only; the config check above remains the
+    # authoritative failure evidence.
+    inventory = backend_inventory(config, environ=None if config_result.valid else {})
     usable_roles = 0
     for role in inventory:
         if any(bool(candidate.get("installed")) for candidate in role["candidates"]):

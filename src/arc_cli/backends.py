@@ -102,9 +102,11 @@ def _which_capable(
     return None
 
 
-def backend_inventory(config: dict) -> list[dict]:
+def backend_inventory(config: dict, *, environ: dict[str, str] | None = None) -> list[dict]:
     rows: list[dict] = []
-    for role, preferences in ((key, backend_preferences(config, key)) for key in DEFAULT_BACKENDS):
+    for role, preferences in (
+        (key, backend_preferences(config, key, environ=environ)) for key in DEFAULT_BACKENDS
+    ):
         candidates = []
         for name in preferences:
             path = shutil.which(name)

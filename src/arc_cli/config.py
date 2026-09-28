@@ -283,10 +283,17 @@ def load_config(*, strict: bool = False) -> dict:
     return result.data
 
 
-def backend_preferences(config: dict, key: str) -> list[str]:
+def backend_preferences(
+    config: dict,
+    key: str,
+    *,
+    environ: Mapping[str, str] | None = None,
+) -> list[str]:
     # Keep runtime backend ordering on the same provenance resolver surfaced by
-    # `arc config explain backends.ROLE`.
-    return list(resolve_config_value(f"backends.{key}", config).value)
+    # `arc config explain backends.ROLE`. Diagnostic callers may supply an
+    # explicit environment mapping so an already-invalid environment cannot be
+    # re-read while producing a safe diagnostic report.
+    return list(resolve_config_value(f"backends.{key}", config, environ=environ).value)
 
 
 def profile_names(config: dict) -> list[str]:

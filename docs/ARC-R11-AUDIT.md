@@ -40,3 +40,9 @@ R11A closes those gaps by validating supported environment overrides in the shar
 ## Gate obligations
 
 The separate R11 gate must re-audit invalid TOML, invalid typed values, invalid supported environment values with and without a TOML file, unknown keys, all five precedence layers, backend environment overrides, profile resolution, JSON/machine/schema parity, doctor/runtime behavior, generated docs/completion/package inclusion, and cumulative R10 compatibility.
+## R11B completion finding
+
+The widened gate audit found one final doctor-only split-brain after R11A: an invalid `ARC_BACKEND_*` value was correctly represented as an `invalid_environment` configuration issue, but `collect_doctor_report()` then called backend inventory with an empty config while still inheriting the process environment. Backend preference resolution re-read the same invalid override and raised, so doctor crashed after already diagnosing the configuration failure.
+
+R11B makes backend inventory environment-explicit. Runtime and ordinary inventory behavior still inherit the process environment, while doctor passes an empty environment mapping only after the shared configuration result is invalid. That preserves the original failure evidence and lets downstream backend/install/generated-surface checks finish using safe built-in preferences. The R11 gate must prove the full invalid environment matrix, including invalid backend overrides, cannot re-enter a failing resolver after the configuration check.
+

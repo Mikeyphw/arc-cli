@@ -185,6 +185,12 @@ All notable changes to this project will be documented here.
 - Keep invalid effective configuration inspection structured and machine-readable while refusing to manufacture values the runtime would reject.
 - Reject float/boolean coercion for TOML/profile integer fields, remote ports/TTLs, and completion TTLs.
 
+### ARC-R11B doctor environment isolation
+
+- Keep doctor diagnostic after an invalid `ARC_BACKEND_*` override instead of re-entering the same invalid environment while constructing backend inventory.
+- Make backend preference/inventory environment input explicit so diagnostic callers can use safe built-in preferences without changing normal runtime environment precedence.
+- Add regression coverage for the complete invalid supported-environment matrix and downstream doctor continuity.
+
 - First-class Devtool repository contract for the `arc` Python target.
 - Native-Termux host-Python execution policy with a Devtool-managed host venv.
 - Generated `devtoolw`/`devtoolw.cmd` launchers and typed wrapper commands.
