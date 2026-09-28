@@ -173,6 +173,27 @@ pytest_tests = [
 pytest_args = ["--maxfail=1"]
 pytest_include_defaults = false
 
+[test_profiles.r09b_gate]
+pytest_tests = [
+  "tests/test_r09b_gate.py",
+  "tests/test_r09b_remote_capability_publication.py",
+  "tests/test_r04_remote_transport.py",
+  "tests/test_r05_remote_native.py",
+  "tests/test_r08_machine_capability_verification.py",
+  "tests/test_r09a_provenance_diff.py",
+  "tests/test_r07_execution_recovery_resume.py",
+  "tests/test_convert_command.py",
+  "tests/test_cli_integration.py",
+  "tests/test_safety.py",
+  "tests/test_info_command.py",
+  "tests/test_command_aliases.py",
+  "tests/test_completion.py",
+  "tests/test_manpages.py",
+  "tests/test_distribution_contract.py",
+]
+pytest_args = ["--maxfail=1", "-ra"]
+pytest_include_defaults = false
+
 [[test]]
 id = "arc-r06-runtime-install-truth"
 name = "ARC-R06 runtime, alias, and installation truth"
@@ -255,6 +276,30 @@ command = [
   "tests/test_r08_machine_capability_verification.py",
   "tests/test_r09a_provenance_diff.py",
   "tests/test_convert_command.py",
+  "tests/test_completion.py",
+  "tests/test_manpages.py",
+  "tests/test_distribution_contract.py",
+]
+
+[[test]]
+id = "arc-r09b-gate"
+name = "ARC-R09B cumulative remote capability/publication gate"
+runner = "pytest"
+command = [
+  "python3", "-m", "pytest", "-q", "-ra",
+  "--junitxml=.devtool/reports/roadmap/arc-r09b-gate.xml",
+  "tests/test_r09b_gate.py",
+  "tests/test_r09b_remote_capability_publication.py",
+  "tests/test_r04_remote_transport.py",
+  "tests/test_r05_remote_native.py",
+  "tests/test_r08_machine_capability_verification.py",
+  "tests/test_r09a_provenance_diff.py",
+  "tests/test_r07_execution_recovery_resume.py",
+  "tests/test_convert_command.py",
+  "tests/test_cli_integration.py",
+  "tests/test_safety.py",
+  "tests/test_info_command.py",
+  "tests/test_command_aliases.py",
   "tests/test_completion.py",
   "tests/test_manpages.py",
   "tests/test_distribution_contract.py",
@@ -457,6 +502,12 @@ command = ["python3", "scripts/check_remote_contract.py"]
 inputs = ["src/arc_cli/remote.py", "src/arc_cli/machine.py", "src/arc_cli/schemas/remote-capability-v1.schema.json", "src/arc_cli/man/arc-remote.7", "scripts/check_remote_contract.py", ".devtool.toml"]
 metadata = { read_only = true, purpose = "remote-capability-publication-contract", contract = "arc-r09b" }
 
+[targets.arc.jobs.r09b-gate-contract]
+runner = "command"
+command = ["python3", "scripts/check_r09b_gate_contract.py"]
+inputs = [".devtool.toml", "docs/ARC-R09B-GATE.md", "docs/ARC-NEXT-ROADMAP.md", "docs/WRAPPER.md", "scripts/check_r09b_gate_contract.py", "tests/test_r09b_gate.py"]
+metadata = { read_only = true, purpose = "r09b-cumulative-promise-gate", contract = "arc-r09b-gate-v1" }
+
 [targets.arc.jobs.backend-smoke]
 runner = "command"
 command = [".devtool/venvs/arc/bin/python", "scripts/devtool_backend_smoke.py"]
@@ -512,6 +563,18 @@ r09b = [
   { id = "completion", ref = "job:completion-contract", depends_on = ["syntax"] },
   { id = "devtool-contract", ref = "job:devtool-contract", depends_on = ["syntax"] },
   { id = "r09b-contract", ref = "test:arc-r09b-remote-capability-publication", depends_on = ["machine-contract", "remote-contract", "docs", "completion", "devtool-contract"] },
+]
+
+r09b_gate = [
+  { id = "syntax", ref = "job:syntax", depends_on = [] },
+  { id = "machine-contract", ref = "job:machine-contract", depends_on = ["syntax"] },
+  { id = "provenance-contract", ref = "job:provenance-contract", depends_on = ["syntax"] },
+  { id = "remote-contract", ref = "job:remote-contract", depends_on = ["syntax"] },
+  { id = "docs", ref = "job:command-docs-contract", depends_on = ["syntax"] },
+  { id = "completion", ref = "job:completion-contract", depends_on = ["syntax"] },
+  { id = "devtool-contract", ref = "job:devtool-contract", depends_on = ["syntax"] },
+  { id = "gate-contract", ref = "job:r09b-gate-contract", depends_on = ["machine-contract", "provenance-contract", "remote-contract", "docs", "completion", "devtool-contract"] },
+  { id = "gate", ref = "test:arc-r09b-gate", depends_on = ["gate-contract"] },
 ]
 
 refresh_install = [
@@ -616,7 +679,7 @@ aliases = ["t"]
 [wrapper.commands.test.options.profile]
 type = "choice"
 description = "Select a repository test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "final_gate", "full"]
 command_argv = ["--profile", "{value}"]
 
 [wrapper.commands.test.options.node]
@@ -668,7 +731,7 @@ aliases = ["val"]
 [wrapper.commands.validate.options.profile]
 type = "choice"
 description = "Select the validation test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "final_gate", "full"]
 command_argv = ["--test-profile", "{value}"]
 
 [wrapper.commands.validate.options.affected]
@@ -763,6 +826,11 @@ target = "arc"
 [wrapper.commands.r09b]
 description = "Run ARC-R09B remote capability/cache/publication targeted validation"
 workflow = "r09b"
+target = "arc"
+
+[wrapper.commands.r09b-gate]
+description = "Run the cumulative ARC-R09B remote capability/publication qualification gate"
+workflow = "r09b_gate"
 target = "arc"
 
 [wrapper.commands.refresh-install]

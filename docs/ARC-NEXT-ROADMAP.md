@@ -71,6 +71,8 @@ Acceptance: `arc.remote-capability/v1` is bundled and queryable; live/cache prov
 
 **Separate R09B gate:** qualify the cumulative remote capability/publication promise ledger and broader transport matrix after this targeted implementation validation; do not merge the gate into R09B implementation.
 
+**R09B gate: QUALIFIED.** The separate cumulative gate closes the transport capability/publication ledger with first-class `arc-r09b-gate` / `r09b_gate` Devtool ownership. R10 is now the next implementation boundary.
+
 ## R10 — Destructive-operation policy and interactive execution UX
 
 13. Centralize destination/destructive policies: fail/replace/rename/skip-identical, recoverable removal when supported, optional backup-existing, and one publication policy shared by all mutating commands.
