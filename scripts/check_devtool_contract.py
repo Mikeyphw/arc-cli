@@ -59,7 +59,7 @@ for name, command in expected_jobs.items():
     if list(actual or []) != command:
         fail(f"targets.arc.jobs.{name}.command drifted: {actual!r}")
 
-for workflow in ("lint", "format", "fast", "quality", "release", "final_gate", "final_seal", "r08"):
+for workflow in ("lint", "format", "fast", "quality", "release", "final_gate", "final_seal", "r08", "r09a"):
     if workflow not in workflows:
         fail(f"required arc workflow missing: {workflow}")
 
@@ -78,12 +78,34 @@ for required_ref in (
 if list(jobs.get("machine-contract", {}).get("command", []) or []) != ["python3", "scripts/check_machine_contract.py"]:
     fail("targets.arc.jobs.machine-contract must execute the canonical R08 machine contract checker")
 
+r09a = workflows.get("r09a", [])
+r09a_refs = {str(step.get("ref", "")) for step in r09a if isinstance(step, dict)}
+for required_ref in (
+    "job:machine-contract",
+    "job:provenance-contract",
+    "job:command-docs-contract",
+    "job:completion-contract",
+    "job:devtool-contract",
+    "test:arc-r09a-provenance-diff",
+):
+    if required_ref not in r09a_refs:
+        fail(f"r09a workflow missing required ref: {required_ref}")
+
+if list(jobs.get("provenance-contract", {}).get("command", []) or []) != ["python3", "scripts/check_provenance_contract.py"]:
+    fail("targets.arc.jobs.provenance-contract must execute the canonical R09A provenance contract checker")
+
 declared_tests = data.get("test", [])
 if not isinstance(declared_tests, list) or not any(
     isinstance(item, dict) and item.get("id") == "arc-r08-machine-capability-verification"
     for item in declared_tests
 ):
     fail("missing first-class arc-r08-machine-capability-verification test")
+
+if not any(
+    isinstance(item, dict) and item.get("id") == "arc-r09a-provenance-diff"
+    for item in declared_tests
+):
+    fail("missing first-class arc-r09a-provenance-diff test")
 
 if wrapper.get("schema") != 1:
     fail("wrapper schema must remain 1")
@@ -111,6 +133,9 @@ if commands.get("seal", {}).get("workflow") != "final_seal":
     fail("wrapper seal command must use workflow='final_seal'")
 if commands.get("r08", {}).get("workflow") != "r08":
     fail("wrapper r08 command must use workflow='r08'")
+
+if commands.get("r09a", {}).get("workflow") != "r09a":
+    fail("wrapper r09a command must use workflow='r09a'")
 
 for name in ("devtoolw", "devtoolw.cmd"):
     path = ROOT / name

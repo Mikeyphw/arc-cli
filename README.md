@@ -93,10 +93,27 @@ arc info backup.7z
 arc info backup.zip --members
 arc info backup.zip --technical
 arc info backup.zip --verify
+arc info backup.zip --fingerprint
 arc info a.zip b.tar.zst --json
 ```
 
-The JSON form reports `verified: null` unless verification actually runs. `--verify-level none|structure|members|full` selects the requested proof; `--allow-verification-downgrade` is required before Arc may accept a weaker backend proof, and the result records both requested and achieved levels. Content detection is compared with the filename extension, so a ZIP renamed to `.rar` is reported as ZIP with an extension mismatch. Header-encrypted archives retain whatever outer metadata Arc can prove even when member metadata requires a password. Remote info uses the same SSH/rclone transport layer and reports whether random-access inspection required local staging.
+The JSON form reports `verified: null` unless verification actually runs. `--verify-level none|structure|members|full` selects the requested proof; `--allow-verification-downgrade` is required before Arc may accept a weaker backend proof, and the result records both requested and achieved levels. Content detection is compared with the filename extension, so a ZIP renamed to `.rar` is reported as ZIP with an extension mismatch. Header-encrypted archives retain whatever outer metadata Arc can prove even when member metadata requires a password. `--fingerprint` adds a format-independent logical content digest, a separate selected-metadata digest, and the encoded archive byte SHA-256. Remote info uses the same SSH/rclone transport layer and reports whether random-access inspection required local staging.
+
+## Logical fingerprints and archive diff
+
+`arc diff` compares normalized archive meaning rather than compressed bytes:
+
+```bash
+arc diff old.zip new.7z
+arcdiff backup.zip backup.tar.zst --json
+arc diff private-a.7z private-b.zip \
+  --left-password-env OLD_PASS \
+  --right-password-env NEW_PASS --json=v1
+```
+
+The logical digest includes normalized NFC/member paths, member kind, regular-file size/content SHA-256, link targets, and meaningful empty-directory presence. Safe internal parent traversal is collapsed to its filesystem-equivalent path before hashing, and archive entries that collide after normalization are rejected before extraction. Timestamps are intentionally kept out of that digest and compared separately as selected metadata, so repacking with different timestamps can remain logically equivalent. Non-empty directory entries are normalized away because some formats store parent directories explicitly while others imply them from child paths. Single-stream compressors use the synthetic `@stream` member, allowing equivalent decompressed bytes to compare across gzip/bzip2/xz/zstd encodings.
+
+Diff output classifies `added`, `removed`, `type_changed`, `content_changed`, and `metadata_changed` members. It distinguishes logical equivalence, selected-metadata equivalence, archive-byte identity, container/format changes, and `encoding_only`, which is true only when both logical content and selected metadata match while encoded bytes differ. Remote inputs use Arc's existing read-side transport and are reported as staged for local normalized comparison; native remote comparison/capability negotiation remains R09B. A successful comparison returns success even when archives differ; scripts should inspect the equivalence fields rather than treating a normal difference as an execution failure.
 
 ## Conversion
 
@@ -106,12 +123,15 @@ The JSON form reports `verified: null` unless verification actually runs. `--ver
 arc convert archive.zip archive.tar.zst
 arc convert archive.zip -tzst
 arc convert database.sql.gz -zst
+arc convert backup.zip backup.tar.zst --prove-equivalent
 arc convert archive.zip -zst --include video.mp4
 ```
 
 The same authoritative suffix selectors used by `create` are accepted by `convert`. With no destination, Arc removes one recognized source archive suffix and appends the selected target suffix. With an explicit selector, a conflicting destination extension is only a filename; the selector still determines the bytes written.
 
 Compatible local single-stream and TAR recompression paths avoid an unnecessary extracted tree. Other container conversions use an isolated safe member pipeline. Local output is built at an unpublished same-filesystem candidate and evaluated under the selected verification policy before publication. `--verify-level none` deliberately publishes without proof and cannot be combined with `--replace-source`; stronger levels are negotiated against the selected backend's typed capability profile. A weaker proof is accepted only with explicit `--allow-verification-downgrade`. Failed requested verification cannot leave a new corrupt final path or clobber an existing `--force` destination. `--replace-source` removes the source only after verified publication.
+
+`--prove-equivalent` additionally fingerprints the readable source and unpublished destination with the same R09A logical-content engine used by `arc diff`; a logical mismatch blocks local publication. For remote destinations Arc proves the local candidate first and then re-reads/fingerprints the published remote object. Intentional semantic transforms such as member filtering are therefore expected to fail this assertion.
 
 Remote conversion intentionally reports `transport-staged ...` rather than pretending transport staging is a direct stream. A remote source is staged so Arc can retain content-first format classification (including the stream-vs-compressed-TAR distinction), normalized safety checks, and exact physical-size evidence. A remote destination is first produced and verified as a local candidate, then uploaded through Arc's temporary-target/finalize transport path, re-read, and verified again before source deletion is permitted; final rename/moveto atomicity depends on the transport/provider. The SSH/rclone transport layer can stream in other operations, but conversion does not trade those invariants for a lower-staging path.
 
@@ -141,6 +161,7 @@ arcmk / arc-create / arcpack       -> arc create
 arcx  / arc-extract / arcunpack    -> arc extract
 arcls / arc-list                   -> arc list
 arci  / arc-info                   -> arc info
+arcdiff / arc-diff                 -> arc diff
 arct  / arc-test / arccheck        -> arc test
 arccv / arc-convert / arcconvert   -> arc convert
 arca  / arc-add                    -> arc add

@@ -114,7 +114,16 @@ def _tar_member_from_info(info: tarfile.TarInfo) -> Member:
     else:
         kind = "special"
     import datetime as _dt
-    mtime = _dt.datetime.fromtimestamp(info.mtime).isoformat(sep=" ", timespec="seconds") if info.mtime is not None else None
+    # TAR stores an epoch timestamp. Render it in UTC rather than the host
+    # timezone so provenance/metadata fingerprints are portable across hosts
+    # (notably Termux devices and desktop builders in different timezones).
+    mtime = (
+        _dt.datetime.fromtimestamp(info.mtime, tz=_dt.timezone.utc)
+        .replace(tzinfo=None)
+        .isoformat(sep=" ", timespec="seconds")
+        if info.mtime is not None
+        else None
+    )
     return Member(info.name, info.size, kind, info.linkname or None, mtime)
 
 

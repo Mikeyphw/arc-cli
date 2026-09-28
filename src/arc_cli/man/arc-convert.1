@@ -86,6 +86,8 @@ Transform one logical archive representation into another through Arc's normaliz
 .PP
 \-\-replace\-source
 .PP
+\-\-prove\-equivalent
+.PP
 \-\-source\-password/\-\-source\-password\-file/\-\-source\-password\-env
 .PP
 \-\-password/\-\-password\-file/\-\-password\-env
@@ -116,7 +118,7 @@ A short selector or \-F/\-\-format controls the actual target encoding even when
 .SH "STREAM AND MEMBER SELECTION"
 Container\-to\-gzip/bzip2/xz/zstd requires exactly one selected regular file. Include\-only filters act as an explicit selection, so \-\-include file can narrow a multi\-member container. Stream\-to\-container conversion uses a logical filename derived from the stream source rather than Arc's temporary staging path.
 .SH "BATCH CONVERSION"
-Multiple sources with an explicit target format are independent batch jobs. Arc resolves and collision\-checks the complete destination set before starting the first conversion, so a late filename conflict cannot leave an earlier batch item already published. \-\-batch resolves the ambiguous two\-source case. Batch runs persist a manifest under Arc's state directory. \-\-resume reuses a completed item only when its source fingerprint and verified destination fingerprint still match; changed inputs invalidate only the affected item. Remote items are not reused unless Arc can prove a stable remote identity.
+Multiple sources with an explicit target format are independent batch jobs. Arc resolves and collision\-checks the complete destination set before starting the first conversion, so a late filename conflict cannot leave an earlier batch item already published. \-\-batch resolves the ambiguous two\-source case. Batch runs persist a manifest under Arc's state directory. \-\-resume reuses a completed item only when its source fingerprint and verified destination fingerprint still match; changed inputs invalidate only the affected item. Remote items are not reused unless Arc can prove a stable remote identity. \-\-prove\-equivalent fingerprints the readable source and the unpublished destination with the same logical provenance engine as arc diff; a logical mismatch blocks local publication. Remote destinations are re\-read and fingerprinted after publication. Because it is an assertion of semantic preservation, intentional content\-changing filters are expected to fail equivalence proof.
 .SH "PUBLICATION AND VERIFICATION"
 Local output is created at an unpublished same\-filesystem candidate and processed according to the requested verification policy before publication. none deliberately publishes without proof and cannot authorize \-\-replace\-source. structure/members/full are negotiated against typed backend capabilities; a weaker proof is accepted only with \-\-allow\-verification\-downgrade and is recorded explicitly. A failed requested proof leaves no new corrupt final path and does not clobber an existing \-\-force destination. Verified remote output is re\-read after publication before \-\-replace\-source may delete any source.
 .SH "EXAMPLES"
@@ -127,6 +129,8 @@ arc convert private.rar archive.7z \-7z \-\-source\-password\-env OLD_PASS \-\-p
 arc convert archive.zip \-zst \-\-include video.mp4
 .PP
 arc convert database.sql.gz \-zst
+.PP
+arc convert backup.zip backup.tar.zst \-\-prove\-equivalent
 .PP
 arc convert a.zip b.zip c.zip \-tzst \-\-replace\-source
 .SH "SEE ALSO"

@@ -18,7 +18,7 @@ SHORT-ALIAS ...
 
 ### Description
 
-Arc provides one normalized interface over native archive and compression backends. It owns format detection, safe extraction, filtering, atomic publication, backend capability selection, progress, remote transport, conversion, inspection, completion, and machine-readable output.
+Arc provides one normalized interface over native archive and compression backends. It owns format detection, safe extraction, filtering, atomic publication, backend capability selection, progress, remote transport, conversion, logical provenance/diff, inspection, completion, and machine-readable output.
 
 ### Commands
 
@@ -27,6 +27,7 @@ Arc provides one normalized interface over native archive and compression backen
   extract      extract an archive safely
   list         list archive members
   info         show archive metadata and summary information
+  diff         compare archive contents and logical equivalence
   test         verify archive integrity
   convert      convert an archive or compressed stream
   add          add new archive members
@@ -56,6 +57,8 @@ Arc provides one normalized interface over native archive and compression backen
   arc-list       arc list
   arci           arc info
   arc-info       arc info
+  arcdiff        arc diff
+  arc-diff       arc diff
   arct           arc test
   arc-test       arc test
   arccheck       arc test
@@ -129,7 +132,7 @@ Installed manual pages under share/man.
 
 ### See Also
 
-arc-create(1), arc-extract(1), arc-list(1), arc-info(1), arc-test(1), arc-convert(1), arc-formats(7), arc-backends(7), arc-remote(7), arc-config(5), arc-profiles(5)
+arc-create(1), arc-extract(1), arc-list(1), arc-info(1), arc-diff(1), arc-test(1), arc-convert(1), arc-formats(7), arc-backends(7), arc-remote(7), arc-config(5), arc-profiles(5)
 
 ## arc-add(1)
 
@@ -299,6 +302,7 @@ Transform one logical archive representation into another through Arc's normaliz
 --resume
 --batch-id ID
 --replace-source
+--prove-equivalent
 --source-password/--source-password-file/--source-password-env
 --password/--password-file/--password-env
 --include/--exclude and rule files
@@ -323,7 +327,7 @@ Container-to-gzip/bzip2/xz/zstd requires exactly one selected regular file. Incl
 
 ### Batch Conversion
 
-Multiple sources with an explicit target format are independent batch jobs. Arc resolves and collision-checks the complete destination set before starting the first conversion, so a late filename conflict cannot leave an earlier batch item already published. --batch resolves the ambiguous two-source case. Batch runs persist a manifest under Arc's state directory. --resume reuses a completed item only when its source fingerprint and verified destination fingerprint still match; changed inputs invalidate only the affected item. Remote items are not reused unless Arc can prove a stable remote identity.
+Multiple sources with an explicit target format are independent batch jobs. Arc resolves and collision-checks the complete destination set before starting the first conversion, so a late filename conflict cannot leave an earlier batch item already published. --batch resolves the ambiguous two-source case. Batch runs persist a manifest under Arc's state directory. --resume reuses a completed item only when its source fingerprint and verified destination fingerprint still match; changed inputs invalidate only the affected item. Remote items are not reused unless Arc can prove a stable remote identity. --prove-equivalent fingerprints the readable source and the unpublished destination with the same logical provenance engine as arc diff; a logical mismatch blocks local publication. Remote destinations are re-read and fingerprinted after publication. Because it is an assertion of semantic preservation, intentional content-changing filters are expected to fail equivalence proof.
 
 ### Publication And Verification
 
@@ -335,6 +339,7 @@ arc convert old.zip -tzst
 arc convert private.rar archive.7z -7z --source-password-env OLD_PASS --password-env NEW_PASS
 arc convert archive.zip -zst --include video.mp4
 arc convert database.sql.gz -zst
+arc convert backup.zip backup.tar.zst --prove-equivalent
 arc convert a.zip b.zip c.zip -tzst --replace-source
 
 ### See Also
@@ -402,6 +407,47 @@ arc create misleading.rar -7z data/
 ### See Also
 
 arc(1), arc-formats(7), arc-backends(7), arc-remote(7)
+
+## arc-diff(1)
+
+### Name
+
+arc-diff - compare archive contents and logical equivalence
+
+### Synopsis
+
+arc diff LEFT RIGHT [OPTIONS]
+arcdiff ...
+arc-diff ...
+
+### Description
+
+Compare two archives by normalized logical content rather than compressed bytes. Arc fingerprints readable member bytes, normalizes member paths, preserves empty directories, and reports encoding/container and metadata differences separately.
+
+### Options
+
+--backend NAME
+--no-fallback
+--password/--password-file/--password-env
+--left-password/--left-password-file/--left-password-env
+--right-password/--right-password-file/--right-password-env
+--show-command
+--show-native[=before|after|both]
+--json[=legacy|v1]
+
+### Semantics
+
+logical=true means normalized member paths, kinds, file sizes/content SHA-256 values, link targets, and empty-directory presence match. Timestamps are intentionally excluded from the logical digest and compared through a separate metadata digest so repackaging does not turn an encoding-only change into a content change. Non-empty directory entries are normalized away because some archive formats emit them explicitly while others imply them from child paths. Single-stream compressors use the synthetic @stream logical member, allowing the same decompressed bytes in gzip/xz/zstd/bzip2 to compare independently of filenames or compression encoding. Arc still reports each archive's byte SHA-256 and format, so logical equivalence never implies byte identity. The encoding_only flag is true only when both logical content and selected metadata match while encoded bytes differ. Remote inputs use the existing read-side transport and are staged locally for normalized comparison; native remote comparison/capability negotiation remains owned by R09B.
+
+### Examples
+
+arc diff old.zip new.7z
+arcdiff backup.zip backup.tar.zst --json
+arc diff private-a.7z private-b.zip --left-password-env OLD_PASS --right-password-env NEW_PASS --json=v1
+
+### See Also
+
+arc-info(1), arc-test(1), arc-formats(7)
 
 ## arc-doctor(1)
 
@@ -551,6 +597,7 @@ Show a compact archive-level summary without silently performing a full integrit
 ### Options
 
 --members        include compact member statistics
+--fingerprint    compute logical content + byte-level archive fingerprints
 --verify         run the strongest verification the selected backend can prove
 --verify-level LEVEL   none|structure|members|full
 --allow-verification-downgrade
@@ -565,7 +612,7 @@ Show a compact archive-level summary without silently performing a full integrit
 
 ### Semantics
 
-Default info is metadata inspection, not verification: JSON uses verified=null unless --verify or --verify-level was requested. Verification evidence records requested and achieved levels, backend, checks, and any explicitly authorized downgrade. Encrypted-header archives still return outer metadata when member indexing needs a password. Content detection wins over a misleading extension and the mismatch is reported explicitly. Gzip inspection reports the trailer size hint and optional embedded original filename when present. Member-backed summaries normalize oldest/newest timestamps and expose counts, largest-member evidence with --members, and encryption/solid/volume/comment-like metadata when the selected backend can prove it. Remote random-access inspection reports when it staged locally.
+Default info is metadata inspection, not verification: JSON uses verified=null unless --verify or --verify-level was requested. Verification evidence records requested and achieved levels, backend, checks, and any explicitly authorized downgrade. Encrypted-header archives still return outer metadata when member indexing needs a password. Content detection wins over a misleading extension and the mismatch is reported explicitly. Gzip inspection reports the trailer size hint and optional embedded original filename when present. Member-backed summaries normalize oldest/newest timestamps and expose counts, largest-member evidence with --members, and encryption/solid/volume/comment-like metadata when the selected backend can prove it. --fingerprint materializes readable member content through Arc's normalized safe extraction path and reports a format-independent logical digest, a metadata digest, and the byte SHA-256 of the encoded archive. Remote random-access inspection reports when it staged locally.
 
 ### Examples
 
@@ -573,11 +620,12 @@ arci backup.tar.zst
 arci private.7z --password-env ARCHIVE_PASS
 arci archive.zip --technical
 arci archive.zip --verify
+arci archive.zip --fingerprint
 arc info a.zip b.7z --json
 
 ### See Also
 
-arc-list(1), arc-test(1), arc-convert(1), arc-remote(7)
+arc-list(1), arc-diff(1), arc-test(1), arc-convert(1), arc-remote(7)
 
 ## arc-list(1)
 
@@ -684,16 +732,16 @@ arc-schema - show Arc machine-contract JSON Schemas
 
 ### Synopsis
 
-arc schema [machine-v1|backend-capability-v1|verification-evidence-v1] [--list]
+arc schema [machine-v1|backend-capability-v1|verification-evidence-v1|logical-fingerprint-v1|archive-diff-v1] [--list]
 
 ### Description
 
-Print the bundled JSON Schemas that define Arc's stable machine envelope, typed backend capability profile, and verification evidence contracts.
+Print the bundled JSON Schemas that define Arc's stable machine envelope, backend/verification contracts, and archive provenance/diff records.
 
 ### Options
 
 --list
-machine-v1 | backend-capability-v1 | verification-evidence-v1
+machine-v1 | backend-capability-v1 | verification-evidence-v1 | logical-fingerprint-v1 | archive-diff-v1
 
 ### Semantics
 
@@ -703,7 +751,8 @@ Schemas are shipped as package data and are the public validation contract for -
 
 arc schema --list
 arc schema machine-v1
-arc schema verification-evidence-v1
+arc schema logical-fingerprint-v1
+arc schema archive-diff-v1
 
 ### See Also
 

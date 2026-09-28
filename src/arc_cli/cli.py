@@ -38,6 +38,7 @@ from .formats import CREATE_SUFFIX_SHORTCUTS, detect, extension_for, infer_from_
 from .interactive import choose_auto, filesystem_candidates, rg_files, yazi_choose
 from .model import FilterRule, Member
 from .progress import ProgressReporter, console, progress_enabled, stdout_console
+from .provenance import FINGERPRINT_NORMALIZATION, build_fingerprint, compare_fingerprints, fingerprint_summary, materialized_member_map, member_record, validate_logical_member_set
 from .verification import VerificationEvidence, choose_level, verify_with_backend
 from .remote import (
     RemoteLocation,
@@ -259,6 +260,7 @@ def parser() -> argparse.ArgumentParser:
     q.add_argument("--password-file")
     q.add_argument("--password-env", metavar="NAME")
     q.add_argument("--members", action="store_true", help="include compact member statistics")
+    q.add_argument("--fingerprint", action="store_true", help="compute a logical content fingerprint plus byte-level archive provenance")
     q.add_argument("--verify", action="store_true", help="run verification using the strongest level the selected backend can prove")
     q.add_argument("--verify-level", choices=[level.value for level in VerificationLevel], help="request an explicit verification proof level; implies --verify")
     q.add_argument("--allow-verification-downgrade", action="store_true", help="accept the strongest weaker proof when the requested verification level is unavailable")
@@ -272,12 +274,35 @@ def parser() -> argparse.ArgumentParser:
     q.add_argument("--native-style", choices=["exact", "reproducible"], default=None)
     q.add_argument("--execution", choices=["auto", "local", "remote"], default=None)
 
+    q = sub.add_parser("diff", help=COMMAND_DOCS["diff"].summary)
+    q.add_argument("left", help="left/archive A")
+    q.add_argument("right", help="right/archive B")
+    q.add_argument("--backend", help="preferred backend for both inputs")
+    q.add_argument("--no-fallback", action="store_true")
+    q.add_argument("--password", nargs="?", const="__PROMPT__", help="password used for both archives unless a side-specific password is supplied")
+    q.add_argument("--password-file")
+    q.add_argument("--password-env", metavar="NAME")
+    q.add_argument("--left-password", nargs="?", const="__PROMPT__")
+    q.add_argument("--left-password-file")
+    q.add_argument("--left-password-env", metavar="NAME")
+    q.add_argument("--right-password", nargs="?", const="__PROMPT__")
+    q.add_argument("--right-password-file")
+    q.add_argument("--right-password-env", metavar="NAME")
+    q.add_argument("-q", "--quiet", action="store_true")
+    q.add_argument("-v", "--verbose", action="count", default=0)
+    q.add_argument("--progress", choices=["auto", "always", "never"], default=None)
+    q.add_argument("--show-command", action="store_true")
+    q.add_argument("--show-native", nargs="?", const="after", choices=["before", "after", "both"], default=None)
+    q.add_argument("--native-style", choices=["exact", "reproducible"], default=None)
+    _add_json_option(q)
+
     q = sub.add_parser("convert", help=COMMAND_DOCS["convert"].summary)
     q.add_argument("paths", nargs="+", help="SOURCE [DESTINATION], or multiple existing sources with an explicit target format")
     add_common(q, create=True, format_option=False)
     _add_create_suffix_shortcuts(q, operation="convert")
     q.add_argument("-f", "--force", action="store_true", help="replace an existing destination")
     q.add_argument("--replace-source", action="store_true", help="remove each source only after destination verification")
+    q.add_argument("--prove-equivalent", action="store_true", help="prove the converted result is logically equivalent to the source before publication")
     q.add_argument("--batch", action="store_true", help="treat every positional path as an independent source and derive each destination")
     q.add_argument("--resume", action="store_true", help="reuse completed batch items only when source and verified destination evidence still match")
     q.add_argument("--batch-id", help="override the deterministic resumable batch identity")
@@ -363,11 +388,13 @@ def _display_invocation(argv: list[str], args) -> str:
     than a claim that we can reconstruct the literal shell input.
     """
     words = [getattr(args, "_invoked_program", "arc"), *getattr(args, "_display_argv", argv)]
-    secrets = [getattr(args, "password", None), getattr(args, "source_password", None)]
-    for secret in secrets:
+    secret_options = ("password", "source_password", "left_password", "right_password")
+    for option in secret_options:
+        secret = getattr(args, option, None)
         if secret and secret != "__PROMPT__":
+            flag = "--" + option.replace("_", "-")
             words = [
-                "***" if word == secret else word.replace(f"--password={secret}", "--password=***").replace(f"--source-password={secret}", "--source-password=***")
+                "***" if word == secret else word.replace(f"{flag}={secret}", f"{flag}=***")
                 for word in words
             ]
     return shlex.join(words)
@@ -376,7 +403,7 @@ def _display_invocation(argv: list[str], args) -> str:
 def _show_invocation(argv: list[str], args) -> None:
     if getattr(args, "quiet", False) or getattr(args, "json", False):
         return
-    if getattr(args, "command", None) not in {"identify", "list", "extract", "create", "add", "update", "remove", "test", "info", "convert"}:
+    if getattr(args, "command", None) not in {"identify", "list", "extract", "create", "add", "update", "remove", "test", "info", "diff", "convert"}:
         return
     # Keep redirected/scripted output clean. In an interactive terminal, emit
     # one logical line and let the terminal soft-wrap it visually. Rich table
@@ -2224,6 +2251,200 @@ def _verify_archive_path(path: Path, fmt, password: str | None, args, config: di
     return evidence
 
 
+def _resolve_scoped_password(args, prefix: str, fallback: str | None = None) -> str | None:
+    password = getattr(args, f"{prefix}_password", None)
+    password_file = getattr(args, f"{prefix}_password_file", None)
+    password_env = getattr(args, f"{prefix}_password_env", None)
+    if password is None and password_file is None and password_env is None:
+        return fallback
+    scoped = argparse.Namespace(password=password, password_file=password_file, password_env=password_env)
+    return _resolve_password(scoped)
+
+
+def _fingerprint_archive_local(
+    path: Path,
+    display: str,
+    args,
+    config: dict,
+    password: str | None,
+    *,
+    fmt=None,
+    members: list[Member] | None = None,
+) -> dict[str, object]:
+    fmt = fmt or detect(path, None)
+    extract_backend = resolve_backend(
+        fmt,
+        "extract",
+        config,
+        getattr(args, "backend", None),
+        required_capabilities=_backend_requirements(args, fmt, "extract", password),
+        no_fallback=bool(getattr(args, "no_fallback", False)),
+    )
+    if fmt.is_stream:
+        indexed_members = [Member("@stream", 0, "file")]
+    else:
+        if members is None:
+            list_backend = resolve_backend(
+                fmt,
+                "list",
+                config,
+                getattr(args, "backend", None),
+                required_capabilities=_backend_requirements(args, fmt, "list", password),
+                no_fallback=bool(getattr(args, "no_fallback", False)),
+            )
+            indexed_members = list_backend.list_members(path, password=password)
+        else:
+            indexed_members = list(members)
+        validate_members(indexed_members)
+        try:
+            validate_logical_member_set(indexed_members)
+        except ValueError as exc:
+            raise UnsafeArchive(str(exc)) from exc
+
+    with tempfile.TemporaryDirectory(prefix="arc-fingerprint-") as td:
+        root = Path(td)
+        extract_args = _clone_args(
+            args,
+            command="extract",
+            archive=str(path),
+            members=[],
+            output=str(root),
+            format=fmt.canonical,
+            password=password,
+            password_file=None,
+            password_env=None,
+            filter_rules=[],
+            overwrite=True,
+            skip_existing=False,
+            rename_existing=False,
+            unsafe_paths=False,
+            stdout=False,
+            preserve_owner=False,
+            preserve_acls=False,
+            preserve_xattrs=False,
+            yazi=None,
+            quiet=True,
+            json=False,
+            dry_run=False,
+            progress="never",
+        )
+        _extract(extract_args, [], config)
+        if fmt.is_stream:
+            stream_path = root / _stream_output_name(path)
+            records = [member_record(indexed_members[0], root, stream_path=stream_path)]
+        else:
+            materialized = materialized_member_map(root)
+            records = [member_record(member, root, materialized=materialized) for member in indexed_members]
+        return build_fingerprint(
+            path,
+            format_name=fmt.canonical,
+            backend=extract_backend.info.binary,
+            records=records,
+            source_label=display,
+            include_members=True,
+        )
+
+
+def _stage_archive_for_read(raw: str, args, config: dict) -> tuple[Path, str, Path | None, str]:
+    remote = parse_remote(str(raw), config, probe_rclone=True)
+    if remote is not None:
+        path, cleanup = stage_remote_for_read(
+            remote,
+            config,
+            progress=progress_enabled(getattr(args, "progress", "auto"), getattr(args, "json", False), getattr(args, "quiet", False)),
+        )
+        return path, remote.raw, cleanup, remote.kind
+    path = Path(raw).expanduser()
+    return path, str(path), None, "local"
+
+
+def _print_diff_result(payload: dict[str, object]) -> None:
+    equivalence = payload["equivalence"]
+    changes = payload["changes"]
+    counts = changes["counts"]
+    left = payload["left"]
+    right = payload["right"]
+    t = Table(title="Arc archive diff", show_header=False, box=None, pad_edge=False)
+    t.add_column("Field", style="bold")
+    t.add_column("Value")
+    left_locality = " · staged locally" if left.get("staged") else ""
+    right_locality = " · staged locally" if right.get("staged") else ""
+    t.add_row("Left", f"{left['archive']['path']} [{left['archive']['format']}] · {left.get('transport', 'local')}{left_locality}")
+    t.add_row("Right", f"{right['archive']['path']} [{right['archive']['format']}] · {right.get('transport', 'local')}{right_locality}")
+    t.add_row("Logical", "equivalent" if equivalence["logical"] else "different")
+    t.add_row("Metadata", "equivalent" if equivalence["metadata"] else "different")
+    t.add_row("Bytes", "identical" if equivalence["byte_identical"] else "different")
+    if equivalence["format_changed"]:
+        t.add_row("Container", "different encoding/container")
+    if equivalence["encoding_only"]:
+        t.add_row("Interpretation", "same logical content; encoded bytes differ")
+    t.add_row(
+        "Changes",
+        ", ".join(f"{name}={counts[name]}" for name in ("added", "removed", "type_changed", "content_changed", "metadata_changed")),
+    )
+    stdout_console.print(t)
+    for title, key in (
+        ("Added", "added"),
+        ("Removed", "removed"),
+        ("Type changed", "type_changed"),
+        ("Content changed", "content_changed"),
+        ("Metadata changed", "metadata_changed"),
+    ):
+        rows = changes[key]
+        if not rows:
+            continue
+        stdout_console.print(f"[bold]{title}[/bold]")
+        for row in rows:
+            path = row.get("path") if isinstance(row, dict) else None
+            stdout_console.print(f"  {path or row}")
+
+
+def _diff_command(args, config: dict) -> int:
+    record_decision(
+        "comparison",
+        "logical+metadata+archive-bytes",
+        reason="R09A compares normalized member content separately from selected metadata and encoded archive bytes",
+    )
+    record_decision(
+        "fingerprint_normalization",
+        FINGERPRINT_NORMALIZATION,
+        reason="both inputs use the same format-independent logical member normalization",
+    )
+    common_password = _resolve_password(args)
+    left_password = _resolve_scoped_password(args, "left", common_password)
+    right_password = _resolve_scoped_password(args, "right", common_password)
+    left_path = right_path = None
+    left_cleanup = right_cleanup = None
+    try:
+        left_path, left_display, left_cleanup, left_transport = _stage_archive_for_read(args.left, args, config)
+        right_path, right_display, right_cleanup, right_transport = _stage_archive_for_read(args.right, args, config)
+        left = _fingerprint_archive_local(left_path, left_display, args, config, left_password)
+        right = _fingerprint_archive_local(right_path, right_display, args, config, right_password)
+        left["transport"] = left_transport
+        right["transport"] = right_transport
+        payload = compare_fingerprints(left, right)
+        # Transport is provenance context, not part of the logical digest.
+        payload["left"]["transport"] = left_transport
+        payload["right"]["transport"] = right_transport
+        payload["left"]["staged"] = left_transport != "local"
+        payload["right"]["staged"] = right_transport != "local"
+        record_decision(
+            "locality",
+            "local-normalized-comparison",
+            reason="remote inputs are read through existing staging; remote capability negotiation remains R09B",
+        )
+        if args.json:
+            print(json.dumps(payload, ensure_ascii=False, sort_keys=True))
+        elif not args.quiet:
+            _print_diff_result(payload)
+        return 0
+    finally:
+        if left_cleanup:
+            left_cleanup.unlink(missing_ok=True)
+        if right_cleanup:
+            right_cleanup.unlink(missing_ok=True)
+
+
 def _archive_info_local(path: Path, display: str, args, config: dict, password: str | None) -> tuple[dict, bool]:
     fmt = detect(path, getattr(args, "format", None))
     display_hint = display.split(":", 1)[-1] if ":" in display and not Path(display).exists() else display
@@ -2284,6 +2505,13 @@ def _archive_info_local(path: Path, display: str, args, config: dict, password: 
         verified = True if evidence.status == "passed" and evidence.achieved is not VerificationLevel.NONE else (False if evidence.status == "failed" else None)
         failed = evidence.status == "failed"
 
+    fingerprint = None
+    if getattr(args, "fingerprint", False):
+        if metadata_limited_reason is not None:
+            raise PasswordError("logical fingerprint requires readable archive member contents")
+        fingerprint_full = _fingerprint_archive_local(path, display, args, config, password, fmt=fmt, members=members if not fmt.is_stream else None)
+        fingerprint = fingerprint_summary(fingerprint_full)
+
     # A mismatch means content detection beat the filename hint. A matching
     # hint is still reported separately so callers do not confuse filename
     # agreement with proof of integrity.
@@ -2326,6 +2554,7 @@ def _archive_info_local(path: Path, display: str, args, config: dict, password: 
         "verify_backend": verify_backend,
         "verify_error": verify_error,
         "verification": verification,
+        "fingerprint": fingerprint,
         "technical": technical if getattr(args, "technical", False) else None,
         "convert_targets": _conversion_targets(config),
     }
@@ -2400,6 +2629,13 @@ def _print_info_result(result: dict, *, members: bool = False, technical: bool =
         t.add_row("Integrity", "not verified (verification level none)")
     else:
         t.add_row("Integrity", "not checked")
+    if result.get("fingerprint"):
+        fp = result["fingerprint"]
+        t.add_row("Logical fingerprint", str(fp.get("digest")))
+        t.add_row("Metadata fingerprint", str(fp.get("metadata_digest")))
+        archive_fp = fp.get("archive") or {}
+        if archive_fp.get("byte_sha256"):
+            t.add_row("Archive SHA-256", str(archive_fp.get("byte_sha256")))
     targets = result.get("convert_targets") or []
     if targets:
         t.add_row("Convert targets", " ".join(targets))
@@ -2619,7 +2855,17 @@ def _show_convert_plan(source: str, destination: str, source_fmt, target_fmt, st
     )
     verification_plan = _verification_plan(target_fmt, args, config)
     verification_enabled = verification_plan["selected"] != VerificationLevel.NONE.value
-    publication = "local-same-filesystem-atomic-replace" if destination_remote is None else ("transport-dependent-remote-publish-with-reread" if verification_enabled else "transport-dependent-remote-publish-unverified")
+    equivalence_enabled = bool(getattr(args, "prove_equivalent", False))
+    if destination_remote is None:
+        publication = "local-same-filesystem-atomic-replace"
+    elif verification_enabled and equivalence_enabled:
+        publication = "transport-dependent-remote-publish-with-verification-and-equivalence-reread"
+    elif verification_enabled:
+        publication = "transport-dependent-remote-publish-with-verification-reread"
+    elif equivalence_enabled:
+        publication = "transport-dependent-remote-publish-with-equivalence-reread"
+    else:
+        publication = "transport-dependent-remote-publish-unverified"
     record_decision("source_format", source_fmt.canonical, reason="detected from source bytes/name during planning")
     record_decision("destination_format", target_fmt.canonical, reason="explicit selector or destination suffix")
     record_decision("backend_chain", _convert_backend_summary(source_fmt, target_fmt, args, config), reason="compatible source/target backend resolution")
@@ -2627,6 +2873,11 @@ def _show_convert_plan(source: str, destination: str, source_fmt, target_fmt, st
     record_decision("publication", publication, reason="locality determines publication guarantees")
     record_decision("verification", "verify-unpublished-candidate-then-published-remote-reread" if destination_remote and verification_enabled else ("verification-disabled" if not verification_enabled else "verify-unpublished-candidate-before-publish"), reason="publication verification sequence")
     record_decision("verification_policy", verification_plan, reason="typed verification policy negotiated against the selected test backend")
+    record_decision(
+        "logical_equivalence",
+        "prove-source-vs-destination" if getattr(args, "prove_equivalent", False) else "not-requested",
+        reason="--prove-equivalent uses the R09A logical fingerprint/diff authority and blocks local publication on mismatch",
+    )
     record_decision("source_removal", "after-verified-publish" if args.replace_source else "keep", reason="--replace-source policy")
     mark_mutation(not bool(getattr(args, "dry_run", False)))
     if args.quiet or args.json:
@@ -2642,8 +2893,12 @@ def _show_convert_plan(source: str, destination: str, source_fmt, target_fmt, st
     t.add_row("Strategy", strategy)
     if destination_remote is None:
         publication_label = "yes (local same-filesystem publish)"
+    elif verification_enabled and equivalence_enabled:
+        publication_label = "transport-dependent; remote re-read verified and logical equivalence proven"
     elif verification_enabled:
         publication_label = "transport-dependent; remote re-read verified"
+    elif equivalence_enabled:
+        publication_label = "transport-dependent; remote re-read logical equivalence proven"
     else:
         publication_label = "transport-dependent; verification disabled"
     t.add_row("Atomic", publication_label)
@@ -2880,6 +3135,13 @@ def _convert_one(job: dict, args, config: dict, source_password: str | None, des
                 transport_staged=bool(source_remote or destination_remote),
             )
             _show_convert_plan(source_raw, destination_raw, source_fmt, target_fmt, strategy, args, config)
+            source_logical_fingerprint = None
+            equivalence_proof = None
+            if getattr(args, "prove_equivalent", False):
+                tx_event("equivalence", status="source-fingerprint", source=source_raw)
+                source_logical_fingerprint = _fingerprint_archive_local(
+                    local_source, source_raw, args, config, source_password, fmt=source_fmt
+                )
 
             final_local_destination: Path | None = None
             if destination_remote:
@@ -2941,36 +3203,65 @@ def _convert_one(job: dict, args, config: dict, source_password: str | None, des
                 evidence=verification_evidence.to_dict(),
             )
 
+            if source_logical_fingerprint is not None:
+                destination_fingerprint = _fingerprint_archive_local(
+                    local_destination, destination_raw, args, config, destination_password, fmt=target_fmt
+                )
+                equivalence_proof = compare_fingerprints(source_logical_fingerprint, destination_fingerprint)
+                if not equivalence_proof["equivalence"]["logical"]:
+                    tx_event("equivalence", status="failed", destination=destination_raw, scope="unpublished-candidate", evidence=equivalence_proof)
+                    raise CorruptArchive("converted destination is not logically equivalent to the source")
+                tx_event("equivalence", status="passed", destination=destination_raw, scope="unpublished-candidate", evidence=equivalence_proof)
+
             if destination_remote:
                 tx_event("remote-transfer", direction="upload", destination=destination_raw)
                 upload_remote(local_destination, destination_remote, config, progress=transfer_progress)
                 tx_event("remote-transfer-complete", direction="upload", destination=destination_raw)
-                # When verification is enabled, verify the published remote
-                # object rather than merely the pre-upload staging bytes.  A
-                # verification level of none deliberately skips the expensive
-                # re-read and can never authorize --replace-source.
-                if verification_evidence.achieved is not VerificationLevel.NONE:
+                # Verification and equivalence proof both require evidence from
+                # the published remote object rather than merely the local
+                # pre-upload candidate.  A normal verification level of none
+                # skips the re-read only when logical equivalence was not requested.
+                need_remote_reread = (
+                    verification_evidence.achieved is not VerificationLevel.NONE
+                    or source_logical_fingerprint is not None
+                )
+                if need_remote_reread:
                     published = work / ("verify-" + (destination_remote.basename or "destination.arc"))
                     download_remote(destination_remote, published, config, progress=transfer_progress)
-                    with ProgressReporter(
-                        "Verifying remote",
-                        0,
-                        0,
-                        progress_enabled(args.progress, args.json, args.quiet),
-                    ) as remote_verification_progress:
-                        remote_evidence = _coerce_verification_evidence(
-                            _verify_archive_path(published, target_fmt, destination_password, args, config),
-                            args,
+                    if verification_evidence.achieved is not VerificationLevel.NONE:
+                        with ProgressReporter(
+                            "Verifying remote",
+                            0,
+                            0,
+                            progress_enabled(args.progress, args.json, args.quiet),
+                        ) as remote_verification_progress:
+                            remote_evidence = _coerce_verification_evidence(
+                                _verify_archive_path(published, target_fmt, destination_password, args, config),
+                                args,
+                            )
+                            remote_verification_progress.complete()
+                        verify_backend = remote_evidence.backend
+                        verify_error = _verification_failure_detail(remote_evidence)
+                        if remote_evidence.status == "failed":
+                            tx_event("verify", status="failed", destination=destination_raw, detail=verify_error, scope="published-remote-reread", evidence=remote_evidence.to_dict())
+                            raise CorruptArchive(f"published remote destination failed verification: {verify_error}")
+                        verification_evidence = remote_evidence
+                        tx_event("verify", status=remote_evidence.status, destination=destination_raw, backend=verify_backend, scope="published-remote-reread", evidence=remote_evidence.to_dict())
+                    if source_logical_fingerprint is not None:
+                        published_fingerprint = _fingerprint_archive_local(
+                            published, destination_raw, args, config, destination_password, fmt=target_fmt
                         )
-                        remote_verification_progress.complete()
-                    verify_backend = remote_evidence.backend
-                    verify_error = _verification_failure_detail(remote_evidence)
-                    if remote_evidence.status == "failed":
-                        tx_event("verify", status="failed", destination=destination_raw, detail=verify_error, scope="published-remote-reread", evidence=remote_evidence.to_dict())
-                        raise CorruptArchive(f"published remote destination failed verification: {verify_error}")
-                    verification_evidence = remote_evidence
-                    tx_event("verify", status=remote_evidence.status, destination=destination_raw, backend=verify_backend, scope="published-remote-reread", evidence=remote_evidence.to_dict())
-                    tx_event("publish", destination=destination_raw, publication="transport-dependent-verified-reread")
+                        equivalence_proof = compare_fingerprints(source_logical_fingerprint, published_fingerprint)
+                        if not equivalence_proof["equivalence"]["logical"]:
+                            tx_event("equivalence", status="failed", destination=destination_raw, scope="published-remote-reread", evidence=equivalence_proof)
+                            raise CorruptArchive("published remote destination is not logically equivalent to the source")
+                        tx_event("equivalence", status="passed", destination=destination_raw, scope="published-remote-reread", evidence=equivalence_proof)
+                    publication = (
+                        "transport-dependent-verified-reread"
+                        if verification_evidence.achieved is not VerificationLevel.NONE
+                        else "transport-dependent-equivalence-reread"
+                    )
+                    tx_event("publish", destination=destination_raw, publication=publication)
                     converted_size = published.stat().st_size
                 else:
                     tx_event("publish", destination=destination_raw, publication="transport-dependent-unverified")
@@ -3006,6 +3297,7 @@ def _convert_one(job: dict, args, config: dict, source_password: str | None, des
                 "verified": True if verification_evidence.status == "passed" and verification_evidence.achieved is not VerificationLevel.NONE else None,
                 "verify_backend": verify_backend,
                 "verification": verification_evidence.to_dict(),
+                "equivalence": equivalence_proof,
                 "source_removed": bool(args.replace_source),
                 "transport": destination_remote.kind if destination_remote else (source_remote.kind if source_remote else "local"),
                 "duration_seconds": time.monotonic() - started,
@@ -3030,6 +3322,7 @@ def _batch_policy(args, jobs: list[dict]) -> dict:
         "replace_source": bool(getattr(args, "replace_source", False)),
         "verify_level": getattr(args, "verify_level", None),
         "allow_verification_downgrade": bool(getattr(args, "allow_verification_downgrade", False)),
+        "prove_equivalent": bool(getattr(args, "prove_equivalent", False)),
         "execution": getattr(args, "execution", None),
     }
 
@@ -3109,6 +3402,12 @@ def _print_convert_success(result: dict) -> None:
         t.add_row("Verified", "no (verification disabled)")
     if result.get("duration_seconds") is not None:
         t.add_row("Duration", f"{float(result['duration_seconds']):.2f}s")
+    if result.get("equivalence"):
+        eq = result["equivalence"].get("equivalence", {})
+        label = "yes" if eq.get("logical") else "no"
+        if eq.get("logical") and not eq.get("metadata"):
+            label += " (metadata differs)"
+        t.add_row("Equivalent", label)
     if result.get("source_removed"):
         t.add_row("Source", "removed after verification")
     stdout_console.print(t)
@@ -3146,8 +3445,19 @@ def _convert(args, config: dict) -> int:
                 "source_format": source_fmt.canonical,
                 "destination_format": job["target_format"].canonical,
                 "strategy": strategy,
-                "publication": ("transport-dependent-remote-publish-with-reread" if _verification_plan(job["target_format"], args, config)["selected"] != "none" else "transport-dependent-remote-publish-unverified") if destination_remote else "local-same-filesystem-atomic-replace",
+                "publication": (
+                    "transport-dependent-remote-publish-with-verification-and-equivalence-reread"
+                    if destination_remote and _verification_plan(job["target_format"], args, config)["selected"] != "none" and args.prove_equivalent
+                    else "transport-dependent-remote-publish-with-verification-reread"
+                    if destination_remote and _verification_plan(job["target_format"], args, config)["selected"] != "none"
+                    else "transport-dependent-remote-publish-with-equivalence-reread"
+                    if destination_remote and args.prove_equivalent
+                    else "transport-dependent-remote-publish-unverified"
+                    if destination_remote
+                    else "local-same-filesystem-atomic-replace"
+                ),
                 "verification": _verification_plan(job["target_format"], args, config),
+                "equivalence": "prove-source-vs-destination" if args.prove_equivalent else "not-requested",
                 "source_removal": "after-verified-publish" if args.replace_source else "keep",
                 "dry_run": True,
             })
@@ -3592,6 +3902,8 @@ def _dispatch_command(args, extra: list[str], config: dict) -> int:
         return _identify(args, config)
     if args.command == "info":
         return _info(args, config)
+    if args.command == "diff":
+        return _diff_command(args, config)
     if args.command == "explain":
         return _explain_command(args, config)
     if args.command == "recover":

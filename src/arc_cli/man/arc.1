@@ -8,7 +8,7 @@ arc\-COMMAND ...
 .PP
 SHORT\-ALIAS ...
 .SH "DESCRIPTION"
-Arc provides one normalized interface over native archive and compression backends. It owns format detection, safe extraction, filtering, atomic publication, backend capability selection, progress, remote transport, conversion, inspection, completion, and machine\-readable output.
+Arc provides one normalized interface over native archive and compression backends. It owns format detection, safe extraction, filtering, atomic publication, backend capability selection, progress, remote transport, conversion, logical provenance/diff, inspection, completion, and machine\-readable output.
 .SH "COMMANDS"
 .nf
 identify     identify archive format
@@ -24,6 +24,9 @@ list         list archive members
 .fi
 .nf
 info         show archive metadata and summary information
+.fi
+.nf
+diff         compare archive contents and logical equivalence
 .fi
 .nf
 test         verify archive integrity
@@ -103,6 +106,12 @@ arci           arc info
 .fi
 .nf
 arc\-info       arc info
+.fi
+.nf
+arcdiff        arc diff
+.fi
+.nf
+arc\-diff       arc diff
 .fi
 .nf
 arct           arc test
@@ -240,4 +249,4 @@ Installed manual pages under share/man.
 .SH "EXIT STATUS"
 0 means success. Usage, unsupported format/backend, conflict, password, corruption, and unsafe\-archive failures use Arc's typed non\-zero exit statuses.
 .SH "SEE ALSO"
-arc\-create(1), arc\-extract(1), arc\-list(1), arc\-info(1), arc\-test(1), arc\-convert(1), arc\-formats(7), arc\-backends(7), arc\-remote(7), arc\-config(5), arc\-profiles(5)
+arc\-create(1), arc\-extract(1), arc\-list(1), arc\-info(1), arc\-diff(1), arc\-test(1), arc\-convert(1), arc\-formats(7), arc\-backends(7), arc\-remote(7), arc\-config(5), arc\-profiles(5)

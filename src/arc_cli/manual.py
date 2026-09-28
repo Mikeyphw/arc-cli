@@ -80,7 +80,7 @@ _add(
                 "DESCRIPTION",
                 "Arc provides one normalized interface over native archive and compression backends. "
                 "It owns format detection, safe extraction, filtering, atomic publication, backend capability "
-                "selection, progress, remote transport, conversion, inspection, completion, and machine-readable output.",
+                "selection, progress, remote transport, conversion, logical provenance/diff, inspection, completion, and machine-readable output.",
             ),
             (
                 "COMMANDS",
@@ -132,7 +132,7 @@ _add(
             ),
             (
                 "SEE ALSO",
-                "arc-create(1), arc-extract(1), arc-list(1), arc-info(1), arc-test(1), arc-convert(1), "
+                "arc-create(1), arc-extract(1), arc-list(1), arc-info(1), arc-diff(1), arc-test(1), arc-convert(1), "
                 "arc-formats(7), arc-backends(7), arc-remote(7), arc-config(5), arc-profiles(5)",
             ),
         ),
@@ -194,6 +194,7 @@ _add(
         "inputs may be mixed. Unknown values remain null/unknown rather than being reported as false.",
         options=(
             "--members        include compact member statistics\n"
+            "--fingerprint    compute logical content + byte-level archive fingerprints\n"
             "--verify         run the strongest verification the selected backend can prove\n"
             "--verify-level LEVEL   none|structure|members|full\n"
             "--allow-verification-downgrade\n"
@@ -208,15 +209,46 @@ _add(
             "wins over a misleading extension and the mismatch is reported explicitly. Gzip inspection reports the trailer "
             "size hint and optional embedded original filename when present. Member-backed summaries normalize oldest/newest "
             "timestamps and expose counts, largest-member evidence with --members, and encryption/solid/volume/comment-like "
-            "metadata when the selected backend can prove it. Remote random-access inspection reports when it staged locally."
+            "metadata when the selected backend can prove it. --fingerprint materializes readable member content through Arc's normalized "
+            "safe extraction path and reports a format-independent logical digest, a metadata digest, and the byte SHA-256 of the encoded archive. "
+            "Remote random-access inspection reports when it staged locally."
         ),
         examples=(
             "arci backup.tar.zst\narci private.7z --password-env ARCHIVE_PASS\n"
-            "arci archive.zip --technical\narci archive.zip --verify\narc info a.zip b.7z --json"
+            "arci archive.zip --technical\narci archive.zip --verify\narci archive.zip --fingerprint\narc info a.zip b.7z --json"
         ),
-        see_also="arc-list(1), arc-test(1), arc-convert(1), arc-remote(7)",
+        see_also="arc-list(1), arc-diff(1), arc-test(1), arc-convert(1), arc-remote(7)",
     )
 )
+_add(
+    _command_page(
+        "diff",
+        "Compare two archives by normalized logical content rather than compressed bytes. Arc fingerprints readable member bytes, "
+        "normalizes member paths, preserves empty directories, and reports encoding/container and metadata differences separately.",
+        options=(
+            "--backend NAME\n--no-fallback\n--password/--password-file/--password-env\n"
+            "--left-password/--left-password-file/--left-password-env\n"
+            "--right-password/--right-password-file/--right-password-env\n"
+            "--show-command\n--show-native[=before|after|both]\n--json[=legacy|v1]"
+        ),
+        semantics=(
+            "logical=true means normalized member paths, kinds, file sizes/content SHA-256 values, link targets, and empty-directory presence match. "
+            "Timestamps are intentionally excluded from the logical digest and compared through a separate metadata digest so repackaging does not "
+            "turn an encoding-only change into a content change. Non-empty directory entries are normalized away because some archive formats emit them "
+            "explicitly while others imply them from child paths. Single-stream compressors use the synthetic @stream logical member, allowing the same "
+            "decompressed bytes in gzip/xz/zstd/bzip2 to compare independently of filenames or compression encoding. Arc still reports each archive's byte "
+            "SHA-256 and format, so logical equivalence never implies byte identity. The encoding_only flag is true only when both logical content and selected metadata match while encoded bytes differ. "
+            "Remote inputs use the existing read-side transport and are staged locally for normalized comparison; native remote comparison/capability negotiation remains owned by R09B."
+        ),
+        examples=(
+            "arc diff old.zip new.7z\n"
+            "arcdiff backup.zip backup.tar.zst --json\n"
+            "arc diff private-a.7z private-b.zip --left-password-env OLD_PASS --right-password-env NEW_PASS --json=v1"
+        ),
+        see_also="arc-info(1), arc-test(1), arc-formats(7)",
+    )
+)
+
 _add(
     _command_page(
         "test",
@@ -241,7 +273,7 @@ _add(
         options=(
             "-F, --format FORMAT\n"
             + _FORMAT_LINES
-            + "\n--add-extension\n-f, --force\n--batch\n--resume\n--batch-id ID\n--replace-source\n"
+            + "\n--add-extension\n-f, --force\n--batch\n--resume\n--batch-id ID\n--replace-source\n--prove-equivalent\n"
             "--source-password/--source-password-file/--source-password-env\n"
             "--password/--password-file/--password-env\n--include/--exclude and rule files\n"
             "--level 0..9\n--threads N\n--backend NAME\n--no-fallback\n--dry-run\n"
@@ -270,7 +302,9 @@ _add(
                 "earlier batch item already published. --batch resolves the ambiguous two-source case. Batch runs persist a "
                 "manifest under Arc's state directory. --resume reuses a completed item only when its source fingerprint and "
                 "verified destination fingerprint still match; changed inputs invalidate only the affected item. Remote items are "
-                "not reused unless Arc can prove a stable remote identity.",
+                "not reused unless Arc can prove a stable remote identity. --prove-equivalent fingerprints the readable source and the unpublished destination with the same "
+                "logical provenance engine as arc diff; a logical mismatch blocks local publication. Remote destinations are re-read and fingerprinted after publication. "
+                "Because it is an assertion of semantic preservation, intentional content-changing filters are expected to fail equivalence proof.",
             ),
             (
                 "PUBLICATION AND VERIFICATION",
@@ -287,6 +321,7 @@ _add(
             "arc convert private.rar archive.7z -7z --source-password-env OLD_PASS --password-env NEW_PASS\n"
             "arc convert archive.zip -zst --include video.mp4\n"
             "arc convert database.sql.gz -zst\n"
+            "arc convert backup.zip backup.tar.zst --prove-equivalent\n"
             "arc convert a.zip b.zip c.zip -tzst --replace-source"
         ),
         see_also="arc-create(1), arc-info(1), arc-formats(7), arc-remote(7)",
@@ -384,13 +419,13 @@ _add(
 _add(
     _command_page(
         "schema",
-        "Print the bundled JSON Schemas that define Arc's stable machine envelope, typed backend capability profile, and verification evidence contracts.",
-        options="--list\nmachine-v1 | backend-capability-v1 | verification-evidence-v1",
+        "Print the bundled JSON Schemas that define Arc's stable machine envelope, backend/verification contracts, and archive provenance/diff records.",
+        options="--list\nmachine-v1 | backend-capability-v1 | verification-evidence-v1 | logical-fingerprint-v1 | archive-diff-v1",
         semantics=(
             "Schemas are shipped as package data and are the public validation contract for --json=v1 consumers. "
             "Bare --json remains the compatibility surface and is intentionally not covered by the versioned envelope schema."
         ),
-        examples="arc schema --list\narc schema machine-v1\narc schema verification-evidence-v1",
+        examples="arc schema --list\narc schema machine-v1\narc schema logical-fingerprint-v1\narc schema archive-diff-v1",
         see_also="arc(1), arc-backends(1), arc-test(1)",
     )
 )
@@ -482,6 +517,7 @@ DEFAULT_TOPIC_SECTIONS: dict[str, int] = {
     "extract": 1,
     "list": 1,
     "info": 1,
+    "diff": 1,
     "test": 1,
     "convert": 1,
     "add": 1,

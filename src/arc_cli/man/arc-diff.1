@@ -1,0 +1,37 @@
+.TH "ARC-DIFF" "1" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-diff \- compare archive contents and logical equivalence
+.SH "SYNOPSIS"
+arc diff LEFT RIGHT [OPTIONS]
+.PP
+arcdiff ...
+.PP
+arc\-diff ...
+.SH "DESCRIPTION"
+Compare two archives by normalized logical content rather than compressed bytes. Arc fingerprints readable member bytes, normalizes member paths, preserves empty directories, and reports encoding/container and metadata differences separately.
+.SH "OPTIONS"
+\-\-backend NAME
+.PP
+\-\-no\-fallback
+.PP
+\-\-password/\-\-password\-file/\-\-password\-env
+.PP
+\-\-left\-password/\-\-left\-password\-file/\-\-left\-password\-env
+.PP
+\-\-right\-password/\-\-right\-password\-file/\-\-right\-password\-env
+.PP
+\-\-show\-command
+.PP
+\-\-show\-native[=before|after|both]
+.PP
+\-\-json[=legacy|v1]
+.SH "SEMANTICS"
+logical=true means normalized member paths, kinds, file sizes/content SHA\-256 values, link targets, and empty\-directory presence match. Timestamps are intentionally excluded from the logical digest and compared through a separate metadata digest so repackaging does not turn an encoding\-only change into a content change. Non\-empty directory entries are normalized away because some archive formats emit them explicitly while others imply them from child paths. Single\-stream compressors use the synthetic @stream logical member, allowing the same decompressed bytes in gzip/xz/zstd/bzip2 to compare independently of filenames or compression encoding. Arc still reports each archive's byte SHA\-256 and format, so logical equivalence never implies byte identity. The encoding_only flag is true only when both logical content and selected metadata match while encoded bytes differ. Remote inputs use the existing read\-side transport and are staged locally for normalized comparison; native remote comparison/capability negotiation remains owned by R09B.
+.SH "EXAMPLES"
+arc diff old.zip new.7z
+.PP
+arcdiff backup.zip backup.tar.zst \-\-json
+.PP
+arc diff private\-a.7z private\-b.zip \-\-left\-password\-env OLD_PASS \-\-right\-password\-env NEW_PASS \-\-json=v1
+.SH "SEE ALSO"
+arc\-info(1), arc\-test(1), arc\-formats(7)

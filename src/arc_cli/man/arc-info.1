@@ -12,6 +12,8 @@ Show a compact archive\-level summary without silently performing a full integri
 .SH "OPTIONS"
 \-\-members        include compact member statistics
 .PP
+\-\-fingerprint    compute logical content + byte\-level archive fingerprints
+.PP
 \-\-verify         run the strongest verification the selected backend can prove
 .PP
 \-\-verify\-level LEVEL   none|structure|members|full
@@ -34,7 +36,7 @@ Show a compact archive\-level summary without silently performing a full integri
 .PP
 \-\-json[=legacy|v1]
 .SH "SEMANTICS"
-Default info is metadata inspection, not verification: JSON uses verified=null unless \-\-verify or \-\-verify\-level was requested. Verification evidence records requested and achieved levels, backend, checks, and any explicitly authorized downgrade. Encrypted\-header archives still return outer metadata when member indexing needs a password. Content detection wins over a misleading extension and the mismatch is reported explicitly. Gzip inspection reports the trailer size hint and optional embedded original filename when present. Member\-backed summaries normalize oldest/newest timestamps and expose counts, largest\-member evidence with \-\-members, and encryption/solid/volume/comment\-like metadata when the selected backend can prove it. Remote random\-access inspection reports when it staged locally.
+Default info is metadata inspection, not verification: JSON uses verified=null unless \-\-verify or \-\-verify\-level was requested. Verification evidence records requested and achieved levels, backend, checks, and any explicitly authorized downgrade. Encrypted\-header archives still return outer metadata when member indexing needs a password. Content detection wins over a misleading extension and the mismatch is reported explicitly. Gzip inspection reports the trailer size hint and optional embedded original filename when present. Member\-backed summaries normalize oldest/newest timestamps and expose counts, largest\-member evidence with \-\-members, and encryption/solid/volume/comment\-like metadata when the selected backend can prove it. \-\-fingerprint materializes readable member content through Arc's normalized safe extraction path and reports a format\-independent logical digest, a metadata digest, and the byte SHA\-256 of the encoded archive. Remote random\-access inspection reports when it staged locally.
 .SH "EXAMPLES"
 arci backup.tar.zst
 .PP
@@ -44,6 +46,8 @@ arci archive.zip \-\-technical
 .PP
 arci archive.zip \-\-verify
 .PP
+arci archive.zip \-\-fingerprint
+.PP
 arc info a.zip b.7z \-\-json
 .SH "SEE ALSO"
-arc\-list(1), arc\-test(1), arc\-convert(1), arc\-remote(7)
+arc\-list(1), arc\-diff(1), arc\-test(1), arc\-convert(1), arc\-remote(7)

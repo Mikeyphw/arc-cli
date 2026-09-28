@@ -6,7 +6,7 @@ from typing import Literal
 
 from .capabilities import BackendCapabilityProfile
 
-Operation = Literal["identify", "list", "extract", "create", "info", "test", "convert", "add", "update", "remove"]
+Operation = Literal["identify", "list", "extract", "create", "info", "diff", "test", "convert", "add", "update", "remove"]
 
 
 @dataclass(frozen=True, slots=True)

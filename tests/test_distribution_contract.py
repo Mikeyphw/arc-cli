@@ -11,6 +11,7 @@ from pathlib import Path
 
 from arc_cli.command_docs import EXECUTABLE_ALIASES
 from arc_cli.manual import generated_pages
+from arc_cli.machine import schema_names
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -28,8 +29,8 @@ def _assert_wheel_contract(wheel: Path) -> None:
         for page, _content in generated_pages():
             assert f"arc_cli/man/{page.filename}" in names
             assert f"{data_prefix}/man{page.section}/{page.filename}" in names
-        for schema in ("machine-v1.schema.json", "backend-capability-v1.schema.json", "verification-evidence-v1.schema.json"):
-            assert f"arc_cli/schemas/{schema}" in names
+        for schema in schema_names():
+            assert f"arc_cli/schemas/{schema}.schema.json" in names
 
 
 def _build_distributions(source: Path, output: Path) -> tuple[Path, Path]:
@@ -95,8 +96,8 @@ def test_built_wheel_and_sdist_rebuild_preserve_alias_and_manual_contract(tmp_pa
         assert f"{top}/docs/COMMAND_REFERENCE.md" in names
         assert f"{top}/docs/ARC-NEXT-ROADMAP.md" in names
         assert f"{top}/src/arc_cli/manual.py" in names
-        for schema in ("machine-v1.schema.json", "backend-capability-v1.schema.json", "verification-evidence-v1.schema.json"):
-            assert f"{top}/src/arc_cli/schemas/{schema}" in names
+        for schema in schema_names():
+            assert f"{top}/src/arc_cli/schemas/{schema}.schema.json" in names
         tf.extractall(tmp_path / "sdist-tree", filter="data")
 
     rebuilt_root = tmp_path / "sdist-tree" / top

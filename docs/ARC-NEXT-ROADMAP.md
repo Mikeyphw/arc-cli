@@ -50,13 +50,20 @@ Acceptance: legacy bare JSON remains regression-compatible; `--json=v1` is one s
 
 **Separate R08 gate:** qualify the cumulative typed-machine/capability/verification promise ledger and broader backend matrix after this targeted implementation validation; do not merge the gate into R08 implementation.
 
-## R09 — Provenance, logical equivalence, and archive diff
+## R09A — Logical provenance, equivalence, and archive diff
 
-Merge window begins with items 10–12; item 12 may split if remote transport ownership makes the boundary materially different.
+**Merge-window decision:** merge items 10–11 and split item 12. Logical fingerprints and archive diff share one archive-content/provenance authority. Remote capability negotiation is owned by the SSH/rclone transport/cache/publication layer and remains R09B rather than coupling transport semantics to content comparison.
 
-10. Add logical archive fingerprints based on normalized members, sizes, checksums where available, and selected metadata so differently encoded archives can be compared semantically.
-11. Add `arc diff` for added/removed/changed members, metadata changes, logical equivalence, and container/compression differences; provide stable JSON.
-12. Deepen remote execution parity: typed locality/atomicity/staging capabilities, cached remote capability probes, and explicit publication guarantees. Never describe remote behavior as locally atomic without evidence.
+10. Add `arc info --fingerprint` and the `arc.logical-fingerprint/v1` contract. The logical digest is format-independent: normalized NFC member paths, kinds, regular-file sizes/content SHA-256, link targets, and meaningful empty directories participate; timestamp-only metadata is recorded in a separate digest; encoded archive bytes retain their own SHA-256 provenance. Non-empty explicit directory records are normalized away because formats disagree about whether parent entries must be stored. Single streams use the synthetic `@stream` logical member.
+11. Add `arc diff` / `arcdiff` / `arc-diff` with stable `arc.archive-diff/v1` JSON. Classify added/removed/type/content/metadata changes and report logical equivalence, metadata equivalence, byte identity, format change, and encoding-only equivalence. Side-specific passwords must be redacted from machine evidence. A successful comparison returns success even when archives differ; equivalence is data, not an execution status. Reuse the same authority for `arc convert --prove-equivalent`: fingerprint source and unpublished destination before local publication, fail closed on logical mismatch, and for remote destinations re-read/fingerprint the published object before reporting the proof.
+
+Acceptance: logically equal ZIP/TAR/container encodings share the logical digest even when byte hashes differ; timestamp-only changes do not become content changes; explicit non-empty directory entries do not create false cross-format differences; empty directories remain logical content; normalized-path collisions are rejected before extraction; `convert --prove-equivalent` publishes local output only after logical equivalence succeeds and treats intentional filters as semantic changes; schemas/manpages/aliases/completion survive wheel/sdist rebuilds; R08 machine schema guarantees remain green with the additive provenance schemas.
+
+**Separate R09A gate:** targeted implementation validation runs on this overlay, while cumulative provenance/equivalence gate evidence remains a separate artifact.
+
+## R09B — Remote capability and publication parity
+
+12. Deepen remote execution parity: typed locality/atomicity/staging capabilities, cached remote capability probes with explicit age/provenance, and explicit publication guarantees. Never describe remote behavior as locally atomic without evidence. R09B must consume R08 typed capabilities and R09A read-side provenance without making either layer the owner of transport policy.
 
 ## R10 — Destructive-operation policy and interactive execution UX
 

@@ -28,10 +28,11 @@ class MachineError:
 
 def _redacted_argv(args) -> list[str]:
     argv = [str(value) for value in (getattr(args, "_display_argv", []) or [])]
+    secret_names = ("password", "source_password", "left_password", "right_password")
     secrets = {
-        str(value)
-        for value in (getattr(args, "password", None), getattr(args, "source_password", None))
-        if value and value != "__PROMPT__"
+        str(getattr(args, name, None))
+        for name in secret_names
+        if getattr(args, name, None) and getattr(args, name, None) != "__PROMPT__"
     }
     out: list[str] = []
     redact_next = False
@@ -40,15 +41,17 @@ def _redacted_argv(args) -> list[str]:
             out.append("***")
             redact_next = False
             continue
-        if token in {"--password", "--source-password"}:
+        if token in {"--password", "--source-password", "--left-password", "--right-password"}:
             out.append(token)
             redact_next = True
             continue
-        if token.startswith("--password="):
-            out.append("--password=***")
-            continue
-        if token.startswith("--source-password="):
-            out.append("--source-password=***")
+        matched_inline = False
+        for option in ("--password", "--source-password", "--left-password", "--right-password"):
+            if token.startswith(option + "="):
+                out.append(option + "=***")
+                matched_inline = True
+                break
+        if matched_inline:
             continue
         redacted = token
         for secret in secrets:
@@ -75,15 +78,17 @@ def invocation_identity(args) -> dict[str, object]:
 def redact_text(text: str, args) -> str:
     value = str(text)
     argv = [str(item) for item in (getattr(args, "_display_argv", []) or [])]
+    secret_names = ("password", "source_password", "left_password", "right_password")
     secrets = {
-        str(item)
-        for item in (getattr(args, "password", None), getattr(args, "source_password", None))
-        if item and item != "__PROMPT__"
+        str(getattr(args, name, None))
+        for name in secret_names
+        if getattr(args, name, None) and getattr(args, name, None) != "__PROMPT__"
     }
+    secret_options = {"--password", "--source-password", "--left-password", "--right-password"}
     for index, token in enumerate(argv):
-        if token in {"--password", "--source-password"} and index + 1 < len(argv):
+        if token in secret_options and index + 1 < len(argv):
             secrets.add(argv[index + 1])
-        elif token.startswith("--password=") or token.startswith("--source-password="):
+        elif any(token.startswith(option + "=") for option in secret_options):
             secrets.add(token.split("=", 1)[1])
     for secret in sorted((item for item in secrets if item), key=len, reverse=True):
         value = value.replace(secret, "***")
@@ -123,6 +128,8 @@ SCHEMA_FILES = {
     "machine-v1": "machine-v1.schema.json",
     "backend-capability-v1": "backend-capability-v1.schema.json",
     "verification-evidence-v1": "verification-evidence-v1.schema.json",
+    "logical-fingerprint-v1": "logical-fingerprint-v1.schema.json",
+    "archive-diff-v1": "archive-diff-v1.schema.json",
 }
 
 

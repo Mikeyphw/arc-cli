@@ -9,6 +9,7 @@ from .formats import CREATE_SUFFIX_SHORTCUTS
 from .command_docs import COMMAND_DOCS, EXECUTABLE_ALIASES
 from .interactive import filesystem_candidates, rg_files
 from .remote import complete_remote, configured_remote_names, parse_remote
+from .machine import schema_names
 
 OPERATIONS = list(COMMAND_DOCS)
 FORMATS = ["tar", "tar.gz", "tar.bz2", "tar.xz", "tar.zstd", "zip", "7z", "rar", "gzip", "bzip2", "xz", "zstd"]
@@ -18,9 +19,10 @@ VALUE_OPTIONS = {
     "--format", "-F", "--backend", "-o", "--output", "--level", "--threads", "--exclude", "--include",
     "--exclude-from", "--include-from", "--progress", "--password-file", "--password-env", "--profile",
     "--show-native", "--native-style", "--execution", "--source-password-file", "--source-password-env", "--source", "--batch-id",
+    "--left-password-file", "--left-password-env", "--right-password-file", "--right-password-env",
     "--verify-level",
 }
-OPTIONAL_VALUE_OPTIONS = {"--password", "--source-password", "--yazi"}
+OPTIONAL_VALUE_OPTIONS = {"--password", "--source-password", "--left-password", "--right-password", "--yazi"}
 
 BASE = {
     "--format", "-F", "--backend", "--no-fallback", "--profile", "--dry-run", "--show-command", "-q", "--quiet", "-v", "--verbose",
@@ -32,8 +34,8 @@ CREATE = {"--level", "--threads", "--add-extension", "--follow-symlinks", "--one
 CREATE_SUFFIX_FLAGS = {flag for flag, _fmt, _suffix in CREATE_SUFFIX_SHORTCUTS}
 EXTRACT = {"-o", "--output", "--overwrite", "--skip-existing", "--rename-existing", "--unsafe-paths", "--stdout", "--preserve-owner", "--preserve-acls", "--preserve-xattrs"}
 VERIFY = {"--verify-level", "--allow-verification-downgrade"}
-CONVERT = CREATE | FILTERS | CREATE_SUFFIX_FLAGS | VERIFY | {"-f", "--force", "--replace-source", "--batch", "--resume", "--batch-id", "--source-password", "--source-password-file", "--source-password-env"}
-INFO = {"--format", "-F", "--backend", "--no-fallback", "--profile", "--password", "--password-file", "--password-env", "--members", "--verify", "--technical", "--json", "-q", "--quiet", "-v", "--verbose", "--progress", "--show-command", "--show-native", "--native-style", "--execution"} | VERIFY
+CONVERT = CREATE | FILTERS | CREATE_SUFFIX_FLAGS | VERIFY | {"-f", "--force", "--replace-source", "--prove-equivalent", "--batch", "--resume", "--batch-id", "--source-password", "--source-password-file", "--source-password-env"}
+INFO = {"--format", "-F", "--backend", "--no-fallback", "--profile", "--password", "--password-file", "--password-env", "--members", "--fingerprint", "--verify", "--technical", "--json", "-q", "--quiet", "-v", "--verbose", "--progress", "--show-command", "--show-native", "--native-style"} | VERIFY
 
 COMMAND_OPTIONS: dict[str, set[str]] = {
     "identify": {"--format", "-F", "--json", "--yazi"},
@@ -45,6 +47,7 @@ COMMAND_OPTIONS: dict[str, set[str]] = {
     "update": BASE | FILTERS | CREATE,
     "remove": BASE,
     "info": INFO,
+    "diff": {"--backend", "--no-fallback", "--password", "--password-file", "--password-env", "--left-password", "--left-password-file", "--left-password-env", "--right-password", "--right-password-file", "--right-password-env", "--json", "-q", "--quiet", "-v", "--verbose", "--progress", "--show-command", "--show-native", "--native-style"},
     "convert": BASE | CONVERT,
     "backends": {"--json", "--remote", "--verbose"},
     "formats": {"--json", "--remote"},
@@ -132,7 +135,7 @@ def _path_candidates(prefix: str, *, op: str, refresh: bool = False, dirs_only: 
                 config,
                 refresh=refresh,
                 dirs_only=dirs_only,
-                archives_only=op in {"identify", "list", "test", "extract", "remove", "info", "convert"},
+                archives_only=op in {"identify", "list", "test", "extract", "remove", "info", "diff", "convert"},
             )
         except Exception:
             return []
@@ -198,7 +201,7 @@ def completion_candidates(words: list[str]) -> list[str]:
             attached = [x for x in allowed if x.startswith(value_prefix)]
         elif opt == "--level":
             attached = [str(x) for x in range(10) if str(x).startswith(value_prefix)]
-        elif opt in {"--password-env", "--source-password-env"}:
+        elif opt in {"--password-env", "--source-password-env", "--left-password-env", "--right-password-env"}:
             attached = sorted(k for k in os.environ if k.startswith(value_prefix))
         elif opt == "--show-native":
             attached = [x for x in ["before", "after", "both"] if x.startswith(value_prefix)]
@@ -235,7 +238,7 @@ def completion_candidates(words: list[str]) -> list[str]:
         return [x for x in allowed if x.startswith(prefix)]
     if prev == "--level":
         return [str(x) for x in range(10) if str(x).startswith(prefix)]
-    if prev in {"--password-env", "--source-password-env"}:
+    if prev in {"--password-env", "--source-password-env", "--left-password-env", "--right-password-env"}:
         return sorted(k for k in os.environ if k.startswith(prefix))
     if prev == "--show-native":
         return [x for x in ["before", "after", "both"] if x.startswith(prefix)]
@@ -250,14 +253,14 @@ def completion_candidates(words: list[str]) -> list[str]:
         return _path_candidates(prefix, op=op, refresh=refresh_remote, dirs_only=True)
     if prev in {"-o", "--output"}:
         return _path_candidates(prefix, op=op, refresh=refresh_remote, dirs_only=True)
-    if prev in {"--password-file", "--source-password-file", "--exclude-from", "--include-from"}:
+    if prev in {"--password-file", "--source-password-file", "--left-password-file", "--right-password-file", "--exclude-from", "--include-from"}:
         return [x for x in rg_files() if x.startswith(prefix)]
     if cur.startswith("-"):
         return _option_candidates(op, prefix, before_current)
 
     pos = _positionals(before_current)
     if op == "schema":
-        return [x for x in ["machine-v1", "backend-capability-v1", "verification-evidence-v1"] if x.startswith(prefix)]
+        return [x for x in schema_names() if x.startswith(prefix)]
     if op in {"extract", "list", "remove"}:
         if not pos:
             return _path_candidates(prefix, op=op, refresh=refresh_remote)
@@ -270,6 +273,8 @@ def completion_candidates(words: list[str]) -> list[str]:
         return _path_candidates(prefix, op=op, refresh=refresh_remote)
     if op in {"identify", "test", "info"}:
         return _path_candidates(prefix, op=op, refresh=refresh_remote)
+    if op == "diff":
+        return _path_candidates(prefix, op=op, refresh=refresh_remote) if len(pos) < 2 else []
     if op == "convert":
         return _path_candidates(prefix, op=op, refresh=refresh_remote)
     if op in {"man", "help"}:
@@ -314,6 +319,7 @@ def zsh_completion() -> str:
     # derived from the same metadata used by the dispatcher so completion does
     # not silently treat an alias's first operand as an Arc subcommand.
     aliases = " ".join(["arc", *sorted(EXECUTABLE_ALIASES)])
+    operations = " ".join(COMMAND_DOCS)
     cases = "\n".join(
         f"    {alias}) print -r -- {command} ;;"
         for alias, command in sorted(EXECUTABLE_ALIASES.items())
@@ -392,16 +398,16 @@ _arc() {
   fi
 
   if [[ "${words[1]}" == arc && CURRENT == 2 ]]; then
-    _values 'arc operation' identify list extract create info test convert add update remove backends formats profiles man help completion
+    _values 'arc operation' __OPERATIONS__
     return
   fi
 
   case "$prev" in
     --format|-F) _values 'archive format' tar tar.gz tar.bz2 tar.xz tar.zstd zip 7z rar gzip bzip2 xz zstd; return ;;
-    --backend|--profile|--progress|--yazi|--level|--password-env|--source-password-env|--show-native|--native-style|--execution|--remote)
+    --backend|--profile|--progress|--yazi|--level|--password-env|--source-password-env|--left-password-env|--right-password-env|--show-native|--native-style|--execution|--remote)
       _arc_dynamic_candidates; compadd -Q -a reply; return ;;
     -o|--output) _arc_dynamic_candidates; compadd -Q -a reply; return ;;
-    --password-file|--source-password-file|--exclude-from|--include-from) _files; return ;;
+    --password-file|--source-password-file|--left-password-file|--right-password-file|--exclude-from|--include-from) _files; return ;;
   esac
 
   if [[ "$cur" == -* ]]; then
@@ -420,5 +426,5 @@ _arc() {
 
 compdef _arc __ALIASES__
 '''
-    return template.replace("__ALIASES__", aliases).replace("__ALIAS_CASES__", cases)
+    return template.replace("__ALIASES__", aliases).replace("__ALIAS_CASES__", cases).replace("__OPERATIONS__", operations)
 
