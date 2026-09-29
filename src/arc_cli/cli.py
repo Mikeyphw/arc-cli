@@ -4640,6 +4640,10 @@ def _merge(args, config: dict) -> int:
         if args.strategy == "concat" and not safe_concat:
             raise UnsupportedFormat("--strategy=concat requires same-format single compressed streams and the same stream output format")
         strategy = "concat" if args.strategy == "concat" or (args.strategy == "auto" and safe_concat) else "repack"
+        if strategy == "repack" and resolved.format.is_stream and not all(fmt.is_stream for _raw, _path, fmt in staged_sources):
+            raise UnsupportedFormat(
+                "stream merge output can represent only stream inputs; choose a container output format for archive members"
+            )
         begin_plan("merge", mode=getattr(args, "show_native", None), style=getattr(args, "native_style", None) or "reproducible", show_primary_command=bool(args.show_command))
         record_decision("merge-strategy", strategy, reason="safe same-format stream concatenation" if strategy == "concat" else "logical member repack required")
         record_decision("merge-output", str(output), reason=f"format={resolved.format.canonical}; source={resolved.format_source}")
@@ -4687,14 +4691,35 @@ def _merge(args, config: dict) -> int:
                     work = Path(td)
                     aggregate = work / "aggregate"
                     aggregate.mkdir()
-                    for ordinal, (_raw, local, fmt) in enumerate(staged_sources, 1):
-                        extracted = work / f"source-{ordinal}"
-                        extracted.mkdir()
-                        _merge_extract_source(local, fmt, extracted, args, config, password)
-                        stats = _merge_tree(extracted, aggregate, args.member_conflict, ordinal=ordinal)
-                        for key, value in stats.items():
-                            conflict_totals[key] += value
-                    inner_argv = ["create", str(candidate), *[child.name for child in sorted(aggregate.iterdir())], "-F", resolved.format.canonical, "--destination-policy", "replace", "--progress", "never", "--quiet"]
+                    if resolved.format.is_stream:
+                        # A stream has one logical byte sequence rather than named
+                        # archive members. Mixed compression formats therefore
+                        # repack by concatenating the *decompressed* source bytes
+                        # in input order and encoding that one logical stream once.
+                        logical_stream = aggregate / "merged-stream"
+                        with logical_stream.open("wb") as dst:
+                            for ordinal, (_raw, local, fmt) in enumerate(staged_sources, 1):
+                                extracted = work / f"source-{ordinal}"
+                                extracted.mkdir()
+                                _merge_extract_source(local, fmt, extracted, args, config, password)
+                                files = [item for item in extracted.iterdir() if item.is_file()]
+                                if len(files) != 1:
+                                    raise CorruptArchive(
+                                        f"stream merge source {local} did not yield exactly one logical byte stream"
+                                    )
+                                with files[0].open("rb") as src:
+                                    shutil.copyfileobj(src, dst)
+                        create_inputs = [logical_stream.name]
+                    else:
+                        for ordinal, (_raw, local, fmt) in enumerate(staged_sources, 1):
+                            extracted = work / f"source-{ordinal}"
+                            extracted.mkdir()
+                            _merge_extract_source(local, fmt, extracted, args, config, password)
+                            stats = _merge_tree(extracted, aggregate, args.member_conflict, ordinal=ordinal)
+                            for key, value in stats.items():
+                                conflict_totals[key] += value
+                        create_inputs = [child.name for child in sorted(aggregate.iterdir())]
+                    inner_argv = ["create", str(candidate), *create_inputs, "-F", resolved.format.canonical, "--destination-policy", "replace", "--progress", "never", "--quiet"]
                     if args.backend:
                         inner_argv += ["--backend", args.backend]
                     if args.no_fallback:

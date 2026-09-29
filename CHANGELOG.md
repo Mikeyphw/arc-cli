@@ -5,6 +5,12 @@
 - Harden remote read staging, stdin materialization, and backend manifest creation so interruption cannot bypass local temp cleanup.
 - Add focused merge/join candidate leak tests plus cumulative R03/R04/R07/composition qualification and first-class Devtool `comp_r01` ownership.
 
+### COMP-R02 — mixed-stream logical repack convergence
+
+- Repair explicit mixed-stream merge so gzip/xz/bzip2/zstd inputs can be logically repacked by concatenating decompressed bytes and encoding one output stream.
+- Fail closed for container/archive → stream merge rather than silently flattening named members.
+- Add first-class Devtool `comp_r02` ownership and preserve COMP-G1 as a separate final composition gate.
+
 ## 0.2.0 COMP-X03 exact split + join volume protocol
 
 - Added format-agnostic `arc split` by target size or requested part count with deterministic `.partNNN` naming, configurable prefix/directory/digits/checksum controls, default verification, and optional source deletion only after proof.

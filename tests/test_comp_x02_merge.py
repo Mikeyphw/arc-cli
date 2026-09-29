@@ -117,3 +117,27 @@ def test_merge_delete_inputs_rejects_output_aliasing_input(tmp_path: Path, monke
     assert main(["merge", "a.gz", "b.gz", "-o", "a.gz", "--destination-policy", "replace", "--delete-inputs", "--quiet"]) == 2
     assert "output is also an input" in capsys.readouterr().err
     assert Path("a.gz").exists()
+
+
+def test_merge_mixed_stream_formats_repack_to_one_logical_stream(tmp_path: Path, monkeypatch, capsys):
+    import lzma
+
+    monkeypatch.chdir(tmp_path)
+    Path("a.gz").write_bytes(gzip.compress(b"A"))
+    Path("b.xz").write_bytes(lzma.compress(b"B"))
+    assert main(["merge", "a.gz", "b.xz", "-o", "mixed.gz", "--json"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["strategy"] == "repack"
+    assert payload["reencoded"] is True
+    assert gzip.decompress(Path("mixed.gz").read_bytes()) == b"AB"
+
+
+def test_merge_container_to_stream_fails_closed_as_ambiguous(tmp_path: Path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    _zip = __import__("zipfile").ZipFile
+    with _zip("a.zip", "w") as zf:
+        zf.writestr("one.txt", "one")
+    Path("b.gz").write_bytes(gzip.compress(b"B"))
+    assert main(["merge", "a.zip", "b.gz", "-o", "mixed.gz", "--quiet"]) == 3
+    assert "stream merge output can represent only stream inputs" in capsys.readouterr().err
+    assert not Path("mixed.gz").exists()

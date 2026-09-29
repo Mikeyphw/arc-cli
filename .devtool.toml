@@ -245,6 +245,17 @@ pytest_tests = [
 pytest_args = ["--maxfail=1", "-ra"]
 pytest_include_defaults = false
 
+[test_profiles.comp_r02]
+pytest_tests = [
+  "tests/test_comp_x02_merge.py",
+  "tests/test_comp_temp_cleanup.py",
+  "tests/test_comp_x03_volume.py",
+  "tests/test_r10b_machine_batch.py",
+  "tests/test_cli_integration.py",
+]
+pytest_args = ["--maxfail=1", "-ra"]
+pytest_include_defaults = false
+
 [[test]]
 id = "arc-r06-runtime-install-truth"
 name = "ARC-R06 runtime, alias, and installation truth"
@@ -863,6 +874,20 @@ command = [
   "tests/test_cli_integration.py",
 ]
 
+[[test]]
+id = "arc-comp-r02-mixed-stream-repack"
+name = "ARC COMP-R02 mixed-stream logical repack convergence"
+runner = "pytest"
+command = [
+  "python3", "-m", "pytest", "-q", "-ra",
+  "--junitxml=.devtool/reports/roadmap/arc-comp-r02-mixed-stream-repack.xml",
+  "tests/test_comp_x02_merge.py",
+  "tests/test_comp_temp_cleanup.py",
+  "tests/test_comp_x03_volume.py",
+  "tests/test_r10b_machine_batch.py",
+  "tests/test_cli_integration.py",
+]
+
 [ui.profiles.arc]
 extends = "developer"
 density = "compact"
@@ -1148,6 +1173,12 @@ command = ["python3", "scripts/check_comp_r01_contract.py"]
 inputs = ["src/arc_cli/transactions.py", "src/arc_cli/remote.py", "src/arc_cli/cli.py", "src/arc_cli/backends.py", "tests/test_comp_temp_cleanup.py", "tests/test_r07_execution_recovery_resume.py", "docs/ARC-COMP-R01-AUDIT.md", "docs/ARC-NEXT-ROADMAP.md", "docs/WRAPPER.md", "scripts/check_comp_r01_contract.py", ".devtool.toml"]
 metadata = { read_only = true, purpose = "post-seal-temp-lifecycle-hardening", contract = "arc-comp-r01-v1" }
 
+[targets.arc.jobs.comp-r02-contract]
+runner = "command"
+command = ["python3", "scripts/check_comp_r02_contract.py"]
+inputs = ["src/arc_cli/cli.py", "tests/test_comp_x02_merge.py", "docs/ARC-COMP-R02-AUDIT.md", "docs/ARC-NEXT-ROADMAP.md", "docs/WRAPPER.md", "scripts/check_comp_r02_contract.py", ".devtool.toml"]
+metadata = { read_only = true, purpose = "post-seal-mixed-stream-repack-convergence", contract = "arc-comp-r02-v1" }
+
 [targets.arc.jobs.backend-smoke]
 runner = "command"
 command = [".devtool/venvs/arc/bin/python", "scripts/devtool_backend_smoke.py"]
@@ -1382,6 +1413,13 @@ comp_r01 = [
   { id = "tests", ref = "test:arc-comp-r01-temp-lifecycle", depends_on = ["contract", "devtool-contract"] },
 ]
 
+comp_r02 = [
+  { id = "syntax", ref = "job:syntax", depends_on = [] },
+  { id = "contract", ref = "job:comp-r02-contract", depends_on = ["syntax"] },
+  { id = "devtool-contract", ref = "job:devtool-contract", depends_on = ["syntax"] },
+  { id = "tests", ref = "test:arc-comp-r02-mixed-stream-repack", depends_on = ["contract", "devtool-contract"] },
+]
+
 refresh_install = [
   { id = "alias-contract", ref = "job:alias-contract", depends_on = [] },
   { id = "refresh", ref = "job:refresh-install", depends_on = ["alias-contract"] },
@@ -1487,7 +1525,7 @@ aliases = ["t"]
 [wrapper.commands.test.options.profile]
 type = "choice"
 description = "Select a repository test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "r10c", "r10_gate", "r11", "r11a", "r11b", "r11_gate", "r12", "r12a", "r12_gate", "comp_x01", "comp_x02", "comp_x03", "comp_r01", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "r10c", "r10_gate", "r11", "r11a", "r11b", "r11_gate", "r12", "r12a", "r12_gate", "comp_x01", "comp_x02", "comp_x03", "comp_r01", "comp_r02", "final_gate", "full"]
 command_argv = ["--profile", "{value}"]
 
 [wrapper.commands.test.options.node]
@@ -1539,7 +1577,7 @@ aliases = ["val"]
 [wrapper.commands.validate.options.profile]
 type = "choice"
 description = "Select the validation test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "r10c", "r10_gate", "r11", "r11a", "r11b", "r11_gate", "r12", "r12a", "r12_gate", "comp_x01", "comp_x02", "comp_x03", "comp_r01", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "r10c", "r10_gate", "r11", "r11a", "r11b", "r11_gate", "r12", "r12a", "r12_gate", "comp_x01", "comp_x02", "comp_x03", "comp_r01", "comp_r02", "final_gate", "full"]
 command_argv = ["--test-profile", "{value}"]
 
 [wrapper.commands.validate.options.affected]
@@ -1721,6 +1759,11 @@ target = "arc"
 [wrapper.commands.comp-r01]
 description = "Run COMP-R01 temporary lifecycle cleanup hardening validation"
 workflow = "comp_r01"
+target = "arc"
+
+[wrapper.commands.comp-r02]
+description = "Run COMP-R02 mixed-stream logical repack convergence validation"
+workflow = "comp_r02"
 target = "arc"
 
 [wrapper.commands.refresh-install]

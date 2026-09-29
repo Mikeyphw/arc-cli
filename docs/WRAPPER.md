@@ -259,3 +259,7 @@ Runs the first-class merge contract, real concat/repack behavior tests, generate
 ```sh
 ./devtoolw comp-r01
 ```
+
+## COMP-R02 mixed-stream repack remediation
+
+Run `./devtoolw comp-r02` for the focused mixed-stream logical-repack convergence boundary discovered by COMP-G1. The final `COMP-G1` gate remains a separate qualification artifact.
