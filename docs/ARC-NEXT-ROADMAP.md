@@ -150,40 +150,44 @@ The R01–R12 campaign is sealed. The next compact wave adds archive composition
 
 ### COMP-X01 — version authority and composition foundation — implementation 1 of 3
 
+**Status: IMPLEMENTED AND INCLUDED IN COMP-G1 QUALIFICATION.**
+
 Make `0.2.0` the first post-seal version and replace the three historical version literals with one authored `arc_cli._version.VERSION` authority. Package metadata, runtime `__version__`, `arc --version`, doctor/diagnostics, lock metadata, installation tests and distribution paths must converge on it. Add the typed composition output resolver that reuses canonical format/suffix truth, preserves uniform input format, derives `<first>.merged<suffix>`, accepts output-suffix or explicit-format selection, and fails closed for mixed inputs or suffix/format conflicts. Do not implement merge execution yet.
 
 ### COMP-X02 — logical merge with automatic safe concat — implementation 2 of 3
 
-**Status: IMPLEMENTED; COMP-G1 qualification pending.**
+**Status: IMPLEMENTED AND INCLUDED IN COMP-G1 QUALIFICATION.**
 
 Add `arc merge`: logical archive/member composition, deterministic `-o/--output` + `-F/--format` resolution through COMP-X01, explicit member-conflict policy, transaction/publication safety, explain/dry-run/machine evidence, and `--strategy auto|concat|repack`. `auto` may select concat only for same-format single compressed streams with proven concatenation semantics; compound TAR+compression and container formats repack logically.
 
 ### COMP-X03 — exact split + join volume protocol — implementation 3 of 3
 
-**Status: IMPLEMENTED; COMP-G1 qualification pending.**
+**Status: IMPLEMENTED AND INCLUDED IN COMP-G1 QUALIFICATION.**
 
 Add lossless byte-volume `arc split` and manifest-aware `arc join`. `split` owns `--size|--parts`, output prefix/directory/digits/checksum/manifest/verify/delete-source controls and emits `arc.split-manifest/v1`. `join` discovers a sibling manifest from any part, validates completeness/order/part hashes, reconstructs to a transaction-owned candidate, proves the whole-file hash, then publishes atomically and optionally deletes parts. Native 7z/RAR multipart archive creation remains out of this command contract.
 
 Delivered implementation keeps split/join format-agnostic: parts are exact bytes rather than native archive volumes; SHA-256/SHA-512/BLAKE2b manifests anchor whole-file and per-part proof; zero-byte/exact-boundary cases are deterministic; the manifest is published last as the complete-set record; join is strict by default and exposes an explicit weaker `--allow-missing-manifest` mode; destructive cleanup requires verification. Split stages remote read-side sources through the existing transport authority while X03 outputs remain local. Aliases, explain/dry-run, machine/batch, completion, generated manuals, schema packaging, and Devtool `comp_x03` ownership are part of the implementation surface.
 
-### COMP-R01 — temporary lifecycle hardening — pre-gate remediation 1 of 1
+### COMP-R01 — temporary lifecycle hardening — pre-gate remediation 1 of 3
 
-**Status: IMPLEMENTED; apply before COMP-G1.**
+**Status: APPLIED AND INCLUDED IN COMP-G1 QUALIFICATION.**
 
 Make Arc-owned temporary state self-cleaning on every ordinary command exit: success, handled errors, and interruption such as Ctrl+C/SIGINT. Transaction-owned candidates are removed automatically without erasing the durable `failed`/`interrupted` journal status; paths that genuinely cannot be removed remain registered for later `arc recover --cleanup`. Harden pre-transaction staging/materialization helpers so `KeyboardInterrupt`/`SystemExit` cannot bypass cleanup: remote read staging, stdin materialization, and backend list-manifest creation all remove their temp path on `BaseException`. Qualify merge/join unpublished candidates explicitly and retain the older recovery command as an idempotent fallback for legacy or cleanup-failure state.
 
-### COMP-R02 — mixed-stream logical repack convergence — pre-gate remediation 2 of 2
+### COMP-R02 — mixed-stream logical repack convergence — pre-gate remediation 2 of 3
 
-**Status: IMPLEMENTED; apply before COMP-G1.**
+**Status: APPLIED AND INCLUDED IN COMP-G1 QUALIFICATION.**
 
 COMP-G1 exposed one remaining COMP-X02 executor gap: mixed stream formats resolved an explicit stream destination correctly, but repack attempted to feed multiple extracted files to a single-stream compressor. Preserve safe same-format zero-reencode concat, but for a stream-output repack with all-stream inputs concatenate the decompressed logical bytes in input order and encode the resulting byte stream once. Fail closed when any container/archive input is directed to a stream output because named-member flattening is ambiguous. Keep COMP-R01 cleanup semantics authoritative for the repaired path.
 
 ### COMP-R03 — machine-schema registry convergence — pre-gate remediation 3 of 3
 
-**Status: IMPLEMENTED; apply before COMP-G1.**
+**Status: APPLIED AND INCLUDED IN COMP-G1 QUALIFICATION.**
 
 COMP-G1's prerequisite machine contract exposed stale schema ownership: runtime/schema/package truth already included `split-manifest-v1`, while the active R09B machine checker still enumerated the pre-X03 schema set. Extend that active checker with `split-manifest-v1`, add a focused registry/checker regression and Devtool `comp_r03` ownership, and preserve the historical older checker as historical evidence rather than silently rewriting its boundary.
 
 ### COMP-G1 — separate composition qualification gate
 
-Audit COMP-X01 through COMP-X03 plus COMP-R01, COMP-R02, and COMP-R03 together: version/package identity; output inference; real safe stream concat; mixed-stream logical repack; TAR/ZIP/7z logical merge; mixed formats; member conflicts; remote staging; interruption/recovery; zero/exact-boundary split sizes; missing/corrupt/reordered parts; machine schemas; explain/batch/completion/manpages/wheel/sdist; destructive cleanup after verification; and **temporary-file hygiene on success, ordinary errors, and Ctrl+C/SIGINT** across merge/split/join, transaction candidates, remote staging, stdin materialization, backend manifests, verification, and publication. The gate must not contain implementation work.
+**COMP-G1 gate: QUALIFIED.** The separate qualification-only boundary closes COMP-X01/X02/X03 plus COMP-R01/R02/R03 across version/package identity; deterministic output inference; real safe stream concat; mixed-stream logical repack; TAR/ZIP and host-available 7z logical merge; mixed formats; member conflicts and hostile paths; remote staging; interruption/recovery; zero/exact-boundary split sizes; missing/corrupt/reordered parts; machine schemas; explain/batch/completion/manpages/wheel/sdist; destructive cleanup after verification; and **temporary-file hygiene on success, ordinary errors, and Ctrl+C/SIGINT** across merge/split/join, transaction candidates, remote staging, stdin materialization, backend manifests, verification, and publication. COMP-G1 contains no runtime implementation work and preserves all focused composition/remediation ownership surfaces.
+
+**Roadmap refresh required after composition closure.** The composition wave ends at COMP-G1. Do not name or infer the next major scope from this gate; refresh the roadmap from the current repository, audits, and outstanding promise ledger first.

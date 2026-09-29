@@ -1,3 +1,10 @@
+## 0.2.0 COMP-G1 final composition qualification gate
+
+- Add the separate qualification-only COMP-G1 boundary for COMP-X01/X02/X03 plus COMP-R01/R02/R03; no runtime implementation is folded into the gate.
+- Qualify safe stream concat, mixed-stream logical repack, logical TAR/ZIP/optional-7z merge, strict exact split/join reconstruction, machine/explain/batch surfaces, remote staging, generated docs/completion, and wheel/sdist rebuild identity.
+- Make temporary-file hygiene a first-class gate promise across success, ordinary errors, and Ctrl+C/SIGINT for merge/split/join candidates, transaction state, remote staging, stdin materialization, backend manifests, verification, and publication.
+- Add first-class Devtool `comp_g1` profile/test/contract/workflow/wrapper ownership while preserving every focused composition/remediation boundary, and require a roadmap refresh after composition closure.
+
 ## 0.2.0 COMP-R03 machine-schema registry convergence
 
 - Add `split-manifest-v1` to the active R09B machine-schema contract registry so Devtool machine-contract truth matches the public schema registry introduced by COMP-X03.

@@ -273,3 +273,13 @@ Run the focused gate-discovered schema-contract remediation with:
 ```
 
 This boundary aligns the active R09B `machine-contract` checker with COMP-X03's public `split-manifest-v1` schema and rechecks schema/package distribution truth. COMP-G1 remains a separate final qualification artifact.
+
+## COMP-G1 final composition qualification
+
+Run the separate cumulative composition gate with:
+
+```sh
+./devtoolw comp-g1
+```
+
+`comp-g1` rechecks COMP-X01/X02/X03 and COMP-R01/R02/R03 contract ownership, source hygiene, active machine/remote/alias/generated-doc/completion/Devtool contracts, then runs the explicit cumulative composition matrix. It is qualification-only: no runtime behavior is added by this boundary. Temporary-file cleanup on success, errors, and Ctrl+C/SIGINT is an explicit gate promise. After this gate qualifies, the composition wave is closed and the next major scope must come from a roadmap refresh rather than being invented by the gate.
