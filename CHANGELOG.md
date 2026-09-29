@@ -1,3 +1,8 @@
+## 0.2.0 COMP-X02 logical merge
+
+- Added first-class `arc merge` with automatic safe concatenation for compatible single compressed streams and logical repack for archive containers/mixed formats.
+- Added explicit member conflict policy, independent destination publication policy, dry-run/explain/machine evidence, remote input staging, generated docs/completion/package aliases, and Devtool ownership.
+
 ## 0.2.0 / COMP-X01 — version authority and composition foundation
 
 - Replace duplicated `0.1.0` literals with one authored `arc_cli._version.VERSION` authority and dynamic setuptools package metadata.

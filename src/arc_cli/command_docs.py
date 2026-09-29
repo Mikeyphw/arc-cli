@@ -40,6 +40,7 @@ COMMAND_DOCS: dict[str, CommandDoc] = {
     "diff": CommandDoc("diff", "compare archive contents and logical equivalence", ("arcdiff", "arc-diff"), synopsis="arc diff LEFT RIGHT [OPTIONS]"),
     "test": CommandDoc("test", "verify archive integrity", ("arct", "arc-test", "arccheck"), synopsis="arc test ARCHIVE [OPTIONS]"),
     "convert": CommandDoc("convert", "convert an archive or compressed stream", ("arccv", "arc-convert", "arcconvert"), synopsis="arc convert SOURCE [DESTINATION] [FORMAT-SELECTOR] [OPTIONS]"),
+    "merge": CommandDoc("merge", "merge archive contents or safely concatenate compatible streams", ("arcmerge", "arc-merge"), synopsis="arc merge INPUT... [-o OUTPUT] [-F FORMAT] [OPTIONS]"),
     "add": CommandDoc("add", "add new archive members", ("arca", "arc-add"), synopsis="arc add ARCHIVE INPUT... [OPTIONS]"),
     "update": CommandDoc("update", "update archive members", ("arcu", "arc-update"), synopsis="arc update ARCHIVE INPUT... [OPTIONS]"),
     "remove": CommandDoc("remove", "remove archive members", ("arcrm", "arc-remove"), synopsis="arc remove ARCHIVE MEMBER... [OPTIONS]"),

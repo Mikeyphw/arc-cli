@@ -51,6 +51,7 @@ COMMAND_OPTIONS: dict[str, set[str]] = {
     "info": INFO,
     "diff": {"--backend", "--no-fallback", "--password", "--password-file", "--password-env", "--left-password", "--left-password-file", "--left-password-env", "--right-password", "--right-password-file", "--right-password-env", "--json", "-q", "--quiet", "-v", "--verbose", "--progress", "--show-command", "--show-native", "--native-style"},
     "convert": BASE | CONVERT,
+    "merge": {"--output", "-o", "--format", "-F", "--strategy", "--member-conflict", "--destination-policy", "--backup-existing", "--verify", "--delete-inputs", "--backend", "--no-fallback", "--password", "--password-file", "--password-env", "--level", "--threads", "--dry-run", "--show-command", "--progress", "--json", "-q", "--quiet", "-v", "--verbose"},
     "backends": {"--json", "--remote", "--verbose", "--refresh"},
     "formats": {"--json", "--remote"},
     "benchmark": {"--format", "--iterations", "--size-mib", "--seed", "--json"},
@@ -141,7 +142,7 @@ def _path_candidates(prefix: str, *, op: str, refresh: bool = False, dirs_only: 
                 config,
                 refresh=refresh,
                 dirs_only=dirs_only,
-                archives_only=op in {"identify", "list", "test", "extract", "remove", "info", "diff", "convert"},
+                archives_only=op in {"identify", "list", "test", "extract", "remove", "info", "diff", "convert", "merge"},
             )
         except Exception:
             return []
@@ -215,6 +216,12 @@ def completion_candidates(words: list[str]) -> list[str]:
             attached = [x for x in ["exact", "reproducible"] if x.startswith(value_prefix)]
         elif opt == "--execution":
             attached = [x for x in ["auto", "local", "remote"] if x.startswith(value_prefix)]
+        elif opt == "--strategy":
+            attached = [x for x in ["auto", "concat", "repack"] if x.startswith(value_prefix)]
+        elif opt == "--member-conflict":
+            attached = [x for x in ["fail", "replace", "skip", "rename"] if x.startswith(value_prefix)]
+        elif opt == "--destination-policy":
+            attached = [x for x in ["fail", "replace", "rename", "skip-identical"] if x.startswith(value_prefix)]
         elif opt == "--output":
             attached = _path_candidates(value_prefix, op=op, refresh=refresh_remote, dirs_only=True)
         if attached:
@@ -252,6 +259,12 @@ def completion_candidates(words: list[str]) -> list[str]:
         return [x for x in ["exact", "reproducible"] if x.startswith(prefix)]
     if prev == "--execution":
         return [x for x in ["auto", "local", "remote"] if x.startswith(prefix)]
+    if prev == "--strategy":
+        return [x for x in ["auto", "concat", "repack"] if x.startswith(prefix)]
+    if prev == "--member-conflict":
+        return [x for x in ["fail", "replace", "skip", "rename"] if x.startswith(prefix)]
+    if prev == "--destination-policy":
+        return [x for x in ["fail", "replace", "rename", "skip-identical"] if x.startswith(prefix)]
     if prev == "--remote":
         config = load_config()
         return [x for x in configured_remote_names(config) if x.startswith(prefix)]

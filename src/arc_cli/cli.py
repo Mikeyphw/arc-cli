@@ -32,6 +32,7 @@ from .completion import FORMATS, completion_candidates, completion_mode, encode_
 from .command_docs import COMMAND_DOCS, EXECUTABLE_ALIASES
 from .doctor import alias_status_rows, collect_doctor_report, fix_and_recheck
 from .manpages import available_topics, show_manpage
+from .composition import CompositionSource, resolve_merge_output
 from .config import (
     CONFIG_INSPECTION_SCHEMA,
     config_inspection_payload,
@@ -336,6 +337,30 @@ def parser() -> argparse.ArgumentParser:
     q.add_argument("--source-password-file")
     q.add_argument("--source-password-env", metavar="NAME")
 
+    q = sub.add_parser("merge", help=COMMAND_DOCS["merge"].summary)
+    q.add_argument("inputs", nargs="+", help="archives/streams to merge in order")
+    q.add_argument("-o", "--output", help="output path; recognized suffix selects the output format")
+    q.add_argument("-F", "--format", help="explicit output format")
+    q.add_argument("--strategy", choices=["auto", "concat", "repack"], default="auto", help="auto selects safe stream concatenation only when semantics are provably compatible")
+    q.add_argument("--member-conflict", choices=["fail", "replace", "skip", "rename"], default="fail", help="logical member collision policy during repack")
+    q.add_argument("--destination-policy", choices=[item.value for item in DestinationPolicy], default="fail", help="final output collision policy")
+    q.add_argument("--backup-existing", nargs="?", const="auto", metavar="PATH", help="snapshot an existing output before replacement")
+    q.add_argument("--verify", action="store_true", help="verify the published result")
+    q.add_argument("--delete-inputs", action="store_true", help="delete local inputs only after successful publication/verification")
+    q.add_argument("--backend", help="preferred backend for extraction and repack creation")
+    q.add_argument("--no-fallback", action="store_true")
+    q.add_argument("--password", nargs="?", const="__PROMPT__", help="password used for encrypted inputs/output")
+    q.add_argument("--password-file")
+    q.add_argument("--password-env", metavar="NAME")
+    q.add_argument("--level", type=int, choices=range(0, 10), default=None)
+    q.add_argument("--threads", type=int, default=None)
+    q.add_argument("--dry-run", action="store_true")
+    q.add_argument("--show-command", action="store_true")
+    q.add_argument("--progress", choices=["auto", "always", "never"], default=None)
+    q.add_argument("-q", "--quiet", action="store_true")
+    q.add_argument("-v", "--verbose", action="count", default=0)
+    _add_json_option(q)
+
     q = sub.add_parser("explain", help=COMMAND_DOCS["explain"].summary)
     _add_json_option(q)
     q.add_argument("argv", nargs=argparse.REMAINDER, help="Arc command and arguments to plan without mutation")
@@ -468,7 +493,7 @@ def _display_invocation(argv: list[str], args) -> str:
 def _show_invocation(argv: list[str], args) -> None:
     if getattr(args, "quiet", False) or getattr(args, "json", False):
         return
-    if getattr(args, "command", None) not in {"identify", "list", "extract", "create", "add", "update", "remove", "test", "info", "diff", "convert"}:
+    if getattr(args, "command", None) not in {"identify", "list", "extract", "create", "add", "update", "remove", "test", "info", "diff", "convert", "merge"}:
         return
     # Keep redirected/scripted output clean. In an interactive terminal, emit
     # one logical line and let the terminal soft-wrap it visually. Rich table
@@ -4392,6 +4417,281 @@ def _batch_command(args) -> int:
     return 0 if payload["status"] == "ok" else 1
 
 
+
+def _merge_rename_target(path: Path, ordinal: int) -> Path:
+    if path.suffix:
+        return path.with_name(f"{path.stem}.merge{ordinal}{path.suffix}")
+    return path.with_name(f"{path.name}.merge{ordinal}")
+
+
+def _merge_copy_entry(source: Path, target: Path, policy: str, *, ordinal: int) -> tuple[Path, str]:
+    """Copy one extracted logical object into the aggregate tree."""
+    exists = target.exists() or target.is_symlink()
+    if source.is_dir() and not source.is_symlink() and target.is_dir() and not target.is_symlink():
+        return target, "merge-dir"
+    if exists:
+        if policy == "fail":
+            raise ConflictError(f"merge member conflict: {target}")
+        if policy == "skip":
+            return target, "skip"
+        if policy == "replace":
+            if target.is_dir() and not target.is_symlink():
+                shutil.rmtree(target)
+            else:
+                target.unlink(missing_ok=True)
+        elif policy == "rename":
+            candidate = _merge_rename_target(target, ordinal)
+            suffix = ordinal
+            while candidate.exists() or candidate.is_symlink():
+                suffix += 1
+                candidate = _merge_rename_target(target, suffix)
+            target = candidate
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if source.is_symlink():
+        os.symlink(os.readlink(source), target)
+    elif source.is_dir():
+        target.mkdir(parents=True, exist_ok=True)
+    else:
+        shutil.copy2(source, target, follow_symlinks=False)
+    return target, "copy"
+
+
+def _merge_tree(source_root: Path, aggregate: Path, policy: str, *, ordinal: int) -> dict[str, int]:
+    stats = {"copied": 0, "skipped": 0, "renamed": 0, "directories": 0}
+    paths = sorted(source_root.rglob("*"), key=lambda item: (len(item.relative_to(source_root).parts), item.relative_to(source_root).as_posix()))
+    for source in paths:
+        rel = source.relative_to(source_root)
+        target = aggregate / rel
+        before = target
+        actual, action = _merge_copy_entry(source, target, policy, ordinal=ordinal)
+        if action == "skip":
+            stats["skipped"] += 1
+        elif action == "merge-dir":
+            stats["directories"] += 1
+        else:
+            stats["copied"] += 1
+            if actual != before:
+                stats["renamed"] += 1
+    return stats
+
+
+def _merge_extract_source(path: Path, fmt, destination: Path, args, config: dict, password: str | None) -> None:
+    if fmt.is_stream:
+        out_name = Path(strip_archive_suffix(path.name)).name or f"stream-{destination.name}"
+        output = destination / out_name
+        output.parent.mkdir(parents=True, exist_ok=True)
+        cmd = _decompression_command(fmt.compression, config, path, no_fallback=args.no_fallback)
+        stage = record_stage("merge-decompress", cmd, description=f"decompress merge source {path}")
+        if args.show_command:
+            emit_command(stage, force=True)
+        with output.open("wb") as fh:
+            proc = subprocess.run(cmd, stdout=fh, stderr=subprocess.PIPE, check=False)
+        if proc.returncode != 0:
+            detail = (proc.stderr or b"").decode(errors="replace").strip()
+            raise CorruptArchive(f"cannot decompress merge source {path}: {detail or f'exit {proc.returncode}'}")
+        return
+
+    backend = resolve_backend(
+        fmt,
+        "extract",
+        config,
+        args.backend,
+        required_capabilities=_backend_requirements(args, fmt, "extract", password),
+        no_fallback=args.no_fallback,
+    )
+    members = backend.list_members(path, password=password)
+    validate_members(members)
+    cmd, meta = backend.command(
+        "extract",
+        path,
+        fmt=fmt,
+        output=destination,
+        members=[],
+        extra=[],
+        overwrite=True,
+        skip_existing=False,
+        password=password,
+        preserve_owner=False,
+        preserve_acls=False,
+        preserve_xattrs=False,
+        config=config,
+        dry_run=False,
+        no_fallback=args.no_fallback,
+    )
+    rc = run_backend(cmd, meta, None, {}, show_command=args.show_command, dry_run=False, verbose=args.verbose)
+    if rc != 0:
+        _raise_backend_failure(rc, meta, password=password, operation="merge extract")
+
+
+def _merge_publish_candidate(candidate: Path, output: Path, args) -> str:
+    output.parent.mkdir(parents=True, exist_ok=True)
+    policy = DestinationPolicy(args.destination_policy)
+    decision = decide_destination(output, policy, candidate=candidate)
+    if decision.action == "skip-identical":
+        candidate.unlink(missing_ok=True)
+        return "skip-identical"
+    if decision.action == "rename" and decision.backup is not None:
+        os.replace(output, decision.backup)
+    elif decision.action == "replace":
+        backup_existing(output, getattr(args, "backup_existing", None))
+    _atomic_replace(candidate, output)
+    return decision.action
+
+
+def _merge(args, config: dict) -> int:
+    if len(args.inputs) < 2:
+        raise UsageError("merge requires at least two inputs")
+    password = _resolve_password(args)
+    transfer_progress = progress_enabled(args.progress, args.json, args.quiet)
+    staged_cleanup: list[Path] = []
+    staged_sources: list[tuple[str, Path, object]] = []
+
+    try:
+        for raw in args.inputs:
+            remote = parse_remote(str(raw), config, probe_rclone=not args.dry_run)
+            if remote is not None:
+                if args.dry_run:
+                    local = Path(remote.basename)
+                    fmt = infer_from_name(local)
+                    if fmt is None:
+                        raise UsageError(f"dry-run cannot infer remote merge source format: {raw}; use a recognized archive suffix")
+                else:
+                    local, cleanup = stage_remote_for_read(remote, config, progress=transfer_progress)
+                    if cleanup is not None:
+                        staged_cleanup.append(cleanup)
+                    fmt = detect(local)
+            else:
+                local = Path(raw).expanduser()
+                if not args.dry_run and not local.is_file():
+                    raise UsageError(f"merge input is not a file: {raw}")
+                fmt = infer_from_name(local) if args.dry_run else detect(local)
+                if fmt is None:
+                    raise UsageError(f"cannot infer merge input format: {raw}")
+            staged_sources.append((str(raw), local, fmt))
+
+        composition_sources = [CompositionSource(path=local, format=fmt) for _raw, local, fmt in staged_sources]
+        resolved = resolve_merge_output(composition_sources, output=args.output, explicit_format=args.format)
+        output = resolved.path.expanduser()
+        if parse_remote(str(args.output), config, probe_rclone=False) if args.output else False:
+            raise UnsupportedFormat("remote merge outputs are not yet supported; merge remote inputs to a local output")
+        source_formats = [fmt.canonical for _raw, _path, fmt in staged_sources]
+        safe_concat = (
+            all(fmt.is_stream for _raw, _path, fmt in staged_sources)
+            and len(set(source_formats)) == 1
+            and resolved.format.is_stream
+            and resolved.format.canonical == source_formats[0]
+        )
+        if args.strategy == "concat" and not safe_concat:
+            raise UnsupportedFormat("--strategy=concat requires same-format single compressed streams and the same stream output format")
+        strategy = "concat" if args.strategy == "concat" or (args.strategy == "auto" and safe_concat) else "repack"
+        begin_plan("merge", mode=getattr(args, "show_native", None), style=getattr(args, "native_style", None) or "reproducible", show_primary_command=bool(args.show_command))
+        record_decision("merge-strategy", strategy, reason="safe same-format stream concatenation" if strategy == "concat" else "logical member repack required")
+        record_decision("merge-output", str(output), reason=f"format={resolved.format.canonical}; source={resolved.format_source}")
+
+        if args.delete_inputs:
+            resolved_output = output.resolve()
+            for raw, local, _fmt in staged_sources:
+                if parse_remote(raw, config, probe_rclone=False) is None and local.resolve() == resolved_output:
+                    raise UsageError("--delete-inputs cannot be used when the merge output is also an input path")
+
+        summary = {
+            "operation": "merge",
+            "inputs": list(args.inputs),
+            "output": str(output),
+            "format": resolved.format.canonical,
+            "format_source": resolved.format_source,
+            "name_inferred": resolved.name_inferred,
+            "strategy": strategy,
+            "reencoded": strategy == "repack",
+            "member_conflict": args.member_conflict,
+        }
+        if args.dry_run:
+            if args.json:
+                print(json.dumps({**summary, "dry_run": True}))
+            elif not args.quiet:
+                stdout_console.print(f"[cyan]DRY RUN[/] merge → {output} ({resolved.format.canonical}, strategy={strategy})")
+            return 0
+
+        with transaction_scope("merge", metadata={"inputs": args.inputs, "output": str(output), "strategy": strategy}) as journal:
+            output.parent.mkdir(parents=True, exist_ok=True)
+            fd, temp_name = tempfile.mkstemp(prefix=f".{output.name}.arc-merge-", suffix=extension_for(resolved.format), dir=output.parent)
+            os.close(fd)
+            candidate = Path(temp_name)
+            candidate.unlink(missing_ok=True)
+            tx_cleanup(candidate, reason="unpublished merge candidate")
+            conflict_totals = {"copied": 0, "skipped": 0, "renamed": 0, "directories": 0}
+            if strategy == "concat":
+                with candidate.open("wb") as dst:
+                    for _raw, local, _fmt in staged_sources:
+                        with local.open("rb") as src:
+                            shutil.copyfileobj(src, dst)
+                tx_event("merge-concat", inputs=len(staged_sources), output=str(output))
+            else:
+                with tempfile.TemporaryDirectory(prefix="arc-merge-work-") as td:
+                    work = Path(td)
+                    aggregate = work / "aggregate"
+                    aggregate.mkdir()
+                    for ordinal, (_raw, local, fmt) in enumerate(staged_sources, 1):
+                        extracted = work / f"source-{ordinal}"
+                        extracted.mkdir()
+                        _merge_extract_source(local, fmt, extracted, args, config, password)
+                        stats = _merge_tree(extracted, aggregate, args.member_conflict, ordinal=ordinal)
+                        for key, value in stats.items():
+                            conflict_totals[key] += value
+                    inner_argv = ["create", str(candidate), *[child.name for child in sorted(aggregate.iterdir())], "-F", resolved.format.canonical, "--destination-policy", "replace", "--progress", "never", "--quiet"]
+                    if args.backend:
+                        inner_argv += ["--backend", args.backend]
+                    if args.no_fallback:
+                        inner_argv += ["--no-fallback"]
+                    if args.level is not None:
+                        inner_argv += ["--level", str(args.level)]
+                    if args.threads is not None:
+                        inner_argv += ["--threads", str(args.threads)]
+                    if password:
+                        inner_argv += ["--password", password]
+                    if args.show_command:
+                        inner_argv += ["--show-command"]
+                    inner = parser().parse_args(inner_argv)
+                    inner._invoked_program = "arc"
+                    inner._display_argv = inner_argv
+                    _apply_defaults(inner, config)
+                    old = Path.cwd()
+                    try:
+                        os.chdir(aggregate)
+                        _create_like_local(inner, [], config)
+                    finally:
+                        os.chdir(old)
+                tx_event("merge-repack", inputs=len(staged_sources), output=str(output), conflict_policy=args.member_conflict)
+
+            publication = _merge_publish_candidate(candidate, output, args)
+            tx_cleanup_done(candidate)
+            summary["publication"] = publication
+            summary["conflicts"] = conflict_totals
+            if args.verify:
+                evidence = _verify_archive_path(output, resolved.format, password, args, config)
+                summary["verification"] = evidence.to_dict()
+                if evidence.status == "failed":
+                    raise CorruptArchive(_verification_failure_detail(evidence) or "merged archive verification failed")
+            if args.delete_inputs:
+                deleted = []
+                for raw, local, _fmt in staged_sources:
+                    if parse_remote(raw, config, probe_rclone=False) is not None:
+                        raise UnsupportedFormat("--delete-inputs currently requires all merge inputs to be local")
+                    local.unlink()
+                    deleted.append(raw)
+                summary["deleted_inputs"] = deleted
+            journal.complete({"exit_code": 0, "output": str(output), "strategy": strategy})
+
+        if args.json:
+            print(json.dumps(summary, ensure_ascii=False))
+        elif not args.quiet:
+            stdout_console.print(f"[green]OK[/] merge: {output} ({resolved.format.canonical}, strategy={strategy})")
+        return 0
+    finally:
+        for item in staged_cleanup:
+            item.unlink(missing_ok=True)
+
+
 def _dispatch_command(args, extra: list[str], config: dict) -> int:
     if args.command == "identify":
         return _identify(args, config)
@@ -4405,6 +4705,8 @@ def _dispatch_command(args, extra: list[str], config: dict) -> int:
         return _recover_command(args)
     if args.command == "batch":
         return _batch_command(args)
+    if args.command == "merge":
+        return _merge(args, config)
     if args.command == "convert":
         return _convert(args, config)
     if args.command in {"create", "add", "update", "list", "test", "extract", "remove"}:

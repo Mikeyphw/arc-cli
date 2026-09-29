@@ -1,0 +1,43 @@
+.TH "ARC-MERGE" "1" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-merge \- merge archive contents or safely concatenate compatible streams
+.SH "SYNOPSIS"
+arc merge INPUT... [\-o OUTPUT] [\-F FORMAT] [OPTIONS]
+.PP
+arcmerge ...
+.PP
+arc\-merge ...
+.SH "DESCRIPTION"
+Merge archive contents in input order. Arc automatically uses byte concatenation only for same\-format single compressed streams whose concatenated framing is valid; container archives are logically extracted and repacked.
+.SH "OPTIONS"
+INPUT...
+.PP
+\-o, \-\-output PATH
+.PP
+\-F, \-\-format FORMAT
+.PP
+\-\-strategy auto|concat|repack
+.PP
+\-\-member\-conflict fail|replace|skip|rename
+.PP
+\-\-destination\-policy fail|replace|rename|skip\-identical
+.PP
+\-\-verify
+.PP
+\-\-delete\-inputs
+.PP
+\-\-backend NAME
+.PP
+\-\-dry\-run
+.PP
+\-\-json[=v1]
+.SH "SEMANTICS"
+Output format resolution is deterministic: an explicit format wins, a recognized output suffix selects the format when no format is given, and uniform input formats are preserved when neither is supplied. Mixed formats therefore require an explicit destination format. \-\-strategy=auto selects concat only for same\-format single compressed streams with the same output stream format; TAR\-compressed archives, ZIP, 7z, RAR, and mixed formats repack logical members. Member collisions are separate from final destination collision policy. Remote inputs may be staged locally; remote merge output is not yet supported.
+.SH "EXAMPLES"
+arc merge a.tar b.tar \-o combined.tar
+.PP
+arc merge a.gz b.gz \-o combined.gz
+.PP
+arc merge old.zip new.7z \-F tar.zstd \-\-member\-conflict=rename
+.SH "SEE ALSO"
+arc\-create(1), arc\-convert(1), arc\-diff(1), arc\-explain(1)

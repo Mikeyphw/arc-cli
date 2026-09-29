@@ -264,6 +264,19 @@ _add(
 
 _add(
     _command_page(
+        "merge",
+        "Merge archive contents in input order. Arc automatically uses byte concatenation only for same-format single compressed streams whose concatenated framing is valid; container archives are logically extracted and repacked.",
+        options="INPUT...\n-o, --output PATH\n-F, --format FORMAT\n--strategy auto|concat|repack\n--member-conflict fail|replace|skip|rename\n--destination-policy fail|replace|rename|skip-identical\n--verify\n--delete-inputs\n--backend NAME\n--dry-run\n--json[=v1]",
+        semantics=(
+            "Output format resolution is deterministic: an explicit format wins, a recognized output suffix selects the format when no format is given, and uniform input formats are preserved when neither is supplied. Mixed formats therefore require an explicit destination format. --strategy=auto selects concat only for same-format single compressed streams with the same output stream format; TAR-compressed archives, ZIP, 7z, RAR, and mixed formats repack logical members. Member collisions are separate from final destination collision policy. Remote inputs may be staged locally; remote merge output is not yet supported."
+        ),
+        examples="arc merge a.tar b.tar -o combined.tar\narc merge a.gz b.gz -o combined.gz\narc merge old.zip new.7z -F tar.zstd --member-conflict=rename",
+        see_also="arc-create(1), arc-convert(1), arc-diff(1), arc-explain(1)",
+    )
+)
+
+_add(
+    _command_page(
         "test",
         "Run integrity verification at an explicit proof level. Unlike arc info, this command is explicitly a verification operation and reports what was actually proven.",
         options="--json[=legacy|v1]\n--verify-level none|structure|members|full\n--allow-verification-downgrade\n--include/--exclude and rule files\n--password/--password-file/--password-env\n--backend NAME",

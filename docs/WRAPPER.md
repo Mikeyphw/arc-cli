@@ -240,3 +240,11 @@ Run the first post-seal implementation boundary with:
 ```
 
 This workflow validates the single `0.2.0` version authority, dynamic package/runtime version convergence, and the reusable composition output resolver. It intentionally does not expose `merge`, `split`, or `join` yet.
+
+## COMP-X02 logical merge
+
+```sh
+./devtoolw comp-x02
+```
+
+Runs the first-class merge contract, real concat/repack behavior tests, generated docs/completion checks, alias/package parity, and Devtool contract validation.

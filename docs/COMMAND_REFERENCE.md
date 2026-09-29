@@ -30,6 +30,7 @@ Arc provides one normalized interface over native archive and compression backen
   diff         compare archive contents and logical equivalence
   test         verify archive integrity
   convert      convert an archive or compressed stream
+  merge        merge archive contents or safely concatenate compatible streams
   add          add new archive members
   update       update archive members
   remove       remove archive members
@@ -69,6 +70,8 @@ Arc provides one normalized interface over native archive and compression backen
   arccv          arc convert
   arc-convert    arc convert
   arcconvert     arc convert
+  arcmerge       arc merge
+  arc-merge      arc merge
   arca           arc add
   arc-add        arc add
   arcu           arc update
@@ -831,6 +834,50 @@ arc list private.7z --password-env ARCHIVE_PASS --json
 ### See Also
 
 arc-info(1), arc-test(1), arc-extract(1)
+
+## arc-merge(1)
+
+### Name
+
+arc-merge - merge archive contents or safely concatenate compatible streams
+
+### Synopsis
+
+arc merge INPUT... [-o OUTPUT] [-F FORMAT] [OPTIONS]
+arcmerge ...
+arc-merge ...
+
+### Description
+
+Merge archive contents in input order. Arc automatically uses byte concatenation only for same-format single compressed streams whose concatenated framing is valid; container archives are logically extracted and repacked.
+
+### Options
+
+INPUT...
+-o, --output PATH
+-F, --format FORMAT
+--strategy auto|concat|repack
+--member-conflict fail|replace|skip|rename
+--destination-policy fail|replace|rename|skip-identical
+--verify
+--delete-inputs
+--backend NAME
+--dry-run
+--json[=v1]
+
+### Semantics
+
+Output format resolution is deterministic: an explicit format wins, a recognized output suffix selects the format when no format is given, and uniform input formats are preserved when neither is supplied. Mixed formats therefore require an explicit destination format. --strategy=auto selects concat only for same-format single compressed streams with the same output stream format; TAR-compressed archives, ZIP, 7z, RAR, and mixed formats repack logical members. Member collisions are separate from final destination collision policy. Remote inputs may be staged locally; remote merge output is not yet supported.
+
+### Examples
+
+arc merge a.tar b.tar -o combined.tar
+arc merge a.gz b.gz -o combined.gz
+arc merge old.zip new.7z -F tar.zstd --member-conflict=rename
+
+### See Also
+
+arc-create(1), arc-convert(1), arc-diff(1), arc-explain(1)
 
 ## arc-recover(1)
 

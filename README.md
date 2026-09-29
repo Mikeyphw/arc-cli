@@ -6,6 +6,16 @@ The wrapper owns format detection, safe extraction, consistent filtering, overwr
 
 Everything after the first `--` is passed unchanged to the selected primary backend.
 
+### Merge archives and streams
+
+```sh
+arc merge a.tar b.tar -o combined.tar
+arc merge one.gz two.gz -o combined.gz
+arc merge old.zip new.7z -F tar.zstd --member-conflict rename
+```
+
+`--strategy=auto` concatenates only compatible same-format single compressed streams. Container archives and compound TAR+compression formats are logically repacked.
+
 ## Install
 
 ```bash

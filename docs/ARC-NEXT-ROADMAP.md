@@ -154,6 +154,8 @@ Make `0.2.0` the first post-seal version and replace the three historical versio
 
 ### COMP-X02 — logical merge with automatic safe concat — implementation 2 of 3
 
+**Status: IMPLEMENTED; COMP-G1 qualification pending.**
+
 Add `arc merge`: logical archive/member composition, deterministic `-o/--output` + `-F/--format` resolution through COMP-X01, explicit member-conflict policy, transaction/publication safety, explain/dry-run/machine evidence, and `--strategy auto|concat|repack`. `auto` may select concat only for same-format single compressed streams with proven concatenation semantics; compound TAR+compression and container formats repack logically.
 
 ### COMP-X03 — exact split + join volume protocol — implementation 3 of 3
