@@ -52,7 +52,8 @@ An explicit Devtool CLI execution override remains authoritative when intentiona
 - `r09b-gate` — run the separate cumulative R09B transport capability/publication gate.
 - `r10-gate` — run the separate cumulative R10 mutation policy/backend-command/machine-batch qualification gate.
 - `r11-gate` — run the separate cumulative R11 configuration provenance/diagnostic qualification gate.
-- `r12` — run the final implementation validation for factual format guidance, host benchmarks, and redacted diagnostics bundles.
+- `r12` — run factual format guidance, host benchmark, and redacted diagnostics bundle validation.
+- `r12a` — run the gate-discovered benchmark corpus-truth completion validation (portable corpus root, empty-directory/symlink identity, real directory round trips).
 - `refresh-install` / `refresh` — require generated registry/docs/completion surfaces to be current, then refresh the active editable Arc installation so all declared console scripts are present.
 - `release` / `rel` — full validation, verified/reproducible packaging, backend smoke, SBOM generation, and SHA-256 release evidence.
 - `gate` / `g` — run the cumulative ARC-R01 through ARC-R05 qualification gate through Devtool/EXO.
@@ -79,7 +80,7 @@ Arguments after `--` remain native Devtool passthrough only on wrapper commands 
 ./devtoolw test --changed
 ```
 
-`quick` covers format/filter/completion contracts, `integration` covers CLI integration plus extraction safety, `r04`/`r05` cover their remote feature slices, `r06` covers runtime/alias/install truth plus packaging/man/completion parity, `r07` covers explain/recovery/resumable-batch behavior plus affected plan/docs/completion regressions, `r08` covers machine-schema/capability/verification behavior plus the affected backend/info/convert/docs/package surface, `r09a` covers logical fingerprints/diff plus machine/schema/alias/docs/package parity, `r09b` covers the targeted remote capability/publication slice, `r09b_gate` widens that to the cumulative transport/provenance/integration/package matrix, `r10` covers mutation policy/progress, `r10a` covers backend-command display truth, `r10b` covers machine batch, `r10c` covers mutation-policy convergence, `r10_gate` qualifies the cumulative R10 boundary, `r11`/`r11a`/`r11b` cover the configuration provenance completion layers, `r11_gate` qualifies their cumulative boundary, `r12` covers advisory/benchmark/diagnostics evidence, `final_gate` is the historical complete R01-R05 campaign test tree, and `full` remains the ordinary complete test profile.
+`quick` covers format/filter/completion contracts, `integration` covers CLI integration plus extraction safety, `r04`/`r05` cover their remote feature slices, `r06` covers runtime/alias/install truth plus packaging/man/completion parity, `r07` covers explain/recovery/resumable-batch behavior plus affected plan/docs/completion regressions, `r08` covers machine-schema/capability/verification behavior plus the affected backend/info/convert/docs/package surface, `r09a` covers logical fingerprints/diff plus machine/schema/alias/docs/package parity, `r09b` covers the targeted remote capability/publication slice, `r09b_gate` widens that to the cumulative transport/provenance/integration/package matrix, `r10` covers mutation policy/progress, `r10a` covers backend-command display truth, `r10b` covers machine batch, `r10c` covers mutation-policy convergence, `r10_gate` qualifies the cumulative R10 boundary, `r11`/`r11a`/`r11b` cover the configuration provenance completion layers, `r11_gate` qualifies their cumulative boundary, `r12` covers advisory/benchmark/diagnostics evidence, `r12a` covers benchmark corpus-truth convergence, `final_gate` is the historical complete R01-R05 campaign test tree, and `full` remains the ordinary complete test profile.
 
 ## EXO workflows and scheduler
 
@@ -222,4 +223,4 @@ This resolves to the `r09b_gate` EXO workflow. It rechecks machine, provenance, 
 
 `./devtoolw r11-gate` runs the separate cumulative R11 gate. It rechecks machine/config/batch/R10-gate/generated-doc/completion/Devtool contracts before the first-class 134-test R11 provenance/diagnostic qualification matrix. R12 remains a separate final implementation boundary.
 
-`./devtoolw r12` runs the repository-owned final implementation workflow for factual format recommendation, deterministic/host-specific benchmark evidence, offline redacted diagnostics bundles, machine schemas, generated docs/completion, and packaging parity. The R12 gate/final campaign seal remains a separate artifact.
+`./devtoolw r12` runs the repository-owned advisory/benchmark/diagnostics implementation workflow. `./devtoolw r12a` runs the gate-discovered corpus-truth completion workflow, including real TAR/ZIP directory round trips, portable corpus-root creation, empty-directory/symlink identity, schema parity, and cumulative R12 compatibility. The R12 gate and final content seal remain separate later artifacts.

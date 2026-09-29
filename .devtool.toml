@@ -416,6 +416,21 @@ pytest_tests = [
 pytest_args = ["--maxfail=1"]
 pytest_include_defaults = false
 
+[test_profiles.r12a]
+pytest_tests = [
+  "tests/test_r12a_benchmark_corpus_truth.py",
+  "tests/test_r12_advisory_benchmark_diagnostics.py",
+  "tests/test_r11_gate.py",
+  "tests/test_r08_machine_capability_verification.py",
+  "tests/test_r06_runtime_install_truth.py",
+  "tests/test_cli_integration.py",
+  "tests/test_completion.py",
+  "tests/test_manpages.py",
+  "tests/test_distribution_contract.py",
+]
+pytest_args = ["--maxfail=1", "-ra"]
+pytest_include_defaults = false
+
 [[test]]
 id = "arc-r09b-remote-capability-publication"
 name = "ARC-R09B remote capability, cache provenance, and publication truth"
@@ -631,6 +646,24 @@ runner = "pytest"
 command = [
   "python3", "-m", "pytest", "-q",
   "--junitxml=.devtool/reports/roadmap/arc-r12-advisory-benchmark-diagnostics.xml",
+  "tests/test_r12_advisory_benchmark_diagnostics.py",
+  "tests/test_r11_gate.py",
+  "tests/test_r08_machine_capability_verification.py",
+  "tests/test_r06_runtime_install_truth.py",
+  "tests/test_cli_integration.py",
+  "tests/test_completion.py",
+  "tests/test_manpages.py",
+  "tests/test_distribution_contract.py",
+]
+
+[[test]]
+id = "arc-r12a-benchmark-corpus-truth"
+name = "ARC-R12A portable benchmark corpus and logical round-trip truth"
+runner = "pytest"
+command = [
+  "python3", "-m", "pytest", "-q", "-ra",
+  "--junitxml=.devtool/reports/roadmap/arc-r12a-benchmark-corpus-truth.xml",
+  "tests/test_r12a_benchmark_corpus_truth.py",
   "tests/test_r12_advisory_benchmark_diagnostics.py",
   "tests/test_r11_gate.py",
   "tests/test_r08_machine_capability_verification.py",
@@ -874,6 +907,12 @@ command = ["python3", "scripts/check_r12_contract.py"]
 inputs = [".devtool.toml", "src/arc_cli/advisory.py", "src/arc_cli/cli.py", "src/arc_cli/machine.py", "src/arc_cli/schemas/**", "src/arc_cli/command_docs.py", "src/arc_cli/completion.py", "src/arc_cli/manual.py", "docs/ARC-R12-AUDIT.md", "docs/ARC-NEXT-ROADMAP.md", "docs/WRAPPER.md", "scripts/check_r12_contract.py", "tests/test_r12_advisory_benchmark_diagnostics.py", "pyproject.toml"]
 metadata = { read_only = true, purpose = "arc-r12-advisory-benchmark-diagnostics-contract", contract = "arc-r12-v1" }
 
+[targets.arc.jobs.r12a-contract]
+runner = "command"
+command = ["python3", "scripts/check_r12a_contract.py"]
+inputs = [".devtool.toml", "src/arc_cli/advisory.py", "src/arc_cli/schemas/benchmark-v1.schema.json", "docs/ARC-R12A-AUDIT.md", "docs/ARC-NEXT-ROADMAP.md", "docs/WRAPPER.md", "scripts/check_r12a_contract.py", "tests/test_r12a_benchmark_corpus_truth.py"]
+metadata = { read_only = true, purpose = "arc-r12a-benchmark-corpus-truth-contract", contract = "arc-r12a-v1" }
+
 [targets.arc.jobs.backend-smoke]
 runner = "command"
 command = [".devtool/venvs/arc/bin/python", "scripts/devtool_backend_smoke.py"]
@@ -1044,6 +1083,19 @@ r12 = [
   { id = "r12", ref = "test:arc-r12-advisory-benchmark-diagnostics", depends_on = ["machine-contract", "config-contract", "remote-contract", "r12-contract", "docs", "completion", "devtool-contract"] },
 ]
 
+r12a = [
+  { id = "syntax", ref = "job:syntax", depends_on = [] },
+  { id = "machine-contract", ref = "job:machine-contract", depends_on = ["syntax"] },
+  { id = "config-contract", ref = "job:config-contract", depends_on = ["syntax"] },
+  { id = "remote-contract", ref = "job:remote-contract", depends_on = ["syntax"] },
+  { id = "r12-contract", ref = "job:r12-contract", depends_on = ["syntax"] },
+  { id = "r12a-contract", ref = "job:r12a-contract", depends_on = ["r12-contract"] },
+  { id = "docs", ref = "job:command-docs-contract", depends_on = ["syntax"] },
+  { id = "completion", ref = "job:completion-contract", depends_on = ["syntax"] },
+  { id = "devtool-contract", ref = "job:devtool-contract", depends_on = ["syntax"] },
+  { id = "r12a", ref = "test:arc-r12a-benchmark-corpus-truth", depends_on = ["machine-contract", "config-contract", "remote-contract", "r12a-contract", "docs", "completion", "devtool-contract"] },
+]
+
 refresh_install = [
   { id = "alias-contract", ref = "job:alias-contract", depends_on = [] },
   { id = "refresh", ref = "job:refresh-install", depends_on = ["alias-contract"] },
@@ -1146,7 +1198,7 @@ aliases = ["t"]
 [wrapper.commands.test.options.profile]
 type = "choice"
 description = "Select a repository test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "r10c", "r10_gate", "r11", "r11a", "r11b", "r11_gate", "r12", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "r10c", "r10_gate", "r11", "r11a", "r11b", "r11_gate", "r12", "r12a", "final_gate", "full"]
 command_argv = ["--profile", "{value}"]
 
 [wrapper.commands.test.options.node]
@@ -1198,7 +1250,7 @@ aliases = ["val"]
 [wrapper.commands.validate.options.profile]
 type = "choice"
 description = "Select the validation test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "r10c", "r10_gate", "r11", "r11a", "r11b", "r11_gate", "r12", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "r10c", "r10_gate", "r11", "r11a", "r11b", "r11_gate", "r12", "r12a", "final_gate", "full"]
 command_argv = ["--test-profile", "{value}"]
 
 [wrapper.commands.validate.options.affected]
@@ -1348,6 +1400,11 @@ target = "arc"
 [wrapper.commands.r12]
 description = "Run ARC-R12 advisory, benchmark, and diagnostics validation"
 workflow = "r12"
+target = "arc"
+
+[wrapper.commands.r12a]
+description = "Run ARC-R12A benchmark corpus truth convergence validation"
+workflow = "r12a"
 target = "arc"
 
 [wrapper.commands.refresh-install]

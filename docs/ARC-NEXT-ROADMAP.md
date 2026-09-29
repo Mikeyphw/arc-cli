@@ -132,7 +132,9 @@ The widened R11 gate audit found one final convergence gap: after diagnosing an 
 
 R12 also bundles/queryable `format-recommendation-v1`, `benchmark-v1`, and `diagnostics-bundle-v1` schemas, supports `--json=v1`, ships generated manuals/completion/package resources, and owns first-class `r12` Devtool profile/workflow/test/contract/wrapper surfaces.
 
-**Separate R12 gate/final seal:** audit the complete R12 promise ledger and cumulative campaign evidence, then bind the exact post-R12 source/artifact identity without folding seal work into this implementation overlay.
+**R12A gate-discovered completion:** real directory benchmark qualification exposed four R12 truth gaps before the gate could seal: absolute corpus paths made extraction verification look in the wrong root, directory corpus identity ignored empty directories/symlink targets, final-component symlink recommendation facts were erased by path resolution, and the cross-format TAR/ZIP gate incorrectly assumed identical metadata fidelity across providers. R12A establishes a portable corpus root by running benchmark create from the corpus parent with a basename argument, verifies ordinary-directory path/content round trips across TAR/ZIP, extends corpus identity to normalized files + empty directories + symlink targets so metadata loss remains explicitly detectable, permits empty-directory corpora in `arc.benchmark/v1`, preserves recommendation symlink kind, and rejects symlink benchmark corpora instead of silently following them. R12A is the final implementation-remediation overlay; the separate R12 gate and later content seal remain distinct.
+
+**Separate R12 gate/final seal:** audit R12 + R12A across the complete R12 promise ledger and cumulative campaign evidence, then bind the exact post-gate source/artifact identity in a later seal artifact rather than folding seal work into implementation.
 
 ## Gate and seal policy
 

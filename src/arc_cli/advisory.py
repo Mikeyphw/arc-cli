@@ -16,6 +16,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping
 
+from .provenance import normalize_link_target, normalize_member_name
+
 from . import __version__
 from .backends import _compression_command, backend_capability_profile, backend_inventory, resolve_backend
 from .config import ConfigLoadResult, config_inspection_payload
@@ -35,7 +37,9 @@ def _utc_now() -> str:
 
 
 def _input_facts(path: Path) -> dict[str, Any]:
-    p = path.expanduser().resolve()
+    # Keep the final path component unresolved so a symlink input remains a
+    # symlink fact rather than being silently reclassified as its target.
+    p = path.expanduser().absolute()
     if not p.exists() and not p.is_symlink():
         raise UsageError(f"path does not exist: {path}")
     if p.is_symlink():
@@ -174,30 +178,76 @@ def _file_sha256(path: Path) -> str:
 
 
 def _corpus_digest(path: Path) -> dict[str, Any]:
-    root = path.expanduser().resolve()
-    digest = hashlib.sha256()
-    total = files = 0
+    """Return a stable logical identity for a benchmark corpus.
+
+    Directory identity must cover more than regular-file bytes.  Empty
+    directories and symlink targets are logical corpus content too; ignoring
+    them can falsely report a successful round trip when a backend silently
+    drops those members.  Paths and link targets use the same normalization
+    authority as Arc's R09A logical-provenance model.
+    """
+    root = path.expanduser().absolute()
+    if root.is_symlink():
+        raise UsageError(f"benchmark corpus must be a regular file or directory, not a symlink: {path}")
     if root.is_file():
-        items = [(root.name, root)]
-    elif root.is_dir():
-        items = [(p.relative_to(root).as_posix(), p) for p in sorted(root.rglob("*")) if p.is_file() and not p.is_symlink()]
-    else:
+        content_sha = _file_sha256(root)
+        row = ["file", "@stream", root.stat().st_size, content_sha]
+        digest = hashlib.sha256(json.dumps([row], ensure_ascii=False, separators=(",", ":")).encode("utf-8")).hexdigest()
+        return {
+            "sha256": digest,
+            "content_sha256": content_sha,
+            "bytes": root.stat().st_size,
+            "files": 1,
+            "directories": 0,
+            "symlinks": 0,
+            "kind": "file",
+        }
+    if not root.is_dir() or root.is_symlink():
         raise UsageError(f"benchmark corpus must be a regular file or directory: {path}")
-    for name, item in items:
-        h = hashlib.sha256()
-        with item.open("rb") as fh:
-            for chunk in iter(lambda: fh.read(1024 * 1024), b""):
-                h.update(chunk)
-                total += len(chunk)
-        encoded = name.encode("utf-8", "surrogateescape")
-        digest.update(len(encoded).to_bytes(4, "big"))
-        digest.update(encoded)
-        digest.update(h.digest())
-        files += 1
-    result = {"sha256": digest.hexdigest(), "bytes": total, "files": files, "kind": "file" if root.is_file() else "directory"}
-    if root.is_file():
-        result["content_sha256"] = _file_sha256(root)
-    return result
+
+    rows: list[list[Any]] = []
+    total = files = directories = symlinks = 0
+    for current, dirnames, filenames in os.walk(root, followlinks=False):
+        base = Path(current)
+        if base != root:
+            directories += 1
+        # Symlinked directories are members, not traversal roots.
+        symlink_dirs = [name for name in list(dirnames) if (base / name).is_symlink()]
+        dirnames[:] = [name for name in dirnames if name not in symlink_dirs]
+        child_names = [*dirnames, *symlink_dirs, *filenames]
+        if base != root and not child_names:
+            rel = normalize_member_name(base.relative_to(root).as_posix())
+            rows.append(["dir", rel])
+        for name in sorted(symlink_dirs):
+            item = base / name
+            rel = normalize_member_name(item.relative_to(root).as_posix())
+            rows.append(["symlink", rel, normalize_link_target(os.readlink(item))])
+            symlinks += 1
+        for name in sorted(filenames):
+            item = base / name
+            rel = normalize_member_name(item.relative_to(root).as_posix())
+            if item.is_symlink():
+                rows.append(["symlink", rel, normalize_link_target(os.readlink(item))])
+                symlinks += 1
+                continue
+            if not item.is_file():
+                rows.append(["special", rel])
+                continue
+            size = item.stat().st_size
+            checksum = _file_sha256(item)
+            rows.append(["file", rel, size, checksum])
+            total += size
+            files += 1
+    rows.sort(key=lambda row: tuple(str(value) for value in row))
+    digest = hashlib.sha256(json.dumps(rows, ensure_ascii=False, separators=(",", ":")).encode("utf-8")).hexdigest()
+    return {
+        "sha256": digest,
+        "bytes": total,
+        "files": files,
+        "directories": directories,
+        "symlinks": symlinks,
+        "kind": "directory",
+    }
 
 
 def _generated_corpus(root: Path, size_mib: int, seed: int) -> Path:
@@ -255,9 +305,17 @@ def _proc_tree_rss_bytes(root_pid: int) -> int | None:
     return sum(rss.get(pid, 0) for pid in selected)
 
 
-def _run_measured(argv: list[str], env: Mapping[str, str]) -> dict[str, Any]:
+def _run_measured(argv: list[str], env: Mapping[str, str], *, cwd: Path | None = None) -> dict[str, Any]:
     started = time.perf_counter()
-    proc = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=dict(env), start_new_session=True)
+    proc = subprocess.Popen(
+        argv,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        env=dict(env),
+        cwd=str(cwd) if cwd is not None else None,
+        start_new_session=True,
+    )
     peak: int | None = None
     while proc.poll() is None:
         current = _proc_tree_rss_bytes(proc.pid)
@@ -304,7 +362,7 @@ def benchmark(
         raise UsageError("unsupported benchmark format(s): " + ", ".join(unknown))
     with tempfile.TemporaryDirectory(prefix="arc-benchmark-") as tmp:
         work = Path(tmp)
-        source = Path(corpus).expanduser().resolve() if corpus is not None else _generated_corpus(work, size_mib, seed)
+        source = Path(corpus).expanduser().absolute() if corpus is not None else _generated_corpus(work, size_mib, seed)
         if not source.exists():
             raise UsageError(f"benchmark corpus does not exist: {source}")
         corpus_info = _corpus_digest(source)
@@ -330,8 +388,13 @@ def benchmark(
                 suffix = extension_for(fmt)
                 archive = work / f"bench-{name.replace('.', '-')}-{index}{suffix}"
                 out_dir = work / f"out-{name.replace('.', '-')}-{index}"
-                create_argv = [sys.executable, "-m", "arc_cli", "create", str(archive), str(source), "--destination-policy", "replace", "--progress", "never"]
-                encode = _run_measured(create_argv, env)
+                source_arg = source.name or "."
+                create_argv = [sys.executable, "-m", "arc_cli", "create", str(archive), source_arg, "--destination-policy", "replace", "--progress", "never"]
+                # Invoke Arc from the corpus parent so the archive contains a
+                # portable corpus-root path rather than the host's absolute
+                # filesystem prefix.  This also gives directory extraction a
+                # stable expected root for round-trip verification.
+                encode = _run_measured(create_argv, env, cwd=source.parent)
                 archive_bytes = archive.stat().st_size if archive.is_file() else 0
                 decode: dict[str, Any] | None = None
                 verified = False
@@ -344,9 +407,9 @@ def benchmark(
                         if source.is_file() and len(extracted_files) == 1:
                             verified = _file_sha256(extracted_files[0]) == corpus_info.get("content_sha256")
                         elif source.is_dir():
-                            roots = [p for p in out_dir.iterdir() if p.name == source.name]
-                            if roots and roots[0].is_dir():
-                                verified = _corpus_digest(roots[0])["sha256"] == corpus_info["sha256"]
+                            extracted_root = out_dir / source.name if source.name else out_dir
+                            if extracted_root.is_dir() and not extracted_root.is_symlink():
+                                verified = _corpus_digest(extracted_root)["sha256"] == corpus_info["sha256"]
                 input_bytes = int(corpus_info["bytes"])
                 encoded_to_input = (archive_bytes / input_bytes) if input_bytes else None
                 compression_ratio = (input_bytes / archive_bytes) if archive_bytes else None

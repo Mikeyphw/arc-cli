@@ -1,3 +1,10 @@
+## ARC-R12A benchmark corpus truth convergence
+
+- Fix real directory benchmark round-trip verification by invoking Arc from the corpus parent with a portable basename instead of archiving the host's absolute source path. Cross-format TAR/ZIP qualification now uses a portable ordinary-directory corpus; metadata-rich empty-directory/symlink fidelity is tested separately so provider limitations are reported truthfully rather than failing the harness assumption.
+- Extend corpus identity to meaningful empty directories and symlink targets so lossy extraction cannot be mislabeled as verified; permit zero-file empty-directory corpora in `arc.benchmark/v1`.
+- Preserve symlink input facts for `formats recommend` and reject symlink benchmark roots instead of silently following them.
+- Add first-class `r12a` Devtool profile/workflow/test/contract/wrapper ownership before the separate R12 gate.
+
 ## ARC-R12 advisory intelligence, benchmark, and diagnostics evidence
 
 - Add factual `arc formats recommend PATH` evidence with no implicit selection/ranking.

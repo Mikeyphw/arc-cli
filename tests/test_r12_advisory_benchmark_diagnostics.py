@@ -49,11 +49,13 @@ def test_formats_recommend_requires_path(capsys) -> None:
 def test_benchmark_generated_corpus_is_reproducible_and_host_specific(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(advisory, "_backend_chain", lambda name, config: ([{"binary": "fake", "role": "archive", "path": "/fake", "profile": {}}], []))
 
-    def fake_run(argv: list[str], env):
+    def fake_run(argv: list[str], env, *, cwd=None):
         if "create" in argv:
             idx = argv.index("create")
             archive = Path(argv[idx + 1])
             source = Path(argv[idx + 2])
+            if not source.is_absolute() and cwd is not None:
+                source = Path(cwd) / source
             data = source.read_bytes()
             archive.write_bytes(data[: max(1, len(data) // 2)])
         else:
@@ -69,11 +71,14 @@ def test_benchmark_generated_corpus_is_reproducible_and_host_specific(tmp_path: 
 
     created_sources: list[str] = []
     original = fake_run
-    def capture(argv, env):
+    def capture(argv, env, *, cwd=None):
         if "create" in argv:
             idx = argv.index("create")
-            created_sources.append(argv[idx + 2])
-        return original(argv, env)
+            source = Path(argv[idx + 2])
+            if not source.is_absolute() and cwd is not None:
+                source = Path(cwd) / source
+            created_sources.append(str(source))
+        return original(argv, env, cwd=cwd)
     monkeypatch.setattr(advisory, "_run_measured", capture)
     one = advisory.benchmark({}, formats=["tar"], iterations=1, size_mib=1, seed=99)
     created_sources.clear()
