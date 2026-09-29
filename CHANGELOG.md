@@ -76,6 +76,7 @@
 - Keep exact changed, missing, newly authoritative, and unexpectedly sealed path lists in seal failures, while allowing unrelated runtime/transaction detritus outside the authoritative source set.
 
 ## Unreleased
+- ARC-R12 gate: add the cumulative final-campaign qualification workflow/profile/test/contract, including non-prescriptive recommendation invariants, real benchmark evidence, diagnostics manifest hash integrity, no-network/cached-remote-redaction probes, machine-v1 parity, and the union of R09B/R10/R11/R12 regression boundaries. The later content seal remains separate.
 - ARC-R09B gate: qualify the cumulative remote capability/publication promise ledger with a first-class `r09b_gate` Devtool workflow, `arc-r09b-gate` test, `./devtoolw r09b-gate` wrapper entry, deterministic cache lifecycle/expiry/refresh coverage, stale-vs-fresh zero-network dry-run coverage, and an rclone Move true/false/unknown publication matrix. R10 remains separate.
 - ARC-R09B: add typed remote locality/staging/publication evidence with explicit capability-cache provenance and refresh semantics.
 - Stop describing rclone `moveto` publication as atomically guaranteed; provider moves remain explicitly provider-dependent, while SSH rename atomicity is claimed only from probed tool evidence.

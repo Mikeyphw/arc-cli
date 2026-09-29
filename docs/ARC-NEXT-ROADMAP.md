@@ -134,7 +134,9 @@ R12 also bundles/queryable `format-recommendation-v1`, `benchmark-v1`, and `diag
 
 **R12A gate-discovered completion:** real directory benchmark qualification exposed four R12 truth gaps before the gate could seal: absolute corpus paths made extraction verification look in the wrong root, directory corpus identity ignored empty directories/symlink targets, final-component symlink recommendation facts were erased by path resolution, and the cross-format TAR/ZIP gate incorrectly assumed identical metadata fidelity across providers. R12A establishes a portable corpus root by running benchmark create from the corpus parent with a basename argument, verifies ordinary-directory path/content round trips across TAR/ZIP, extends corpus identity to normalized files + empty directories + symlink targets so metadata loss remains explicitly detectable, permits empty-directory corpora in `arc.benchmark/v1`, preserves recommendation symlink kind, and rejects symlink benchmark corpora instead of silently following them. R12A is the final implementation-remediation overlay; the separate R12 gate and later content seal remain distinct.
 
-**Separate R12 gate/final seal:** audit R12 + R12A across the complete R12 promise ledger and cumulative campaign evidence, then bind the exact post-gate source/artifact identity in a later seal artifact rather than folding seal work into implementation.
+**R12 gate: QUALIFIED.** The separate `r12_gate` qualification closes R12 + R12A across the complete advisory/benchmark/diagnostics promise ledger and the cumulative R09B→R12 regression surface. Recommendation remains non-prescriptive, benchmark corpus truth is preserved across real backends, diagnostics manifest/redaction/no-network guarantees are qualified, and machine/config/remote/docs/completion/distribution contracts remain green.
+
+**Separate final campaign content seal:** bind the exact post-gate source/artifact identity in a later seal artifact rather than folding content-root/seal work into the gate.
 
 ## Gate and seal policy
 

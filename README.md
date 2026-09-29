@@ -615,6 +615,8 @@ arc diagnostics bundle support.zip --recent 50
 
 `arc diagnostics bundle` is offline-by-default: it never performs a live remote probe and never includes archive contents by default. The ZIP contains JSON-only runtime/config provenance, backend versions/capabilities, alias/install health, doctor output, recent transaction diagnostics, cached remote capability evidence, and a manifest hashing every evidence member. Password-like fields and sensitive environment values are redacted. Public machine contracts are queryable as `format-recommendation-v1`, `benchmark-v1`, and `diagnostics-bundle-v1`.
 
+The cumulative R12 qualification is available as `./devtoolw r12-gate`. It requalifies the R09B→R12 transport/recovery/mutation/config/advisory chain and adds manifest-integrity, no-network, cached-remote-redaction, machine-wrapping, and real benchmark evidence probes. The final content seal remains a separate post-gate artifact.
+
 ## Tests
 
 ```bash
