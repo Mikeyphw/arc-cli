@@ -146,7 +146,7 @@ Milestone gates remain separate artifacts. A gate should reference repository-de
 
 The R01–R12 campaign is sealed. The next compact wave adds archive composition and exact transport-volume reconstruction without weakening the existing format/backend/execution authorities. The separate final campaign content seal remains historical evidence for the closed R01–R12 baseline; COMP-G1 will qualify this new wave.
 
-**Merge-window decision:** keep COMP-X01 separate because version authority and reusable naming contracts are infrastructure; keep COMP-X02 separate because archive-member merge/concat owns archive semantics and backend execution; merge split + join into COMP-X03 because they are two halves of one exact byte-volume protocol. A newly discovered temporary-lifecycle gap is owned by one focused pre-gate remediation, COMP-R01. The gate remains separate and qualification-only.
+**Merge-window decision:** keep COMP-X01 separate because version authority and reusable naming contracts are infrastructure; keep COMP-X02 separate because archive-member merge/concat owns archive semantics and backend execution; merge split + join into COMP-X03 because they are two halves of one exact byte-volume protocol. Gate preparation exposed three focused pre-gate remediations: COMP-R01 owns temporary lifecycle cleanup, COMP-R02 owns mixed-stream logical repack convergence, and COMP-R03 owns machine-schema registry convergence after X03 added `split-manifest-v1`. The gate remains separate and qualification-only.
 
 ### COMP-X01 — version authority and composition foundation — implementation 1 of 3
 
@@ -178,6 +178,12 @@ Make Arc-owned temporary state self-cleaning on every ordinary command exit: suc
 
 COMP-G1 exposed one remaining COMP-X02 executor gap: mixed stream formats resolved an explicit stream destination correctly, but repack attempted to feed multiple extracted files to a single-stream compressor. Preserve safe same-format zero-reencode concat, but for a stream-output repack with all-stream inputs concatenate the decompressed logical bytes in input order and encode the resulting byte stream once. Fail closed when any container/archive input is directed to a stream output because named-member flattening is ambiguous. Keep COMP-R01 cleanup semantics authoritative for the repaired path.
 
+### COMP-R03 — machine-schema registry convergence — pre-gate remediation 3 of 3
+
+**Status: IMPLEMENTED; apply before COMP-G1.**
+
+COMP-G1's prerequisite machine contract exposed stale schema ownership: runtime/schema/package truth already included `split-manifest-v1`, while the active R09B machine checker still enumerated the pre-X03 schema set. Extend that active checker with `split-manifest-v1`, add a focused registry/checker regression and Devtool `comp_r03` ownership, and preserve the historical older checker as historical evidence rather than silently rewriting its boundary.
+
 ### COMP-G1 — separate composition qualification gate
 
-Audit COMP-X01 through COMP-X03 plus COMP-R01 and COMP-R02 together: version/package identity; output inference; real safe stream concat; mixed-stream logical repack; TAR/ZIP/7z logical merge; mixed formats; member conflicts; remote staging; interruption/recovery; zero/exact-boundary split sizes; missing/corrupt/reordered parts; machine schemas; explain/batch/completion/manpages/wheel/sdist; destructive cleanup after verification; and **temporary-file hygiene on success, ordinary errors, and Ctrl+C/SIGINT** across merge/split/join, transaction candidates, remote staging, stdin materialization, backend manifests, verification, and publication. The gate must not contain implementation work.
+Audit COMP-X01 through COMP-X03 plus COMP-R01, COMP-R02, and COMP-R03 together: version/package identity; output inference; real safe stream concat; mixed-stream logical repack; TAR/ZIP/7z logical merge; mixed formats; member conflicts; remote staging; interruption/recovery; zero/exact-boundary split sizes; missing/corrupt/reordered parts; machine schemas; explain/batch/completion/manpages/wheel/sdist; destructive cleanup after verification; and **temporary-file hygiene on success, ordinary errors, and Ctrl+C/SIGINT** across merge/split/join, transaction candidates, remote staging, stdin materialization, backend manifests, verification, and publication. The gate must not contain implementation work.

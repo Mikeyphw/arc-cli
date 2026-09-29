@@ -263,3 +263,13 @@ Runs the first-class merge contract, real concat/repack behavior tests, generate
 ## COMP-R02 mixed-stream repack remediation
 
 Run `./devtoolw comp-r02` for the focused mixed-stream logical-repack convergence boundary discovered by COMP-G1. The final `COMP-G1` gate remains a separate qualification artifact.
+
+## COMP-R03 machine-schema registry convergence
+
+Run the focused gate-discovered schema-contract remediation with:
+
+```sh
+./devtoolw comp-r03
+```
+
+This boundary aligns the active R09B `machine-contract` checker with COMP-X03's public `split-manifest-v1` schema and rechecks schema/package distribution truth. COMP-G1 remains a separate final qualification artifact.

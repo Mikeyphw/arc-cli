@@ -1,3 +1,9 @@
+## 0.2.0 COMP-R03 machine-schema registry convergence
+
+- Add `split-manifest-v1` to the active R09B machine-schema contract registry so Devtool machine-contract truth matches the public schema registry introduced by COMP-X03.
+- Add focused registry/checker regression coverage, distribution/package requalification, and first-class Devtool `comp_r03` ownership.
+- Preserve COMP-G1 as a separate final composition qualification gate.
+
 ## 0.2.0 COMP-R01 temporary lifecycle hardening
 
 - Automatically clean transaction-owned temporary paths on successful exit, ordinary failure, and Ctrl+C/KeyboardInterrupt while preserving durable failed/interrupted journal status.
