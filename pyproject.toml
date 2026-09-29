@@ -37,6 +37,10 @@ arc-convert = "arc_cli.cli:main"
 arcconvert = "arc_cli.cli:main"
 arcmerge = "arc_cli.cli:main"
 arc-merge = "arc_cli.cli:main"
+arcsplit = "arc_cli.cli:main"
+arc-split = "arc_cli.cli:main"
+arcjoin = "arc_cli.cli:main"
+arc-join = "arc_cli.cli:main"
 arca = "arc_cli.cli:main"
 arc-add = "arc_cli.cli:main"
 arcu = "arc_cli.cli:main"
@@ -59,9 +63,9 @@ where = ["src"]
 arc_cli = ["man/*", "schemas/*.json"]
 
 [tool.setuptools.data-files]
-"share/man/man1" = ["src/arc_cli/man/arc.1", "src/arc_cli/man/arc-identify.1", "src/arc_cli/man/arc-create.1", "src/arc_cli/man/arc-extract.1", "src/arc_cli/man/arc-list.1", "src/arc_cli/man/arc-info.1", "src/arc_cli/man/arc-diff.1", "src/arc_cli/man/arc-test.1", "src/arc_cli/man/arc-convert.1", "src/arc_cli/man/arc-merge.1", "src/arc_cli/man/arc-add.1", "src/arc_cli/man/arc-update.1", "src/arc_cli/man/arc-remove.1", "src/arc_cli/man/arc-backends.1", "src/arc_cli/man/arc-aliases.1", "src/arc_cli/man/arc-doctor.1", "src/arc_cli/man/arc-explain.1", "src/arc_cli/man/arc-recover.1", "src/arc_cli/man/arc-batch.1", "src/arc_cli/man/arc-config.1", "src/arc_cli/man/arc-schema.1", "src/arc_cli/man/arc-completion.1", "src/arc_cli/man/arc-benchmark.1", "src/arc_cli/man/arc-diagnostics.1"]
+"share/man/man1" = ["src/arc_cli/man/arc.1", "src/arc_cli/man/arc-add.1", "src/arc_cli/man/arc-aliases.1", "src/arc_cli/man/arc-backends.1", "src/arc_cli/man/arc-batch.1", "src/arc_cli/man/arc-benchmark.1", "src/arc_cli/man/arc-completion.1", "src/arc_cli/man/arc-config.1", "src/arc_cli/man/arc-convert.1", "src/arc_cli/man/arc-create.1", "src/arc_cli/man/arc-diagnostics.1", "src/arc_cli/man/arc-diff.1", "src/arc_cli/man/arc-doctor.1", "src/arc_cli/man/arc-explain.1", "src/arc_cli/man/arc-extract.1", "src/arc_cli/man/arc-identify.1", "src/arc_cli/man/arc-info.1", "src/arc_cli/man/arc-join.1", "src/arc_cli/man/arc-list.1", "src/arc_cli/man/arc-merge.1", "src/arc_cli/man/arc-recover.1", "src/arc_cli/man/arc-remove.1", "src/arc_cli/man/arc-schema.1", "src/arc_cli/man/arc-split.1", "src/arc_cli/man/arc-test.1", "src/arc_cli/man/arc-update.1"]
 "share/man/man5" = ["src/arc_cli/man/arc-config.5", "src/arc_cli/man/arc-profiles.5"]
-"share/man/man7" = ["src/arc_cli/man/arc-formats.7", "src/arc_cli/man/arc-backends.7", "src/arc_cli/man/arc-remote.7"]
+"share/man/man7" = ["src/arc_cli/man/arc-backends.7", "src/arc_cli/man/arc-formats.7", "src/arc_cli/man/arc-remote.7"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

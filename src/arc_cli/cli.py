@@ -33,6 +33,24 @@ from .command_docs import COMMAND_DOCS, EXECUTABLE_ALIASES
 from .doctor import alias_status_rows, collect_doctor_report, fix_and_recheck
 from .manpages import available_topics, show_manpage
 from .composition import CompositionSource, resolve_merge_output
+from .volume import (
+    CHECKSUMS,
+    DEFAULT_CHECKSUM,
+    SplitPart,
+    build_manifest_payload,
+    checksum_file,
+    checksum_paths,
+    default_manifest_name,
+    discover_manifest_from_part,
+    discover_parts_without_manifest,
+    load_split_manifest,
+    new_hasher,
+    output_name_from_part,
+    parse_size,
+    part_name,
+    planned_part_sizes,
+    validate_digits,
+)
 from .config import (
     CONFIG_INSPECTION_SCHEMA,
     config_inspection_payload,
@@ -356,6 +374,40 @@ def parser() -> argparse.ArgumentParser:
     q.add_argument("--threads", type=int, default=None)
     q.add_argument("--dry-run", action="store_true")
     q.add_argument("--show-command", action="store_true")
+    q.add_argument("--progress", choices=["auto", "always", "never"], default=None)
+    q.add_argument("-q", "--quiet", action="store_true")
+    q.add_argument("-v", "--verbose", action="count", default=0)
+    _add_json_option(q)
+
+    q = sub.add_parser("split", help=COMMAND_DOCS["split"].summary)
+    q.add_argument("source", help="file or archive to split into exact byte volumes")
+    split_mode = q.add_mutually_exclusive_group(required=True)
+    split_mode.add_argument("--size", help="target part size (bytes or units such as 100M or 64MiB)")
+    split_mode.add_argument("--parts", type=int, help="requested number of parts")
+    q.add_argument("--output-prefix", help="part filename prefix; defaults to the source filename")
+    q.add_argument("--output-dir", help="directory for parts and the default manifest")
+    q.add_argument("--digits", type=int, default=3, help="minimum zero-padded part-number width (default: 3)")
+    q.add_argument("--checksum", choices=list(CHECKSUMS), default=DEFAULT_CHECKSUM, help="whole-file and per-part checksum algorithm")
+    q.add_argument("--manifest", help="manifest output path; defaults to <prefix>.arc-split.json")
+    q.add_argument("--no-manifest", action="store_true", help="do not write the split manifest (reduces join verification guarantees)")
+    q.add_argument("--verify", action=argparse.BooleanOptionalAction, default=True, help="verify published parts against the source checksum (default: verify)")
+    q.add_argument("--delete-source", action="store_true", help="delete the local source only after verified publication")
+    q.add_argument("--destination-policy", choices=[item.value for item in DestinationPolicy], default="fail", help="collision policy for parts and manifest")
+    q.add_argument("--dry-run", action="store_true")
+    q.add_argument("--progress", choices=["auto", "always", "never"], default=None)
+    q.add_argument("-q", "--quiet", action="store_true")
+    q.add_argument("-v", "--verbose", action="count", default=0)
+    _add_json_option(q)
+
+    q = sub.add_parser("join", help=COMMAND_DOCS["join"].summary)
+    q.add_argument("input", nargs="?", help="split manifest or any ARC-generated .partNNN file")
+    q.add_argument("--manifest", help="explicit arc.split-manifest/v1 path")
+    q.add_argument("-o", "--output", help="reconstructed output path; defaults to the manifest original filename")
+    q.add_argument("--verify", action=argparse.BooleanOptionalAction, default=True, help="verify part hashes and reconstructed whole-file checksum (default: verify)")
+    q.add_argument("--allow-missing-manifest", action="store_true", help="allow contiguous .partNNN reconstruction without whole-file proof")
+    q.add_argument("--delete-parts", action="store_true", help="delete parts only after successful reconstruction, verification, and publication")
+    q.add_argument("--destination-policy", choices=[item.value for item in DestinationPolicy], default="fail", help="final output collision policy")
+    q.add_argument("--dry-run", action="store_true")
     q.add_argument("--progress", choices=["auto", "always", "never"], default=None)
     q.add_argument("-q", "--quiet", action="store_true")
     q.add_argument("-v", "--verbose", action="count", default=0)
@@ -4692,6 +4744,427 @@ def _merge(args, config: dict) -> int:
             item.unlink(missing_ok=True)
 
 
+
+def _volume_publish_candidate(candidate: Path, output: Path, policy: DestinationPolicy) -> str:
+    """Publish one exact-byte candidate using the shared destination policy."""
+    output.parent.mkdir(parents=True, exist_ok=True)
+    decision = decide_destination(output, policy, candidate=candidate)
+    if decision.action == "skip-identical":
+        candidate.unlink(missing_ok=True)
+        return "skip-identical"
+    if decision.action == "rename" and decision.backup is not None:
+        os.replace(output, decision.backup)
+    _atomic_replace(candidate, output)
+    return decision.action
+
+
+def _split_output_layout(args, source_name: str, default_dir: Path) -> tuple[Path, str, Path | None]:
+    if args.no_manifest and args.manifest:
+        raise UsageError("--manifest and --no-manifest are mutually exclusive")
+    output_dir = Path(args.output_dir).expanduser() if args.output_dir else None
+    if args.output_prefix:
+        prefix_path = Path(args.output_prefix).expanduser()
+        if prefix_path.name in {"", ".", ".."}:
+            raise UsageError("--output-prefix must name a file prefix")
+        if prefix_path.parent != Path("."):
+            if output_dir is not None:
+                raise UsageError("use either a path-valued --output-prefix or --output-dir, not both")
+            output_dir = prefix_path.parent
+        prefix = prefix_path.name
+    else:
+        prefix = Path(source_name).name
+    output_dir = output_dir or default_dir
+    manifest = None if args.no_manifest else (
+        Path(args.manifest).expanduser() if args.manifest else output_dir / default_manifest_name(prefix)
+    )
+    return output_dir, prefix, manifest
+
+
+def _split(args, config: dict) -> int:
+    remote = parse_remote(str(args.source), config, probe_rclone=not args.dry_run)
+    if remote is not None and args.delete_source:
+        raise UnsupportedFormat("--delete-source currently requires a local split source")
+    if args.delete_source and not args.verify:
+        raise UsageError("--delete-source requires verification; remove --no-verify")
+
+    source_arg_path = Path(args.source).expanduser() if remote is None else None
+    source_name = remote.basename if remote is not None else source_arg_path.name
+    default_output_dir = Path.cwd() if remote is not None else source_arg_path.parent
+    output_dir, prefix, manifest_path = _split_output_layout(args, source_name, default_output_dir)
+    if parse_remote(str(output_dir), config, probe_rclone=False) is not None:
+        raise UnsupportedFormat("remote split outputs are not supported; split to a local output directory")
+    if manifest_path is not None and parse_remote(str(manifest_path), config, probe_rclone=False) is not None:
+        raise UnsupportedFormat("remote split manifests are not supported")
+
+    requested_size = parse_size(args.size) if args.size is not None else None
+    split_by = "size" if requested_size is not None else "parts"
+    split_value = requested_size if requested_size is not None else int(args.parts)
+    begin_plan("split", mode=getattr(args, "show_native", None), style=getattr(args, "native_style", None) or "reproducible", show_primary_command=False)
+    record_decision("split-mode", f"{split_by}={split_value}", reason="exact byte-volume protocol")
+    record_decision("split-output", str(output_dir / prefix), reason=f"digits={args.digits}; checksum={args.checksum}")
+    record_decision("split-manifest", str(manifest_path) if manifest_path is not None else "disabled", reason="arc.split-manifest/v1 commit record")
+
+    staged_cleanup: Path | None = None
+    source: Path | None = None
+    try:
+        if remote is not None:
+            if args.dry_run:
+                if args.parts is not None:
+                    validate_digits(args.digits, int(args.parts))
+                elif args.digits < 1:
+                    raise UsageError("--digits must be at least 1")
+                summary = {
+                    "operation": "split",
+                    "source": str(args.source),
+                    "byte_length": None,
+                    "split_by": split_by,
+                    "split_value": split_value,
+                    "part_count": int(args.parts) if args.parts is not None else None,
+                    "output_prefix": str(output_dir / prefix),
+                    "manifest": str(manifest_path) if manifest_path is not None else None,
+                    "checksum": args.checksum,
+                    "verify": bool(args.verify),
+                    "dry_run": True,
+                    "remote_size_unknown": True,
+                }
+                if args.json:
+                    print(json.dumps(summary, ensure_ascii=False))
+                elif not args.quiet:
+                    stdout_console.print(f"[cyan]DRY RUN[/] split {args.source} → {output_dir / prefix}.part…")
+                return 0
+            source, staged_cleanup = stage_remote_for_read(
+                remote,
+                config,
+                progress=progress_enabled(args.progress, args.json, args.quiet),
+            )
+        else:
+            source = Path(args.source).expanduser()
+            if not source.is_file():
+                raise UsageError(f"split source is not a file: {args.source}")
+
+        assert source is not None
+        byte_length = source.stat().st_size
+        sizes = planned_part_sizes(byte_length, size=requested_size, parts=args.parts)
+        digits = validate_digits(args.digits, len(sizes))
+        target_parts = [output_dir / part_name(prefix, index, digits) for index in range(1, len(sizes) + 1)]
+        all_targets = [*target_parts, *([manifest_path] if manifest_path is not None else [])]
+        resolved_source = source.resolve()
+        for target in all_targets:
+            if target.expanduser().absolute() == source.expanduser().absolute() or (
+                target.exists() and target.resolve() == resolved_source
+            ):
+                raise UsageError(f"split output cannot alias the source: {target}")
+        if len({os.fspath(path.expanduser().absolute()) for path in all_targets}) != len(all_targets):
+            raise UsageError("split part/manifest outputs collide with each other")
+
+        policy = DestinationPolicy(args.destination_policy)
+        # Fail-closed collisions are checked before reading the source so a split
+        # never produces an avoidable partial output set.
+        if policy is DestinationPolicy.FAIL:
+            for target in all_targets:
+                decide_destination(target, policy)
+
+        summary = {
+            "operation": "split",
+            "source": str(args.source),
+            "byte_length": byte_length,
+            "split_by": split_by,
+            "split_value": split_value,
+            "part_count": len(sizes),
+            "parts": [str(path) for path in target_parts],
+            "output_prefix": str(output_dir / prefix),
+            "manifest": str(manifest_path) if manifest_path is not None else None,
+            "checksum": args.checksum,
+            "verify": bool(args.verify),
+        }
+        if args.dry_run:
+            summary["dry_run"] = True
+            summary["part_sizes"] = sizes
+            if args.json:
+                print(json.dumps(summary, ensure_ascii=False))
+            elif not args.quiet:
+                stdout_console.print(f"[cyan]DRY RUN[/] split {source} → {len(sizes)} part(s)")
+            return 0
+
+        output_dir.mkdir(parents=True, exist_ok=True)
+        work = Path(tempfile.mkdtemp(prefix=".arc-split-", dir=output_dir))
+        manifest_candidate: Path | None = None
+        published_parts: list[Path] = []
+        try:
+            with transaction_scope(
+                "split",
+                metadata={"source": str(args.source), "parts": len(sizes), "manifest": str(manifest_path) if manifest_path else None},
+            ) as journal:
+                tx_cleanup(work, kind="dir", reason="unpublished split candidates")
+                whole_hasher = new_hasher(args.checksum)
+                split_parts: list[SplitPart] = []
+                enabled = progress_enabled(args.progress, args.json, args.quiet)
+                with ProgressReporter("split", total_bytes=byte_length, total_files=len(sizes), enabled=enabled) as progress:
+                    with source.open("rb") as src:
+                        for index, (expected_size, target) in enumerate(zip(sizes, target_parts), 1):
+                            candidate = work / target.name
+                            part_hasher = new_hasher(args.checksum)
+                            remaining = expected_size
+                            with candidate.open("wb") as dst:
+                                while remaining:
+                                    block = src.read(min(1024 * 1024, remaining))
+                                    if not block:
+                                        raise CorruptArchive("split source changed or became shorter while reading")
+                                    dst.write(block)
+                                    whole_hasher.update(block)
+                                    part_hasher.update(block)
+                                    remaining -= len(block)
+                                    progress.advance_bytes(len(block), current=target.name)
+                            split_parts.append(
+                                SplitPart(index=index, name=target.name, size=expected_size, checksum=part_hasher.hexdigest())
+                            )
+                        if src.read(1):
+                            raise CorruptArchive("split source changed or grew while reading")
+                    progress.complete()
+                whole_checksum = whole_hasher.hexdigest()
+
+                tx_event("split-encoded", parts=len(split_parts), bytes=byte_length)
+                publication: dict[str, str] = {}
+                for candidate_part, target in zip((work / row.name for row in split_parts), target_parts):
+                    action = _volume_publish_candidate(candidate_part, target, policy)
+                    publication[str(target)] = action
+                    published_parts.append(target)
+                tx_event("split-parts-published", parts=len(published_parts))
+
+                if args.verify:
+                    for row, target in zip(split_parts, target_parts):
+                        if not target.is_file() or target.stat().st_size != row.size:
+                            raise CorruptArchive(f"published split part has wrong size: {target}")
+                        actual = checksum_file(target, args.checksum)
+                        if actual != row.checksum:
+                            raise CorruptArchive(f"published split part checksum mismatch: {target}")
+                    reconstructed = checksum_paths(target_parts, args.checksum)
+                    if reconstructed != whole_checksum:
+                        raise CorruptArchive("published split parts do not reconstruct to the source checksum")
+                    summary["verification"] = {"status": "verified", "algorithm": args.checksum, "whole_checksum": whole_checksum}
+                    tx_event("split-verified", checksum=whole_checksum, algorithm=args.checksum)
+                else:
+                    summary["verification"] = {"status": "not-requested", "algorithm": args.checksum, "whole_checksum": whole_checksum}
+
+                if manifest_path is not None:
+                    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+                    payload = build_manifest_payload(
+                        original_name=source_name,
+                        byte_length=byte_length,
+                        algorithm=args.checksum,
+                        checksum=whole_checksum,
+                        parts=split_parts,
+                        split_by=split_by,
+                        split_value=split_value,
+                        digits=digits,
+                    )
+                    fd, manifest_temp = tempfile.mkstemp(prefix=f".{manifest_path.name}.arc-", dir=manifest_path.parent)
+                    os.close(fd)
+                    manifest_candidate = Path(manifest_temp)
+                    tx_cleanup(manifest_candidate, reason="unpublished split manifest")
+                    manifest_candidate.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+                    publication[str(manifest_path)] = _volume_publish_candidate(manifest_candidate, manifest_path, policy)
+                    tx_cleanup_done(manifest_candidate)
+                    manifest_candidate = None
+                    tx_event("split-manifest-published", manifest=str(manifest_path))
+
+                if args.delete_source:
+                    source.unlink()
+                    summary["deleted_source"] = str(args.source)
+                    tx_event("split-source-deleted", source=str(args.source))
+                summary["publication"] = publication
+                summary["part_sizes"] = sizes
+                shutil.rmtree(work, ignore_errors=True)
+                tx_cleanup_done(work)
+                journal.complete({"exit_code": 0, "parts": len(sizes), "manifest": str(manifest_path) if manifest_path else None})
+        finally:
+            if manifest_candidate is not None:
+                manifest_candidate.unlink(missing_ok=True)
+            shutil.rmtree(work, ignore_errors=True)
+            tx_cleanup_done(work)
+
+        if args.json:
+            print(json.dumps(summary, ensure_ascii=False))
+        elif not args.quiet:
+            suffix = f" + {manifest_path.name}" if manifest_path is not None else ""
+            stdout_console.print(f"[green]OK[/] split: {len(sizes)} part(s){suffix}")
+        return 0
+    finally:
+        if staged_cleanup is not None:
+            staged_cleanup.unlink(missing_ok=True)
+
+
+def _join(args, config: dict) -> int:
+    if not args.input and not args.manifest:
+        raise UsageError("join requires a split manifest or any .partNNN input")
+    if args.delete_parts and not args.verify:
+        raise UsageError("--delete-parts requires verification; remove --no-verify")
+
+    raw_input = args.input
+    if raw_input and parse_remote(str(raw_input), config, probe_rclone=False) is not None:
+        raise UnsupportedFormat("remote join discovery is not yet supported; stage the manifest and parts locally")
+    if args.manifest and parse_remote(str(args.manifest), config, probe_rclone=False) is not None:
+        raise UnsupportedFormat("remote join manifests are not yet supported")
+    if args.output and parse_remote(str(args.output), config, probe_rclone=False) is not None:
+        raise UnsupportedFormat("remote join outputs are not yet supported")
+
+    input_path = Path(raw_input).expanduser() if raw_input else None
+    explicit_manifest = Path(args.manifest).expanduser() if args.manifest else None
+    manifest_path: Path | None = explicit_manifest
+    if manifest_path is None and input_path is not None:
+        if input_path.name.endswith(".arc-split.json"):
+            manifest_path = input_path
+        else:
+            manifest_path = discover_manifest_from_part(input_path)
+
+    manifest = None
+    parts: list[Path]
+    expected_rows: list[SplitPart] | None = None
+    expected_whole: str | None = None
+    checksum_algorithm: str | None = None
+    expected_size: int
+    verification_mode: str
+    if manifest_path is not None:
+        if not manifest_path.is_file():
+            raise UsageError(f"split manifest does not exist: {manifest_path}")
+        manifest = load_split_manifest(manifest_path)
+        parts = [manifest_path.parent / row.name for row in manifest.parts]
+        expected_rows = list(manifest.parts)
+        expected_whole = manifest.checksum
+        checksum_algorithm = manifest.checksum_algorithm
+        expected_size = manifest.byte_length
+        verification_mode = "manifest"
+        if input_path is not None and input_path != manifest_path and input_path.name not in {row.name for row in manifest.parts}:
+            raise CorruptArchive(f"input part {input_path.name!r} is not listed by {manifest_path.name}")
+        default_output = manifest_path.parent / manifest.original_name
+    else:
+        if not args.allow_missing_manifest:
+            raise UsageError("no sibling split manifest found; use --manifest PATH or explicitly opt into --allow-missing-manifest")
+        if input_path is None:
+            raise UsageError("--allow-missing-manifest still requires any .partNNN input")
+        parts = discover_parts_without_manifest(input_path)
+        expected_size = sum(path.stat().st_size for path in parts)
+        verification_mode = "unanchored"
+        default_output = input_path.parent / output_name_from_part(input_path)
+        if args.delete_parts:
+            raise UsageError("--delete-parts requires a manifest-backed whole-file checksum")
+
+    if not parts:
+        raise CorruptArchive("join has no parts")
+    for index, part in enumerate(parts, 1):
+        if not part.is_file():
+            raise CorruptArchive(f"split part is missing: {part}")
+        if expected_rows is not None:
+            expected = expected_rows[index - 1]
+            if part.stat().st_size != expected.size:
+                raise CorruptArchive(f"split part size mismatch: {part}; expected {expected.size}, found {part.stat().st_size}")
+
+    output = Path(args.output).expanduser() if args.output else default_output
+    output_abs = output.expanduser().absolute()
+    for part in parts:
+        if output_abs == part.expanduser().absolute() or (output.exists() and part.exists() and output.resolve() == part.resolve()):
+            raise UsageError(f"join output cannot alias a split part: {part}")
+    if manifest_path is not None and output_abs == manifest_path.expanduser().absolute():
+        raise UsageError("join output cannot overwrite the split manifest")
+
+    begin_plan("join", mode=getattr(args, "show_native", None), style=getattr(args, "native_style", None) or "reproducible", show_primary_command=False)
+    record_decision("join-input", str(manifest_path) if manifest_path is not None else str(input_path), reason=f"{verification_mode} part ordering")
+    record_decision("join-output", str(output), reason=f"{len(parts)} contiguous exact byte parts")
+    record_decision("join-verification", "full" if manifest is not None and args.verify else verification_mode, reason="whole-file proof requires arc.split-manifest/v1")
+
+    policy = DestinationPolicy(args.destination_policy)
+    if policy is DestinationPolicy.FAIL:
+        decide_destination(output, policy)
+    summary = {
+        "operation": "join",
+        "input": str(raw_input) if raw_input else None,
+        "manifest": str(manifest_path) if manifest_path is not None else None,
+        "output": str(output),
+        "parts": [str(path) for path in parts],
+        "part_count": len(parts),
+        "byte_length": expected_size,
+        "verification_mode": verification_mode,
+        "verify": bool(args.verify),
+    }
+    if args.dry_run:
+        summary["dry_run"] = True
+        if args.json:
+            print(json.dumps(summary, ensure_ascii=False))
+        elif not args.quiet:
+            stdout_console.print(f"[cyan]DRY RUN[/] join {len(parts)} part(s) → {output}")
+        return 0
+
+    output.parent.mkdir(parents=True, exist_ok=True)
+    candidate: Path | None = None
+    with transaction_scope(
+        "join",
+        metadata={"manifest": str(manifest_path) if manifest_path else None, "parts": [str(path) for path in parts], "output": str(output)},
+    ) as journal:
+        fd, temp_name = tempfile.mkstemp(prefix=f".{output.name}.arc-join-", dir=output.parent)
+        os.close(fd)
+        candidate = Path(temp_name)
+        tx_cleanup(candidate, reason="unpublished joined candidate")
+        whole_hasher = new_hasher(checksum_algorithm) if checksum_algorithm is not None else None
+        written = 0
+        enabled = progress_enabled(args.progress, args.json, args.quiet)
+        with ProgressReporter("join", total_bytes=expected_size, total_files=len(parts), enabled=enabled) as progress:
+            with candidate.open("wb") as dst:
+                for index, part in enumerate(parts, 1):
+                    part_hasher = new_hasher(checksum_algorithm) if checksum_algorithm is not None and args.verify else None
+                    with part.open("rb") as src:
+                        while True:
+                            block = src.read(1024 * 1024)
+                            if not block:
+                                break
+                            dst.write(block)
+                            written += len(block)
+                            if whole_hasher is not None:
+                                whole_hasher.update(block)
+                            if part_hasher is not None:
+                                part_hasher.update(block)
+                            progress.advance_bytes(len(block), current=part.name)
+                    if expected_rows is not None and args.verify:
+                        actual_part = part_hasher.hexdigest() if part_hasher is not None else ""
+                        expected_part = expected_rows[index - 1].checksum
+                        if actual_part != expected_part:
+                            raise CorruptArchive(f"split part checksum mismatch: {part}")
+            progress.complete()
+        if written != expected_size:
+            raise CorruptArchive(f"joined byte length is {written}, expected {expected_size}")
+        if manifest is not None and args.verify:
+            actual_whole = whole_hasher.hexdigest() if whole_hasher is not None else ""
+            if actual_whole != expected_whole:
+                raise CorruptArchive("joined whole-file checksum does not match the split manifest")
+            summary["verification"] = {
+                "status": "verified",
+                "algorithm": checksum_algorithm,
+                "whole_checksum": actual_whole,
+            }
+            tx_event("join-verified", checksum=actual_whole, algorithm=checksum_algorithm)
+        elif manifest is not None:
+            summary["verification"] = {"status": "not-requested", "algorithm": checksum_algorithm}
+        else:
+            summary["verification"] = {"status": "unanchored", "reason": "manifest missing by explicit opt-in"}
+
+        publication = _volume_publish_candidate(candidate, output, policy)
+        tx_cleanup_done(candidate)
+        candidate = None
+        summary["publication"] = publication
+        tx_event("join-published", output=str(output), action=publication)
+
+        if args.delete_parts:
+            for part in parts:
+                part.unlink()
+            summary["deleted_parts"] = [str(path) for path in parts]
+            tx_event("join-parts-deleted", parts=len(parts))
+        journal.complete({"exit_code": 0, "output": str(output), "parts": len(parts)})
+
+    if args.json:
+        print(json.dumps(summary, ensure_ascii=False))
+    elif not args.quiet:
+        stdout_console.print(f"[green]OK[/] join: {len(parts)} part(s) → {output}")
+    return 0
+
 def _dispatch_command(args, extra: list[str], config: dict) -> int:
     if args.command == "identify":
         return _identify(args, config)
@@ -4707,6 +5180,10 @@ def _dispatch_command(args, extra: list[str], config: dict) -> int:
         return _batch_command(args)
     if args.command == "merge":
         return _merge(args, config)
+    if args.command == "split":
+        return _split(args, config)
+    if args.command == "join":
+        return _join(args, config)
     if args.command == "convert":
         return _convert(args, config)
     if args.command in {"create", "add", "update", "list", "test", "extract", "remove"}:

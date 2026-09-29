@@ -21,6 +21,7 @@ VALUE_OPTIONS = {
     "--show-native", "--native-style", "--execution", "--source-password-file", "--source-password-env", "--source", "--batch-id",
     "--left-password-file", "--left-password-env", "--right-password-file", "--right-password-env",
     "--verify-level", "--destination-policy", "--backup-existing", "--iterations", "--size-mib", "--seed", "--recent",
+    "--size", "--parts", "--output-prefix", "--output-dir", "--digits", "--checksum", "--manifest",
 }
 OPTIONAL_VALUE_OPTIONS = {"--password", "--source-password", "--left-password", "--right-password", "--yazi"}
 
@@ -52,6 +53,8 @@ COMMAND_OPTIONS: dict[str, set[str]] = {
     "diff": {"--backend", "--no-fallback", "--password", "--password-file", "--password-env", "--left-password", "--left-password-file", "--left-password-env", "--right-password", "--right-password-file", "--right-password-env", "--json", "-q", "--quiet", "-v", "--verbose", "--progress", "--show-command", "--show-native", "--native-style"},
     "convert": BASE | CONVERT,
     "merge": {"--output", "-o", "--format", "-F", "--strategy", "--member-conflict", "--destination-policy", "--backup-existing", "--verify", "--delete-inputs", "--backend", "--no-fallback", "--password", "--password-file", "--password-env", "--level", "--threads", "--dry-run", "--show-command", "--progress", "--json", "-q", "--quiet", "-v", "--verbose"},
+    "split": {"--size", "--parts", "--output-prefix", "--output-dir", "--digits", "--checksum", "--manifest", "--no-manifest", "--verify", "--no-verify", "--delete-source", "--destination-policy", "--dry-run", "--progress", "--json", "-q", "--quiet", "-v", "--verbose"},
+    "join": {"--manifest", "--output", "-o", "--verify", "--no-verify", "--allow-missing-manifest", "--delete-parts", "--destination-policy", "--dry-run", "--progress", "--json", "-q", "--quiet", "-v", "--verbose"},
     "backends": {"--json", "--remote", "--verbose", "--refresh"},
     "formats": {"--json", "--remote"},
     "benchmark": {"--format", "--iterations", "--size-mib", "--seed", "--json"},
@@ -218,6 +221,10 @@ def completion_candidates(words: list[str]) -> list[str]:
             attached = [x for x in ["auto", "local", "remote"] if x.startswith(value_prefix)]
         elif opt == "--strategy":
             attached = [x for x in ["auto", "concat", "repack"] if x.startswith(value_prefix)]
+        elif opt == "--checksum":
+            attached = [x for x in ["sha256", "sha512", "blake2b"] if x.startswith(value_prefix)]
+        elif opt == "--destination-policy":
+            attached = [x for x in ["fail", "replace", "rename", "skip-identical"] if x.startswith(value_prefix)]
         elif opt == "--member-conflict":
             attached = [x for x in ["fail", "replace", "skip", "rename"] if x.startswith(value_prefix)]
         elif opt == "--destination-policy":

@@ -277,6 +277,51 @@ _add(
 
 _add(
     _command_page(
+        "split",
+        "Split any local file or staged remote input into exact ordered byte volumes. This is a transport/reconstruction protocol, not native 7z/RAR multipart archive creation.",
+        options=(
+            "SOURCE\n--size SIZE | --parts N\n--output-prefix PREFIX\n--output-dir DIR\n--digits N\n"
+            "--checksum sha256|sha512|blake2b\n--manifest PATH | --no-manifest\n--verify | --no-verify\n"
+            "--delete-source\n--destination-policy fail|replace|rename|skip-identical\n--dry-run\n--json[=v1]"
+        ),
+        semantics=(
+            "Parts are byte-exact and ordered as <prefix>.partNNN. By default Arc writes an arc.split-manifest/v1 JSON manifest containing the original filename, total byte length, whole-file checksum, split parameters, and an ordered per-part size/checksum ledger. "
+            "--size accepts byte quantities such as 100M or 64MiB; --parts distributes bytes as evenly as possible. The manifest is published only after all parts are published and, when verification is enabled, proven to reconstruct to the source checksum. --delete-source is refused without verification and occurs only after successful publication. "
+            "Remote inputs may be staged locally, but split outputs are local. Native archive volume creation remains a separate future --volume-size surface."
+        ),
+        examples=(
+            "arc split backup.tar.zst --size 100MiB\n"
+            "arc split image.iso --parts 4 --output-dir ./parts\n"
+            "arc split remote:backup.bin --size 1G --output-prefix backup.bin"
+        ),
+        see_also="arc-join(1), arc-merge(1), arc-explain(1), arc-remote(7)",
+    )
+)
+
+_add(
+    _command_page(
+        "join",
+        "Reconstruct exact ARC split volumes. Passing a manifest or any ARC-generated .partNNN file discovers the ordered sibling set and verifies it before publication.",
+        options=(
+            "PART|MANIFEST\n--manifest PATH\n-o, --output PATH\n--verify | --no-verify\n"
+            "--allow-missing-manifest\n--delete-parts\n--destination-policy fail|replace|rename|skip-identical\n"
+            "--dry-run\n--json[=v1]"
+        ),
+        semantics=(
+            "Manifest-backed join is strict by default: every listed part must exist in order with the declared size, per-part checksum, and final whole-file checksum. Reconstruction is written to a same-filesystem transaction-owned candidate and atomically published only after proof. "
+            "Passing any one ARC-generated part discovers <prefix>.arc-split.json in the same directory. --allow-missing-manifest is an explicit weaker mode that concatenates only a contiguous .partNNN sequence and cannot provide an anchored whole-file proof. --delete-parts requires manifest-backed verification and happens only after successful publication."
+        ),
+        examples=(
+            "arc join backup.tar.zst.part001\n"
+            "arc join backup.tar.zst.arc-split.json -o restored.tar.zst\n"
+            "arc join old.bin.part001 --allow-missing-manifest --no-verify"
+        ),
+        see_also="arc-split(1), arc-merge(1), arc-recover(1), arc-explain(1)",
+    )
+)
+
+_add(
+    _command_page(
         "test",
         "Run integrity verification at an explicit proof level. Unlike arc info, this command is explicitly a verification operation and reports what was actually proven.",
         options="--json[=legacy|v1]\n--verify-level none|structure|members|full\n--allow-verification-downgrade\n--include/--exclude and rule files\n--password/--password-file/--password-env\n--backend NAME",

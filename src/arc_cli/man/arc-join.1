@@ -1,0 +1,39 @@
+.TH "ARC-JOIN" "1" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-join \- reconstruct exact byte volumes with manifest verification
+.SH "SYNOPSIS"
+arc join [PART|MANIFEST] [\-o OUTPUT] [OPTIONS]
+.PP
+arcjoin ...
+.PP
+arc\-join ...
+.SH "DESCRIPTION"
+Reconstruct exact ARC split volumes. Passing a manifest or any ARC\-generated .partNNN file discovers the ordered sibling set and verifies it before publication.
+.SH "OPTIONS"
+PART|MANIFEST
+.PP
+\-\-manifest PATH
+.PP
+\-o, \-\-output PATH
+.PP
+\-\-verify | \-\-no\-verify
+.PP
+\-\-allow\-missing\-manifest
+.PP
+\-\-delete\-parts
+.PP
+\-\-destination\-policy fail|replace|rename|skip\-identical
+.PP
+\-\-dry\-run
+.PP
+\-\-json[=v1]
+.SH "SEMANTICS"
+Manifest\-backed join is strict by default: every listed part must exist in order with the declared size, per\-part checksum, and final whole\-file checksum. Reconstruction is written to a same\-filesystem transaction\-owned candidate and atomically published only after proof. Passing any one ARC\-generated part discovers <prefix>.arc\-split.json in the same directory. \-\-allow\-missing\-manifest is an explicit weaker mode that concatenates only a contiguous .partNNN sequence and cannot provide an anchored whole\-file proof. \-\-delete\-parts requires manifest\-backed verification and happens only after successful publication.
+.SH "EXAMPLES"
+arc join backup.tar.zst.part001
+.PP
+arc join backup.tar.zst.arc\-split.json \-o restored.tar.zst
+.PP
+arc join old.bin.part001 \-\-allow\-missing\-manifest \-\-no\-verify
+.SH "SEE ALSO"
+arc\-split(1), arc\-merge(1), arc\-recover(1), arc\-explain(1)

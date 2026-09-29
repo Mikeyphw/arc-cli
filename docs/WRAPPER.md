@@ -82,7 +82,7 @@ Arguments after `--` remain native Devtool passthrough only on wrapper commands 
 ./devtoolw test --changed
 ```
 
-`quick` covers format/filter/completion contracts, `integration` covers CLI integration plus extraction safety, `r04`/`r05` cover their remote feature slices, `r06` covers runtime/alias/install truth plus packaging/man/completion parity, `r07` covers explain/recovery/resumable-batch behavior plus affected plan/docs/completion regressions, `r08` covers machine-schema/capability/verification behavior plus the affected backend/info/convert/docs/package surface, `r09a` covers logical fingerprints/diff plus machine/schema/alias/docs/package parity, `r09b` covers the targeted remote capability/publication slice, `r09b_gate` widens that to the cumulative transport/provenance/integration/package matrix, `r10` covers mutation policy/progress, `r10a` covers backend-command display truth, `r10b` covers machine batch, `r10c` covers mutation-policy convergence, `r10_gate` qualifies the cumulative R10 boundary, `r11`/`r11a`/`r11b` cover the configuration provenance completion layers, `r11_gate` qualifies their cumulative boundary, `r12` covers advisory/benchmark/diagnostics evidence, `r12a` covers benchmark corpus-truth convergence, `final_gate` is the complete R01-R12 campaign test tree with phase-isolated pytest execution, and `full` remains the ordinary complete test profile.
+`quick` covers format/filter/completion contracts, `integration` covers CLI integration plus extraction safety, `r04`/`r05` cover their remote feature slices, `r06` covers runtime/alias/install truth plus packaging/man/completion parity, `r07` covers explain/recovery/resumable-batch behavior plus affected plan/docs/completion regressions, `r08` covers machine-schema/capability/verification behavior plus the affected backend/info/convert/docs/package surface, `r09a` covers logical fingerprints/diff plus machine/schema/alias/docs/package parity, `r09b` covers the targeted remote capability/publication slice, `r09b_gate` widens that to the cumulative transport/provenance/integration/package matrix, `r10` covers mutation policy/progress, `r10a` covers backend-command display truth, `r10b` covers machine batch, `r10c` covers mutation-policy convergence, `r10_gate` qualifies the cumulative R10 boundary, `r11`/`r11a`/`r11b` cover the configuration provenance completion layers, `r11_gate` qualifies their cumulative boundary, `r12` covers advisory/benchmark/diagnostics evidence, `r12a` covers benchmark corpus-truth convergence, `comp_x01` covers version/composition foundation, `comp_x02` covers logical merge/safe concat, `comp_x03` covers exact split/join volume reconstruction, `final_gate` is the complete R01-R12 campaign test tree with phase-isolated pytest execution, and `full` remains the ordinary complete test profile.
 
 ## EXO workflows and scheduler
 
@@ -245,6 +245,9 @@ This workflow validates the single `0.2.0` version authority, dynamic package/ru
 
 ```sh
 ./devtoolw comp-x02
+
+`./devtoolw comp-x03` runs the repository-owned exact byte-volume implementation boundary: split-by-size/count, `arc.split-manifest/v1`, strict manifest-aware join, destructive cleanup ordering, machine/batch integration, generated docs/completion, and distribution packaging. COMP-G1 remains a separate later qualification gate.
+./devtoolw comp-x03
 ```
 
 Runs the first-class merge contract, real concat/repack behavior tests, generated docs/completion checks, alias/package parity, and Devtool contract validation.

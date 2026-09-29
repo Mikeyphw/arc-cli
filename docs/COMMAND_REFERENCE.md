@@ -31,6 +31,8 @@ Arc provides one normalized interface over native archive and compression backen
   test         verify archive integrity
   convert      convert an archive or compressed stream
   merge        merge archive contents or safely concatenate compatible streams
+  split        split any file into exact verified byte volumes
+  join         reconstruct exact byte volumes with manifest verification
   add          add new archive members
   update       update archive members
   remove       remove archive members
@@ -72,6 +74,10 @@ Arc provides one normalized interface over native archive and compression backen
   arcconvert     arc convert
   arcmerge       arc merge
   arc-merge      arc merge
+  arcsplit       arc split
+  arc-split      arc split
+  arcjoin        arc join
+  arc-join       arc join
   arca           arc add
   arc-add        arc add
   arcu           arc update
@@ -803,6 +809,48 @@ arc info a.zip b.7z --json
 
 arc-list(1), arc-diff(1), arc-test(1), arc-convert(1), arc-remote(7)
 
+## arc-join(1)
+
+### Name
+
+arc-join - reconstruct exact byte volumes with manifest verification
+
+### Synopsis
+
+arc join [PART|MANIFEST] [-o OUTPUT] [OPTIONS]
+arcjoin ...
+arc-join ...
+
+### Description
+
+Reconstruct exact ARC split volumes. Passing a manifest or any ARC-generated .partNNN file discovers the ordered sibling set and verifies it before publication.
+
+### Options
+
+PART|MANIFEST
+--manifest PATH
+-o, --output PATH
+--verify | --no-verify
+--allow-missing-manifest
+--delete-parts
+--destination-policy fail|replace|rename|skip-identical
+--dry-run
+--json[=v1]
+
+### Semantics
+
+Manifest-backed join is strict by default: every listed part must exist in order with the declared size, per-part checksum, and final whole-file checksum. Reconstruction is written to a same-filesystem transaction-owned candidate and atomically published only after proof. Passing any one ARC-generated part discovers <prefix>.arc-split.json in the same directory. --allow-missing-manifest is an explicit weaker mode that concatenates only a contiguous .partNNN sequence and cannot provide an anchored whole-file proof. --delete-parts requires manifest-backed verification and happens only after successful publication.
+
+### Examples
+
+arc join backup.tar.zst.part001
+arc join backup.tar.zst.arc-split.json -o restored.tar.zst
+arc join old.bin.part001 --allow-missing-manifest --no-verify
+
+### See Also
+
+arc-split(1), arc-merge(1), arc-recover(1), arc-explain(1)
+
 ## arc-list(1)
 
 ### Name
@@ -957,7 +1005,7 @@ arc-schema - show Arc machine-contract JSON Schemas
 
 ### Synopsis
 
-arc schema [machine-v1|backend-capability-v1|verification-evidence-v1|logical-fingerprint-v1|archive-diff-v1|remote-capability-v1|batch-input-v1|config-inspection-v1|format-recommendation-v1|benchmark-v1|diagnostics-bundle-v1] [--list]
+arc schema [machine-v1|backend-capability-v1|verification-evidence-v1|logical-fingerprint-v1|archive-diff-v1|remote-capability-v1|batch-input-v1|config-inspection-v1|format-recommendation-v1|benchmark-v1|diagnostics-bundle-v1|split-manifest-v1] [--list]
 
 ### Description
 
@@ -983,6 +1031,51 @@ arc schema config-inspection-v1
 ### See Also
 
 arc(1), arc-backends(1), arc-test(1)
+
+## arc-split(1)
+
+### Name
+
+arc-split - split any file into exact verified byte volumes
+
+### Synopsis
+
+arc split SOURCE (--size SIZE | --parts N) [OPTIONS]
+arcsplit ...
+arc-split ...
+
+### Description
+
+Split any local file or staged remote input into exact ordered byte volumes. This is a transport/reconstruction protocol, not native 7z/RAR multipart archive creation.
+
+### Options
+
+SOURCE
+--size SIZE | --parts N
+--output-prefix PREFIX
+--output-dir DIR
+--digits N
+--checksum sha256|sha512|blake2b
+--manifest PATH | --no-manifest
+--verify | --no-verify
+--delete-source
+--destination-policy fail|replace|rename|skip-identical
+--dry-run
+--json[=v1]
+
+### Semantics
+
+Parts are byte-exact and ordered as <prefix>.partNNN. By default Arc writes an arc.split-manifest/v1 JSON manifest containing the original filename, total byte length, whole-file checksum, split parameters, and an ordered per-part size/checksum ledger. --size accepts byte quantities such as 100M or 64MiB; --parts distributes bytes as evenly as possible. The manifest is published only after all parts are published and, when verification is enabled, proven to reconstruct to the source checksum. --delete-source is refused without verification and occurs only after successful publication. Remote inputs may be staged locally, but split outputs are local. Native archive volume creation remains a separate future --volume-size surface.
+
+### Examples
+
+arc split backup.tar.zst --size 100MiB
+arc split image.iso --parts 4 --output-dir ./parts
+arc split remote:backup.bin --size 1G --output-prefix backup.bin
+
+### See Also
+
+arc-join(1), arc-merge(1), arc-explain(1), arc-remote(7)
 
 ## arc-test(1)
 

@@ -136,6 +136,7 @@ SCHEMA_FILES = {
     "format-recommendation-v1": "format-recommendation-v1.schema.json",
     "benchmark-v1": "benchmark-v1.schema.json",
     "diagnostics-bundle-v1": "diagnostics-bundle-v1.schema.json",
+    "split-manifest-v1": "split-manifest-v1.schema.json",
 }
 
 

@@ -160,7 +160,11 @@ Add `arc merge`: logical archive/member composition, deterministic `-o/--output`
 
 ### COMP-X03 — exact split + join volume protocol — implementation 3 of 3
 
+**Status: IMPLEMENTED; COMP-G1 qualification pending.**
+
 Add lossless byte-volume `arc split` and manifest-aware `arc join`. `split` owns `--size|--parts`, output prefix/directory/digits/checksum/manifest/verify/delete-source controls and emits `arc.split-manifest/v1`. `join` discovers a sibling manifest from any part, validates completeness/order/part hashes, reconstructs to a transaction-owned candidate, proves the whole-file hash, then publishes atomically and optionally deletes parts. Native 7z/RAR multipart archive creation remains out of this command contract.
+
+Delivered implementation keeps split/join format-agnostic: parts are exact bytes rather than native archive volumes; SHA-256/SHA-512/BLAKE2b manifests anchor whole-file and per-part proof; zero-byte/exact-boundary cases are deterministic; the manifest is published last as the complete-set record; join is strict by default and exposes an explicit weaker `--allow-missing-manifest` mode; destructive cleanup requires verification. Split stages remote read-side sources through the existing transport authority while X03 outputs remain local. Aliases, explain/dry-run, machine/batch, completion, generated manuals, schema packaging, and Devtool `comp_x03` ownership are part of the implementation surface.
 
 ### COMP-G1 — separate composition qualification gate
 

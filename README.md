@@ -16,6 +16,16 @@ arc merge old.zip new.7z -F tar.zstd --member-conflict rename
 
 `--strategy=auto` concatenates only compatible same-format single compressed streams. Container archives and compound TAR+compression formats are logically repacked.
 
+### Split and join exact byte volumes
+
+```sh
+arc split backup.tar.zst --size 100MiB
+arc split image.iso --parts 4 --output-dir ./parts
+arc join backup.tar.zst.part001
+```
+
+`arc split` is format-agnostic exact byte splitting, not native 7z/RAR multipart creation. It emits `arc.split-manifest/v1` by default with whole-file and per-part checksums. `arc join` discovers that sibling manifest from any generated part, validates the ordered set, reconstructs through a transaction-owned candidate, proves the whole-file checksum, and only then publishes.
+
 ## Install
 
 ```bash
@@ -726,4 +736,4 @@ arc convert a.zip b.zip c.zip -tzst --batch --resume
 
 ## Post-seal composition development
 
-Arc `0.2.0` starts the composition wave. COMP-X01 centralizes version truth and introduces the shared composition naming/format resolver; user-facing `merge`, `split`, and `join` arrive in subsequent overlays and remain separately qualified. See `docs/ARC-NEXT-ROADMAP.md`.
+Arc `0.2.0` is the composition wave. COMP-X01 centralizes version truth and naming/format resolution, COMP-X02 delivers logical merge with automatic safe stream concat, and COMP-X03 delivers the exact split/join volume protocol. All three implementations are present; the separate COMP-G1 qualification gate remains the next roadmap boundary. See `docs/ARC-NEXT-ROADMAP.md`.

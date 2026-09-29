@@ -1,0 +1,45 @@
+.TH "ARC-SPLIT" "1" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-split \- split any file into exact verified byte volumes
+.SH "SYNOPSIS"
+arc split SOURCE (\-\-size SIZE | \-\-parts N) [OPTIONS]
+.PP
+arcsplit ...
+.PP
+arc\-split ...
+.SH "DESCRIPTION"
+Split any local file or staged remote input into exact ordered byte volumes. This is a transport/reconstruction protocol, not native 7z/RAR multipart archive creation.
+.SH "OPTIONS"
+SOURCE
+.PP
+\-\-size SIZE | \-\-parts N
+.PP
+\-\-output\-prefix PREFIX
+.PP
+\-\-output\-dir DIR
+.PP
+\-\-digits N
+.PP
+\-\-checksum sha256|sha512|blake2b
+.PP
+\-\-manifest PATH | \-\-no\-manifest
+.PP
+\-\-verify | \-\-no\-verify
+.PP
+\-\-delete\-source
+.PP
+\-\-destination\-policy fail|replace|rename|skip\-identical
+.PP
+\-\-dry\-run
+.PP
+\-\-json[=v1]
+.SH "SEMANTICS"
+Parts are byte\-exact and ordered as <prefix>.partNNN. By default Arc writes an arc.split\-manifest/v1 JSON manifest containing the original filename, total byte length, whole\-file checksum, split parameters, and an ordered per\-part size/checksum ledger. \-\-size accepts byte quantities such as 100M or 64MiB; \-\-parts distributes bytes as evenly as possible. The manifest is published only after all parts are published and, when verification is enabled, proven to reconstruct to the source checksum. \-\-delete\-source is refused without verification and occurs only after successful publication. Remote inputs may be staged locally, but split outputs are local. Native archive volume creation remains a separate future \-\-volume\-size surface.
+.SH "EXAMPLES"
+arc split backup.tar.zst \-\-size 100MiB
+.PP
+arc split image.iso \-\-parts 4 \-\-output\-dir ./parts
+.PP
+arc split remote:backup.bin \-\-size 1G \-\-output\-prefix backup.bin
+.SH "SEE ALSO"
+arc\-join(1), arc\-merge(1), arc\-explain(1), arc\-remote(7)

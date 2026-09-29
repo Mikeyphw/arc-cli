@@ -1,3 +1,11 @@
+## 0.2.0 COMP-X03 exact split + join volume protocol
+
+- Added format-agnostic `arc split` by target size or requested part count with deterministic `.partNNN` naming, configurable prefix/directory/digits/checksum controls, default verification, and optional source deletion only after proof.
+- Added bundled `arc.split-manifest/v1` whole-file/per-part checksum evidence and schema discovery through `arc schema split-manifest-v1`.
+- Added strict manifest-aware `arc join` with sibling manifest discovery from any generated part, same-filesystem transactional reconstruction, whole-file verification, destination-policy publication, and post-proof optional part deletion.
+- Added explicit `--allow-missing-manifest` weaker reconstruction mode while keeping destructive cleanup unavailable without anchored manifest proof.
+- Added split/join aliases, explain/dry-run/machine/batch integration, generated manuals/completion, package data, Devtool `comp_x03` ownership, tests, and audit documentation. Native 7z/RAR multipart creation remains outside this command contract.
+
 ## 0.2.0 COMP-X02 logical merge
 
 - Added first-class `arc merge` with automatic safe concatenation for compatible single compressed streams and logical repack for archive containers/mixed formats.
