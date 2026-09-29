@@ -49,7 +49,7 @@
     {
       "name": "resilience:large-manifest",
       "status": "PASS",
-      "duration_seconds": 0.8551076919975458,
+      "duration_seconds": 0.6389489999992293,
       "detail": "1200-member archive",
       "backend": null,
       "format": "tar",

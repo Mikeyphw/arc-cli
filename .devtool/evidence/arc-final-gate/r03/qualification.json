@@ -7110,7 +7110,7 @@
     {
       "name": "roundtrip:tar",
       "status": "PASS",
-      "duration_seconds": 0.26138300000457093,
+      "duration_seconds": 0.21645392299978994,
       "detail": "",
       "backend": "bsdtar",
       "format": "tar",
@@ -7119,7 +7119,7 @@
     {
       "name": "roundtrip:tar.gz",
       "status": "PASS",
-      "duration_seconds": 0.22270215299795382,
+      "duration_seconds": 0.24751146199923824,
       "detail": "",
       "backend": "bsdtar",
       "format": "tar.gz",
@@ -7128,7 +7128,7 @@
     {
       "name": "roundtrip:tar.bz2",
       "status": "PASS",
-      "duration_seconds": 0.2447620770035428,
+      "duration_seconds": 0.2160510769999746,
       "detail": "",
       "backend": "bsdtar",
       "format": "tar.bz2",
@@ -7137,7 +7137,7 @@
     {
       "name": "roundtrip:tar.xz",
       "status": "PASS",
-      "duration_seconds": 0.25637469199864427,
+      "duration_seconds": 0.222796615000334,
       "detail": "",
       "backend": "bsdtar",
       "format": "tar.xz",
@@ -7146,7 +7146,7 @@
     {
       "name": "roundtrip:tar.zstd",
       "status": "PASS",
-      "duration_seconds": 0.307908384995244,
+      "duration_seconds": 0.27902053900015744,
       "detail": "",
       "backend": "bsdtar",
       "format": "tar.zstd",
@@ -7155,7 +7155,7 @@
     {
       "name": "roundtrip:zip",
       "status": "PASS",
-      "duration_seconds": 0.3260695380013203,
+      "duration_seconds": 0.2620110770003521,
       "detail": "",
       "backend": "7zz",
       "format": "zip",
@@ -7164,7 +7164,7 @@
     {
       "name": "roundtrip:7z",
       "status": "PASS",
-      "duration_seconds": 0.29181200000311946,
+      "duration_seconds": 0.23503784599961364,
       "detail": "",
       "backend": "7zz",
       "format": "7z",
@@ -7182,7 +7182,7 @@
     {
       "name": "roundtrip:gzip",
       "status": "PASS",
-      "duration_seconds": 0.2195226929979981,
+      "duration_seconds": 0.1874760000000606,
       "detail": "",
       "backend": "gzip",
       "format": "gzip",
@@ -7191,7 +7191,7 @@
     {
       "name": "roundtrip:bzip2",
       "status": "PASS",
-      "duration_seconds": 0.22483661500154994,
+      "duration_seconds": 0.21475053900030616,
       "detail": "",
       "backend": "bzip2",
       "format": "bzip2",
@@ -7200,7 +7200,7 @@
     {
       "name": "roundtrip:xz",
       "status": "PASS",
-      "duration_seconds": 0.24128084599942667,
+      "duration_seconds": 0.22639561600044544,
       "detail": "",
       "backend": "xz",
       "format": "xz",
@@ -7209,7 +7209,7 @@
     {
       "name": "roundtrip:zstd",
       "status": "PASS",
-      "duration_seconds": 0.2679692300007446,
+      "duration_seconds": 0.2519378470005904,
       "detail": "",
       "backend": "zstd",
       "format": "zstd",
@@ -7258,7 +7258,7 @@
     {
       "name": "safety:zip-traversal",
       "status": "PASS",
-      "duration_seconds": 0.0831535379984416,
+      "duration_seconds": 0.07088923100036482,
       "detail": "unsafe traversal rejected",
       "backend": null,
       "format": "zip",
@@ -7267,7 +7267,7 @@
     {
       "name": "safety:tar-traversal",
       "status": "PASS",
-      "duration_seconds": 0.04297084599966183,
+      "duration_seconds": 0.0772695380001096,
       "detail": "unsafe traversal rejected",
       "backend": null,
       "format": "tar",
@@ -7323,7 +7323,7 @@
     {
       "name": "resilience:large-manifest",
       "status": "PASS",
-      "duration_seconds": 0.8551076919975458,
+      "duration_seconds": 0.6389489999992293,
       "detail": "1200-member archive",
       "backend": null,
       "format": "tar",

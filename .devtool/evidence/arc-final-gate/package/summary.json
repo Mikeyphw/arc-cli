@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "sdist": "arc_cli-0.2.0.tar.gz",
-  "sdist_sha256": "e962a9476d2b7cdb29f83ee6c4adbe57a564e9f5415acc33b28d13769c587374",
+  "sdist_sha256": "19d9d6e8ee35d5850d346ef27154951f9d081060d6f9551d14f05c8a8fde2416",
   "status": "PASS",
   "wheel": "arc_cli-0.2.0-py3-none-any.whl",
-  "wheel_sha256": "f0d5ed18a4844e359698b122734b4877d963fc9b2ef052ce26181de564b24ded"
+  "wheel_sha256": "373d2b964d5beea3951b5d32095abfc7f2464c618ec74ed5cf0b51f2ceab89cb"
 }

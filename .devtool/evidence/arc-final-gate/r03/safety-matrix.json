@@ -4,7 +4,7 @@
     {
       "name": "safety:zip-traversal",
       "status": "PASS",
-      "duration_seconds": 0.0831535379984416,
+      "duration_seconds": 0.07088923100036482,
       "detail": "unsafe traversal rejected",
       "backend": null,
       "format": "zip",
@@ -13,7 +13,7 @@
     {
       "name": "safety:tar-traversal",
       "status": "PASS",
-      "duration_seconds": 0.04297084599966183,
+      "duration_seconds": 0.0772695380001096,
       "detail": "unsafe traversal rejected",
       "backend": null,
       "format": "tar",

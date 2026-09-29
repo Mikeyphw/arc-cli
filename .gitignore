@@ -43,4 +43,6 @@ Thumbs.db
 *.tmp
 
 # Devtool runtime state
-.devtool/
+/.devtool/*
+!/.devtool/evidence/
+!/.devtool/evidence/**
