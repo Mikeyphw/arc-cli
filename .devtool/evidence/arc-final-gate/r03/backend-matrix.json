@@ -4,7 +4,7 @@
     {
       "name": "roundtrip:tar",
       "status": "PASS",
-      "duration_seconds": 0.5243990770031814,
+      "duration_seconds": 0.26138300000457093,
       "detail": "",
       "backend": "bsdtar",
       "format": "tar",
@@ -13,7 +13,7 @@
     {
       "name": "roundtrip:tar.gz",
       "status": "PASS",
-      "duration_seconds": 0.5566830770039815,
+      "duration_seconds": 0.22270215299795382,
       "detail": "",
       "backend": "bsdtar",
       "format": "tar.gz",
@@ -22,7 +22,7 @@
     {
       "name": "roundtrip:tar.bz2",
       "status": "PASS",
-      "duration_seconds": 0.6112523849951685,
+      "duration_seconds": 0.2447620770035428,
       "detail": "",
       "backend": "bsdtar",
       "format": "tar.bz2",
@@ -31,7 +31,7 @@
     {
       "name": "roundtrip:tar.xz",
       "status": "PASS",
-      "duration_seconds": 0.6166239239973947,
+      "duration_seconds": 0.25637469199864427,
       "detail": "",
       "backend": "bsdtar",
       "format": "tar.xz",
@@ -40,7 +40,7 @@
     {
       "name": "roundtrip:tar.zstd",
       "status": "PASS",
-      "duration_seconds": 0.5846585380058968,
+      "duration_seconds": 0.307908384995244,
       "detail": "",
       "backend": "bsdtar",
       "format": "tar.zstd",
@@ -49,7 +49,7 @@
     {
       "name": "roundtrip:zip",
       "status": "PASS",
-      "duration_seconds": 0.5516464620013721,
+      "duration_seconds": 0.3260695380013203,
       "detail": "",
       "backend": "7zz",
       "format": "zip",
@@ -58,7 +58,7 @@
     {
       "name": "roundtrip:7z",
       "status": "PASS",
-      "duration_seconds": 0.4916523080028128,
+      "duration_seconds": 0.29181200000311946,
       "detail": "",
       "backend": "7zz",
       "format": "7z",
@@ -76,7 +76,7 @@
     {
       "name": "roundtrip:gzip",
       "status": "PASS",
-      "duration_seconds": 0.42436123099469114,
+      "duration_seconds": 0.2195226929979981,
       "detail": "",
       "backend": "gzip",
       "format": "gzip",
@@ -85,7 +85,7 @@
     {
       "name": "roundtrip:bzip2",
       "status": "PASS",
-      "duration_seconds": 0.4138698460010346,
+      "duration_seconds": 0.22483661500154994,
       "detail": "",
       "backend": "bzip2",
       "format": "bzip2",
@@ -94,7 +94,7 @@
     {
       "name": "roundtrip:xz",
       "status": "PASS",
-      "duration_seconds": 0.438072076998651,
+      "duration_seconds": 0.24128084599942667,
       "detail": "",
       "backend": "xz",
       "format": "xz",
@@ -103,7 +103,7 @@
     {
       "name": "roundtrip:zstd",
       "status": "PASS",
-      "duration_seconds": 0.61641869199957,
+      "duration_seconds": 0.2679692300007446,
       "detail": "",
       "backend": "zstd",
       "format": "zstd",
