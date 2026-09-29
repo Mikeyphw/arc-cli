@@ -802,19 +802,20 @@ inputs = [
   "src/**",
   "tests/**",
   "scripts/**",
-  "release/ARC-FINAL-SEAL.json",
-  "docs/ARC-R01-AUDIT.md",
-  "docs/ARC-R02-AUDIT.md",
-  "docs/ARC-R03-AUDIT.md",
-  "docs/ARC-R04-AUDIT.md",
-  "docs/ARC-R05-AUDIT.md",
-  "docs/ARC-FINAL-GATE-SEAL.md",
+  "release/**",
+  "docs/**",
   "pyproject.toml",
+  "MANIFEST.in",
   ".devtool.toml",
   "completions/_arc",
+  "README.md",
+  "CHANGELOG.md",
+  "CONTRIBUTING.md",
+  "devtoolw",
+  "devtoolw.cmd",
 ]
 outputs = [".devtool/evidence/arc-final-gate/**"]
-metadata = { read_only = false, purpose = "arc-r01-r05-final-gate", contract = "arc-final-gate-v3" }
+metadata = { read_only = false, purpose = "arc-r01-r12-final-gate", contract = "arc-final-gate-v4" }
 
 [targets.arc.jobs.wrapper-seal]
 runner = "command"
@@ -826,16 +827,29 @@ metadata = { read_only = false, purpose = "devtool-wrapper-surface-seal", contra
 [targets.arc.jobs.content-seal]
 runner = "command"
 command = ["python3", "scripts/run_content_seal.py"]
-inputs = ["src/**", "tests/**", "scripts/**", "docs/**", "release/ARC-FINAL-SEAL.json", "completions/**", ".devtool.toml", "pyproject.toml", "README.md", "CHANGELOG.md", "CONTRIBUTING.md", "devtoolw", "devtoolw.cmd"]
+inputs = ["src/**", "tests/**", "scripts/**", "docs/**", "release/**", "completions/**", ".devtool.toml", "pyproject.toml", "MANIFEST.in", "README.md", "CHANGELOG.md", "CONTRIBUTING.md", "devtoolw", "devtoolw.cmd"]
 outputs = [".devtool/evidence/arc-final-gate/content-seal.json", ".devtool/evidence/arc-final-gate/candidate-seal.json"]
-metadata = { read_only = false, purpose = "post-gate-content-seal-candidate", contract = "arc-final-seal-v6" }
+metadata = { read_only = false, purpose = "post-r12-gate-content-seal-candidate", contract = "arc-final-seal-v7" }
 
 [targets.arc.jobs.final-seal-verdict]
 runner = "command"
 command = ["python3", "scripts/write_final_seal_verdict.py"]
 inputs = [".devtool/evidence/arc-final-gate/**"]
 outputs = [".devtool/evidence/arc-final-gate/final-seal-verdict.json", ".devtool/evidence/arc-final-gate/summary.json"]
-metadata = { read_only = false, purpose = "arc-final-seal-readiness-verdict", contract = "arc-final-seal-v6" }
+metadata = { read_only = false, purpose = "arc-r01-r12-final-seal-readiness-verdict", contract = "arc-final-seal-v7" }
+
+[targets.arc.jobs.final-seal-contract]
+runner = "command"
+command = ["python3", "scripts/check_final_campaign_seal_contract.py"]
+inputs = [".devtool.toml", "release/ARC-FINAL-SEAL.json", "scripts/arc_final_seal.py", "scripts/run_final_gate_tests.py", "scripts/check_final_campaign_seal_contract.py", "scripts/verify_final_campaign_seal.py", "tests/test_final_gate.py", "docs/ARC-FINAL-GATE-SEAL.md", "docs/WRAPPER.md"]
+metadata = { read_only = true, purpose = "arc-r01-r12-final-seal-contract", contract = "arc-final-seal-v7" }
+
+[targets.arc.jobs.final-seal-integrity]
+runner = "command"
+command = ["python3", "scripts/verify_final_campaign_seal.py", "--write-evidence"]
+inputs = [".devtool/evidence/arc-final-gate/**", "scripts/arc_final_seal.py", "scripts/verify_final_campaign_seal.py", "release/ARC-FINAL-SEAL.json"]
+outputs = [".devtool/evidence/arc-final-gate/final-integrity.json"]
+metadata = { read_only = false, purpose = "arc-r01-r12-final-seal-integrity", contract = "arc-final-seal-v7" }
 
 [targets.arc.jobs.r04-tests]
 runner = "command"
@@ -1250,22 +1264,25 @@ release = [
 ]
 
 final_gate = [
+  { id = "seal-contract", ref = "job:final-seal-contract", depends_on = [] },
   { id = "syntax", ref = "job:syntax", depends_on = [] },
   { id = "hygiene", ref = "job:source-hygiene", depends_on = ["syntax"] },
   { id = "completion", ref = "job:completion-contract", depends_on = [] },
   { id = "contract", ref = "job:devtool-contract", depends_on = [] },
-  { id = "gate", ref = "job:final-gate", depends_on = ["hygiene", "completion", "contract"] },
+  { id = "gate", ref = "job:final-gate", depends_on = ["seal-contract", "hygiene", "completion", "contract"] },
 ]
 
 final_seal = [
+  { id = "seal-contract", ref = "job:final-seal-contract", depends_on = [] },
   { id = "syntax", ref = "job:syntax", depends_on = [] },
   { id = "hygiene", ref = "job:source-hygiene", depends_on = ["syntax"] },
   { id = "completion", ref = "job:completion-contract", depends_on = [] },
   { id = "contract", ref = "job:devtool-contract", depends_on = [] },
-  { id = "gate", ref = "job:final-gate", depends_on = ["hygiene", "completion", "contract"] },
+  { id = "gate", ref = "job:final-gate", depends_on = ["seal-contract", "hygiene", "completion", "contract"] },
   { id = "wrapper-seal", ref = "job:wrapper-seal", depends_on = ["gate"] },
   { id = "content-seal", ref = "job:content-seal", depends_on = ["gate"] },
   { id = "verdict", ref = "job:final-seal-verdict", depends_on = ["wrapper-seal", "content-seal"] },
+  { id = "integrity", ref = "job:final-seal-integrity", depends_on = ["verdict"] },
 ]
 
 [wrapper]
@@ -1408,13 +1425,13 @@ target = "arc"
 aliases = ["q"]
 
 [wrapper.commands.gate]
-description = "Run the cumulative ARC-R01 through ARC-R05 qualification gate"
+description = "Run the cumulative ARC-R01 through ARC-R12 qualification gate"
 workflow = "final_gate"
 target = "arc"
 aliases = ["g"]
 
 [wrapper.commands.seal]
-description = "Run the final ARC gate, Devtool wrapper seal, content seal, and SEALED verdict"
+description = "Run the final ARC-R01 through ARC-R12 gate, Devtool wrapper seal, exact content seal, SEALED verdict, and final integrity check"
 workflow = "final_seal"
 target = "arc"
 aliases = ["s"]

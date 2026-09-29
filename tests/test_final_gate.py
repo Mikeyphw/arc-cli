@@ -36,8 +36,9 @@ def test_final_seal_generator_verifier_roundtrip(tmp_path: Path):
     assert ok, result
     assert manifest["schema_version"] == 5
     assert manifest["status"] == "SEALED_CONTENT"
-    assert manifest["seal_id"] == "ARC-R01-R05-FINAL"
-    assert manifest["base_commit_expected_prefix"] == "a7028c1"
+    assert manifest["seal_id"] == "ARC-R01-R12-FINAL"
+    assert manifest["campaign_base_commit_expected_prefix"] == "a7028c1"
+    assert manifest["qualified_gate_commit_expected_prefix"] == "95981f7"
     assert manifest["sealed_file_count"] == len(manifest["sealed_files"])
     assert manifest["sealed_file_count"] >= 69
     assert len(manifest["root_sha256"]) == 64
@@ -45,29 +46,32 @@ def test_final_seal_generator_verifier_roundtrip(tmp_path: Path):
 
 def test_release_seal_contract_is_static_and_points_to_live_evidence():
     seal = json.loads((ROOT / "release" / "ARC-FINAL-SEAL.json").read_text(encoding="utf-8"))
-    assert seal["schema_version"] == 6
+    assert seal["schema_version"] == 7
     assert seal["status"] == "SEAL_CONTRACT"
-    assert seal["seal_id"] == "ARC-R01-R05-FINAL"
-    assert seal["base_commit_expected_prefix"] == "a7028c1"
+    assert seal["seal_id"] == "ARC-R01-R12-FINAL"
+    assert seal["campaign_base_commit_expected_prefix"] == "a7028c1"
+    assert seal["qualified_gate_commit_expected_prefix"] == "95981f7"
+    assert seal["qualified_gate"] == "ARC-R12-GATE"
+    assert seal["qualified_gate_tests"] == 378
     assert seal["validation_entrypoint"] == "./devtoolw seal"
     assert seal["live_ledger"] == ".devtool/evidence/arc-final-gate/candidate-seal.json"
     assert seal["live_verdict"] == ".devtool/evidence/arc-final-gate/final-seal-verdict.json"
 
 
-def test_final_gate_is_descended_from_expected_r05_base():
+def test_final_seal_is_descended_from_qualified_r12_gate():
     if not (ROOT / ".git").exists():
         pytest.skip("Git metadata is not present in the exported local audit snapshot")
     exists = subprocess.run(
-        ["git", "cat-file", "-e", "a7028c1^{commit}"],
+        ["git", "cat-file", "-e", "95981f7^{commit}"],
         cwd=ROOT,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
         check=False,
     )
     if exists.returncode != 0:
-        pytest.skip("R05 base object is not present in this reconstructed audit repository")
+        pytest.skip("R12 gate object is not present in this reconstructed audit repository")
     proc = subprocess.run(
-        ["git", "merge-base", "--is-ancestor", "a7028c1", "HEAD"],
+        ["git", "merge-base", "--is-ancestor", "95981f7", "HEAD"],
         cwd=ROOT,
         text=True,
         capture_output=True,
@@ -119,6 +123,17 @@ def test_final_seal_detects_new_authoritative_file(tmp_path: Path):
         probe.unlink(missing_ok=True)
 
 
+def test_final_seal_scope_covers_packaged_schemas_manpages_and_manifest():
+    seal_api = _seal_api()
+    paths = set(seal_api.authoritative_paths(ROOT))
+    assert "MANIFEST.in" in paths
+    assert "src/arc_cli/schemas/machine-v1.schema.json" in paths
+    assert "src/arc_cli/schemas/benchmark-v1.schema.json" in paths
+    assert "src/arc_cli/man/arc.1" in paths
+    assert "src/arc_cli/man/arc-config.5" in paths
+    assert "src/arc_cli/man/arc-remote.7" in paths
+
+
 def test_version_and_project_metadata_are_coherent():
     data = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     assert data["project"]["name"] == "arc-cli"
@@ -149,10 +164,15 @@ def test_final_gate_devtool_and_wrapper_contract():
     assert jobs["wrapper-seal"]["command"] == ["python3", "scripts/run_wrapper_seal.py"]
     assert jobs["content-seal"]["command"] == ["python3", "scripts/run_content_seal.py"]
     assert jobs["final-seal-verdict"]["command"] == ["python3", "scripts/write_final_seal_verdict.py"]
+    assert jobs["final-seal-contract"]["command"] == ["python3", "scripts/check_final_campaign_seal_contract.py"]
+    assert jobs["final-seal-integrity"]["command"] == ["python3", "scripts/verify_final_campaign_seal.py", "--write-evidence"]
     assert (ROOT / "scripts" / "arc_final_seal.py").is_file()
     assert (ROOT / "scripts" / "run_content_seal.py").is_file()
     workflows = cfg["targets"]["arc"]["workflows"]
     assert "final_gate" in workflows and "final_seal" in workflows
+    final_refs = {step["ref"] for step in workflows["final_seal"]}
+    assert "job:final-seal-integrity" in final_refs
+    assert "job:final-seal-contract" in final_refs
     commands = cfg["wrapper"]["commands"]
     assert commands["gate"]["workflow"] == "final_gate"
     assert commands["seal"]["workflow"] == "final_seal"
@@ -166,15 +186,23 @@ def test_wrapper_docs_expose_authoritative_gate_and_seal_entrypoints():
         assert command in final_doc
 
 
-def test_r01_r05_promise_ledgers_are_present_and_final_doc_is_current():
+def test_campaign_promise_ledgers_and_gate_docs_are_present_and_final_doc_is_current():
     for revision in range(1, 6):
         assert (ROOT / "docs" / f"ARC-R0{revision}-AUDIT.md").is_file()
+    for doc in (
+        "ARC-R09B-GATE.md", "ARC-R10-GATE.md", "ARC-R11-GATE.md", "ARC-R12-GATE.md",
+        "ARC-R10A-AUDIT.md", "ARC-R10B-AUDIT.md", "ARC-R10C-AUDIT.md",
+        "ARC-R11-AUDIT.md",
+        "ARC-R12-AUDIT.md", "ARC-R12A-AUDIT.md",
+    ):
+        assert (ROOT / "docs" / doc).is_file(), doc
     final_doc = (ROOT / "docs" / "ARC-FINAL-GATE-SEAL.md").read_text(encoding="utf-8")
-    for gate in range(1, 13):
+    for gate in range(1, 19):
         assert f"G{gate:02d}" in final_doc
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     assert "ARC-R04 is reserved for the later campaign gate/seal" not in readme
     assert "ARC final gate and content seal" in readme
+    assert "ARC-R01 through ARC-R12" in readme
 
 
 def test_full_r03_runtime_qualification_and_evidence():
@@ -266,3 +294,51 @@ def test_cli_discovery_surfaces_are_operational():
         )
         assert proc.returncode == 0, proc.stderr
         assert json.loads(proc.stdout)
+
+
+def test_wrapper_seal_tolerates_only_safe_applicator_template_drift():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("arc_run_wrapper_seal", ROOT / "scripts" / "run_wrapper_seal.py")
+    mod = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(mod)
+    checks = [
+        {"section": "execution-bridge", "name": "generic-contract", "status": "ok"},
+        {"section": "execution-origin", "name": "generic-contract", "status": "ok"},
+        {"section": "discovery", "name": "commands", "status": "ok"},
+        {"section": "completion", "name": "commands", "status": "ok"},
+        {"section": "docs", "name": "wrapper-guide", "status": "ok"},
+        {"section": "launchers", "name": "current", "status": "error", "detail": "devtoolw:drifted, devtoolw.cmd:drifted",
+         "data": {"launchers": {"files": [
+             {"exists": True, "executable": True, "marker_present": True, "reason": "drifted"},
+             {"exists": True, "executable": True, "marker_present": True, "reason": "drifted"},
+         ]}}},
+        {"section": "doctor", "name": "project:wrapper-launchers", "status": "error", "detail": "devtoolw:drifted, devtoolw.cmd:drifted"},
+    ]
+    result = mod.classify_wrapper_payload({"data": {"status": "error", "checks": checks}}, process_exit_code=1)
+    assert result["status"] == "PASS"
+    assert result["contract_status"] == "PASS_WITH_APPLICATOR_TEMPLATE_DRIFT"
+    assert len(result["tolerated_template_drift"]) == 2
+    assert result["unexpected_checks"] == []
+
+
+def test_wrapper_seal_never_tolerates_missing_or_unmarked_launcher():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("arc_run_wrapper_seal_bad", ROOT / "scripts" / "run_wrapper_seal.py")
+    mod = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(mod)
+    checks = [
+        {"section": "execution-bridge", "name": "generic-contract", "status": "ok"},
+        {"section": "execution-origin", "name": "generic-contract", "status": "ok"},
+        {"section": "discovery", "name": "commands", "status": "ok"},
+        {"section": "completion", "name": "commands", "status": "ok"},
+        {"section": "docs", "name": "wrapper-guide", "status": "ok"},
+        {"section": "launchers", "name": "current", "status": "error", "detail": "devtoolw:missing",
+         "data": {"launchers": {"files": [
+             {"exists": False, "executable": False, "marker_present": False, "reason": "missing"},
+         ]}}},
+    ]
+    result = mod.classify_wrapper_payload({"data": {"status": "error", "checks": checks}}, process_exit_code=1)
+    assert result["status"] == "FAIL"
+    assert result["unexpected_checks"]

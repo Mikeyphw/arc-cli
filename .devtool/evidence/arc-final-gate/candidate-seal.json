@@ -1,0 +1,924 @@
+{
+  "campaign_base_commit_expected_prefix": "a7028c1",
+  "qualified_gate_commit_expected_prefix": "95981f7",
+  "roadmap": {
+    "ARC-R01": "semantic correctness",
+    "ARC-R02": "interaction, completion, progress, and safety",
+    "ARC-R03": "capability-aware backend qualification",
+    "ARC-R04": "execution plans, SSH/rclone transport, remote completion/cache, native command learning",
+    "ARC-R05": "SSH-native execution convergence",
+    "ARC-R06": "runtime, alias, installation, and packaging truth",
+    "ARC-R07": "explainable plans, recovery journals, and resumable batches",
+    "ARC-R08": "stable machine schema, typed backend capabilities, and verification policy",
+    "ARC-R09A": "logical provenance, equivalence, and archive diff",
+    "ARC-R09B": "remote capability, cache provenance, and publication guarantees",
+    "ARC-R10": "destructive-operation policy, backend command truth, machine batch, and recoverability",
+    "ARC-R11": "configuration provenance, strict diagnostics, and doctor convergence",
+    "ARC-R12": "advisory evidence, benchmark corpus truth, and offline support diagnostics"
+  },
+  "root_sha256": "6614ecc1c74d55f6a1df5f6f21dba90c4d159da1e0bfe7cb853adf1053c49e4e",
+  "schema_version": 5,
+  "seal_id": "ARC-R01-R12-FINAL",
+  "seal_scope": "authoritative-repository-content",
+  "seal_source": "validated-gate-worktree",
+  "sealed_file_count": 179,
+  "sealed_files": [
+    {
+      "path": ".devtool.toml",
+      "sha256": "d95563b4b774f5e02b7d8b03cd650e5bdc781a185a541d8761c55fe63aafc961",
+      "size": 61393
+    },
+    {
+      "path": ".editorconfig",
+      "sha256": "f9b3d8df0beef16812df34ffec29a980ce7c2749093809e7150c6645f0d27c13",
+      "size": 247
+    },
+    {
+      "path": ".gitattributes",
+      "sha256": "ce1134e57bb4f3b8dab90adba62b294bf4562a5d664559946da2b93b568df318",
+      "size": 232
+    },
+    {
+      "path": ".github/workflows/test.yml",
+      "sha256": "8fd6a6b81fb6d489e9b523f058eac1896ce9d66ee79f52545767190772337be3",
+      "size": 432
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "ae4d3649284346d6d1537b37abcef35f6cd8b2273d95c6e3644dcb1ce009ea2b",
+      "size": 455
+    },
+    {
+      "path": "CHANGELOG.md",
+      "sha256": "b7eb2e987a7fdd4838e59eb510961a3795ee55f1db5d2db4991f591add364442",
+      "size": 28492
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "sha256": "e986b6490105fd9e36a41e3e2ab01d1e9e133ee4d0ce0ec589d96478081e3bb9",
+      "size": 796
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "1126322e2cc8d165adc4c792eeb195717de2bcc7b39be1ce77959d78e87ef685",
+      "size": 1056
+    },
+    {
+      "path": "MANIFEST.in",
+      "sha256": "465c422616b1daecd8ddc800efe3f49c902c1fdb2256c94812e4c664d5eaf242",
+      "size": 340
+    },
+    {
+      "path": "README.md",
+      "sha256": "0c4abb3858f334b32b79f0b6f2c1ffa1845e7d84108160399822565fd5befa08",
+      "size": 39291
+    },
+    {
+      "path": "arc.py",
+      "sha256": "068f9f930f4941655fdccfe9a8e2dcd60b2146e7c522c2b485e80e78fcb50cfa",
+      "size": 307
+    },
+    {
+      "path": "completions/_arc",
+      "sha256": "a9784fff0d587088c6ce57197b56a56dbc69964469539b8f8254f4af4e915d8b",
+      "size": 4336
+    },
+    {
+      "path": "devtoolw",
+      "sha256": "62dbc36fa06367fc970d98dea5f5582135aed94d2a7672ac9868c1d308073be0",
+      "size": 724
+    },
+    {
+      "path": "devtoolw.cmd",
+      "sha256": "df9e6e461019c0e6695a57da9acefd4d4cd2eefe91862da1a382c209a761c540",
+      "size": 307
+    },
+    {
+      "path": "docs/ARC-FINAL-GATE-SEAL.md",
+      "sha256": "c07aa741f8ae9526726f43883fba5a07374e13e872ee4ee5f114d31a2e70b7ea",
+      "size": 4829
+    },
+    {
+      "path": "docs/ARC-NEXT-ROADMAP.md",
+      "sha256": "e1832fdfbcfbd3713028d8be6152eaabacbd0c70ecc998f33f843579353e2d04",
+      "size": 21412
+    },
+    {
+      "path": "docs/ARC-R01-AUDIT.md",
+      "sha256": "cb5d9f5cc4d447f09aef74078f1365cf4a5a2090969d2f2c030c683154bb13d8",
+      "size": 2515
+    },
+    {
+      "path": "docs/ARC-R02-AUDIT.md",
+      "sha256": "1b35538899250867f828a9e22e37afab5f4960ef6659c02201410a80bf336406",
+      "size": 4485
+    },
+    {
+      "path": "docs/ARC-R03-AUDIT.md",
+      "sha256": "389da2e1b5ac6ce58cdbc71ff6d3717279da6e3ac5dc17cc0dcfff923e7ac76f",
+      "size": 6816
+    },
+    {
+      "path": "docs/ARC-R04-AUDIT.md",
+      "sha256": "3e4e94d6888b65c401b8b2ea3e0dc6c3edd013e661b6cf6fb88b155304272e32",
+      "size": 8069
+    },
+    {
+      "path": "docs/ARC-R05-AUDIT.md",
+      "sha256": "f6fde93a51dadb6a08cd85f8c3aca444ddbbdedd5d4fc2cf485817cbe92c9603",
+      "size": 4279
+    },
+    {
+      "path": "docs/ARC-R09B-AUDIT.md",
+      "sha256": "0dea52edf566d1f9769efc41db19270285f41f9cf8aa4834f89cc57df7cd77d9",
+      "size": 3100
+    },
+    {
+      "path": "docs/ARC-R09B-GATE.md",
+      "sha256": "1b962fe1795584dc67a253440ea95e8334f1c82df4a3f9c2c9d44f80868a01d3",
+      "size": 4074
+    },
+    {
+      "path": "docs/ARC-R10-AUDIT.md",
+      "sha256": "45ee6016a187b4ead58b5985ee09606f1e7d37fda83059789d03112cb3eef667",
+      "size": 2822
+    },
+    {
+      "path": "docs/ARC-R10-GATE.md",
+      "sha256": "4b99987fabfef33c9eb9ad20cff5ecc7a4e1969990d7a00309cbe3a7ba96e59f",
+      "size": 4823
+    },
+    {
+      "path": "docs/ARC-R10A-AUDIT.md",
+      "sha256": "e7ed6c50f2fc6b1c7b26ee04a2236596e6749b774ec77a774b8e949878b15b53",
+      "size": 1448
+    },
+    {
+      "path": "docs/ARC-R10B-AUDIT.md",
+      "sha256": "b7d98277bf064b5800d38e7a85efe4d1d8473347c208e972b340d9da65f4be55",
+      "size": 1916
+    },
+    {
+      "path": "docs/ARC-R10C-AUDIT.md",
+      "sha256": "271641cd6aff4be74090aac371980bf680c32d22c42b14d629bf285860e53948",
+      "size": 1844
+    },
+    {
+      "path": "docs/ARC-R11-AUDIT.md",
+      "sha256": "2c503004d5b45e6c13e30b60e4292fdf8e6dc69899803e910fe7b4eada462c43",
+      "size": 5235
+    },
+    {
+      "path": "docs/ARC-R11-GATE.md",
+      "sha256": "e94910e1e3eafaf9425ee51cdb69809cf63738a381b7fdcff733ccb5101901df",
+      "size": 4227
+    },
+    {
+      "path": "docs/ARC-R12-AUDIT.md",
+      "sha256": "690b9d21e9061757f0b6df9000fa37195db27f56ab76b434719a68b3819cdd0f",
+      "size": 3505
+    },
+    {
+      "path": "docs/ARC-R12-GATE.md",
+      "sha256": "4d29f5bd1314229e69a3da19999a009cde8e1044049815b629765627c4a20205",
+      "size": 3084
+    },
+    {
+      "path": "docs/ARC-R12A-AUDIT.md",
+      "sha256": "aec0b797ade50a84bd581224381cce46dae64b5f77d3d3e1dec5b1d0abde841f",
+      "size": 2720
+    },
+    {
+      "path": "docs/AUDIT-2026-09-25.md",
+      "sha256": "a6b84b925ee630fce6a61370b375200fa8b9d6110cebaadb0d802a26b006b4c2",
+      "size": 1589
+    },
+    {
+      "path": "docs/COMMAND_REFERENCE.md",
+      "sha256": "3eb1f0da07fc60456ce27706dd6368c60ff02a1764117997c6bbebf3feedcd6e",
+      "size": 41161
+    },
+    {
+      "path": "docs/DESIGN.md",
+      "sha256": "27ff010e5b82c7426b8df04403d2b8664fd2cf55018688b134bab3ee37f2c005",
+      "size": 19066
+    },
+    {
+      "path": "docs/WRAPPER.md",
+      "sha256": "dafd5842ce7e6f57a9cade7fafdb8fd95a48c2c3bdc9f9b75e81d35e1eb4113b",
+      "size": 15583
+    },
+    {
+      "path": "pyproject.toml",
+      "sha256": "e13f6133472cab7c9977734a1ddc7a49e5ab6369a1d27857fe3c5d59cf64ec9c",
+      "size": 2486
+    },
+    {
+      "path": "release/ARC-FINAL-SEAL.json",
+      "sha256": "43a5fbc6aa07c1c5e8d8b97c73e2d744d98c75014d0882d6af450faa9cb46ed7",
+      "size": 2132
+    },
+    {
+      "path": "scripts/arc_final_seal.py",
+      "sha256": "ed8c0e4f19705e8d26344e9ab0bdc98146fc515164c92598b8e3091a92a4b50d",
+      "size": 9520
+    },
+    {
+      "path": "scripts/check_batch_contract.py",
+      "sha256": "9d99bd270e64bf640bad95ec23948b716db9265c7cf443f2507c0b50911f773b",
+      "size": 2686
+    },
+    {
+      "path": "scripts/check_completion_contract.py",
+      "sha256": "0ced17515cfe9d28e4f1402e3f048ca4128953ce29ee80d10b66d1e33a94f2c2",
+      "size": 611
+    },
+    {
+      "path": "scripts/check_config_contract.py",
+      "sha256": "07806445d3999bf891aa5e4771ed9a53328bf36c4d06967f1aa118f7a69a1e6e",
+      "size": 4607
+    },
+    {
+      "path": "scripts/check_devtool_contract.py",
+      "sha256": "a8c5ff4a036ec6e90388e6ff84e85c5bcc28bf0664b18dba7e5178c4f0c2fda7",
+      "size": 6871
+    },
+    {
+      "path": "scripts/check_devtool_contract_r09b.py",
+      "sha256": "c3d20db68c549b0ba659c90190be025744bfd8f5307d309391729fac700a6ba4",
+      "size": 7878
+    },
+    {
+      "path": "scripts/check_final_campaign_seal_contract.py",
+      "sha256": "96ad8ab5795d1c9d952a37c406ecf02efe2734de7becde19340f8e62680764a4",
+      "size": 4005
+    },
+    {
+      "path": "scripts/check_machine_contract.py",
+      "sha256": "7074084876f753b44087529b9ea520129b900a356a1d47d5fa40bd6f3ef35cc9",
+      "size": 2350
+    },
+    {
+      "path": "scripts/check_machine_contract_r09b.py",
+      "sha256": "f1e6ef91b15f19b0c8db58bb4bb84592489e9bf9dccc68a186702e563286ca75",
+      "size": 2485
+    },
+    {
+      "path": "scripts/check_provenance_contract.py",
+      "sha256": "46470691dce400bf276300e9adca625d2661193a726400cc26c55551ca0e566e",
+      "size": 2864
+    },
+    {
+      "path": "scripts/check_r01_contract.py",
+      "sha256": "81c57916e34266ffd57adef476681956aec61810338406f857d023325fc6b8cf",
+      "size": 2292
+    },
+    {
+      "path": "scripts/check_r02_contract.py",
+      "sha256": "97e73a3093393d6ccbe26076adac8705ddfd8466dd828240f26cb21d67b4ac68",
+      "size": 1857
+    },
+    {
+      "path": "scripts/check_r03_contract.py",
+      "sha256": "1920f8ab08ecb343a6af2034e0e30cc1a381eeb5b7bb91994157e7e1e77b63ef",
+      "size": 2053
+    },
+    {
+      "path": "scripts/check_r09b_gate_contract.py",
+      "sha256": "95a76ec0446bc56977ed5e9c0843b96f82240b1d905c85e1d9bf1f90e4c570e9",
+      "size": 4178
+    },
+    {
+      "path": "scripts/check_r10_gate_contract.py",
+      "sha256": "7717e836417fd76c3a37235d5419ee4a11a1a5879ad3e3c81f5fef9288f61a55",
+      "size": 4619
+    },
+    {
+      "path": "scripts/check_r11_gate_contract.py",
+      "sha256": "399ad24d61f4c742f4b67cc1887a2f3eb902c6845863b19a9d4f1eb6939ebb76",
+      "size": 5033
+    },
+    {
+      "path": "scripts/check_r12_contract.py",
+      "sha256": "db30d45c24ada54b082f1f17f48075d0a3014c8ffbbc45b9da444930e385e98c",
+      "size": 4613
+    },
+    {
+      "path": "scripts/check_r12_gate_contract.py",
+      "sha256": "eef3a141005045b811285bcf01daf7080d5073270ce864285b02b692d631d473",
+      "size": 4770
+    },
+    {
+      "path": "scripts/check_r12a_contract.py",
+      "sha256": "10ec5bcd3a08519b0b5a6ade9fc8df4a45e5e93aca50f9674a3851b1cfb3053e",
+      "size": 2932
+    },
+    {
+      "path": "scripts/check_remote_contract.py",
+      "sha256": "f45c957cfe239abace90602cb37cd2565e2a5f759b3ac26cb7614a793d99e331",
+      "size": 2324
+    },
+    {
+      "path": "scripts/check_source_hygiene.py",
+      "sha256": "7bedef9d40b552b4efb5189510447e8647d0f53a4bee1d326b8202fc8e5fd9bc",
+      "size": 2210
+    },
+    {
+      "path": "scripts/check_system_ruff.py",
+      "sha256": "5027b0b9d0ada10e72fb3d7aa688ee787fe123914ba2641fcbb7ad89f52cbfc0",
+      "size": 1278
+    },
+    {
+      "path": "scripts/devtool_backend_smoke.py",
+      "sha256": "18261f82526b8c7a0c7a903629fded823293db92e255d9bf32688f7ab7076c6d",
+      "size": 3813
+    },
+    {
+      "path": "scripts/generate_command_docs.py",
+      "sha256": "0d375a93efde0b12f2c9efb34fc6892e9d904d22322810c2b343296f9dbf4fed",
+      "size": 2140
+    },
+    {
+      "path": "scripts/refresh_dev_install.py",
+      "sha256": "93c9acc776ecad45e777f1deecb4901e9b63ac710afbe0b92df5d9eeb04656f1",
+      "size": 10119
+    },
+    {
+      "path": "scripts/run_content_seal.py",
+      "sha256": "4f8f8bb17592afc0a204a8ccbe75f33fe21d5f160f59e9ee794cdfbe2a791cf1",
+      "size": 1673
+    },
+    {
+      "path": "scripts/run_final_gate_tests.py",
+      "sha256": "2a8293cc0ad1f0bbb654e3a5eeaa3064df0c59dd24dfb3b42b93b22d4515873b",
+      "size": 10944
+    },
+    {
+      "path": "scripts/run_r03_qualification.py",
+      "sha256": "f4487b5e86b0bb11bb2cae40caa1865d3acf7abc23fb3bc4d59f2940fce04cd2",
+      "size": 1932
+    },
+    {
+      "path": "scripts/run_r04_tests.py",
+      "sha256": "9b5bf4b413046d92c4ddae21403b3eb53437b420d2ec5c5300e2f6a82d4a4055",
+      "size": 2506
+    },
+    {
+      "path": "scripts/run_r05_tests.py",
+      "sha256": "d449179165efa1556056af6e66e68cf7254ad4c6aa54b8658518dc3179401cc5",
+      "size": 2463
+    },
+    {
+      "path": "scripts/run_wrapper_seal.py",
+      "sha256": "ff8b7c23eb42be73f2928f6996c719bfd89604fb491250fbad79e75795889c87",
+      "size": 5260
+    },
+    {
+      "path": "scripts/sync_alias_registry.py",
+      "sha256": "35db94d16fd506e9eb51d824ce1b44f87c6bcf6499c6f112e0814ea2bd812b8d",
+      "size": 2325
+    },
+    {
+      "path": "scripts/verify_arc_final_seal.py",
+      "sha256": "9f8895c3b5acb06e4426ccabfffcfe3208bd7d3771763e34464e61f4e89c2f66",
+      "size": 1071
+    },
+    {
+      "path": "scripts/verify_final_campaign_seal.py",
+      "sha256": "59c874ec2365f2f936f1637f04f0e93f4b68a4db585ae812dc233092712cf63e",
+      "size": 2697
+    },
+    {
+      "path": "scripts/write_final_seal_verdict.py",
+      "sha256": "70e899aa15a3894f32f30215e19d8a8268001483146c83d834093fce9d26ae28",
+      "size": 2880
+    },
+    {
+      "path": "scripts/write_release_evidence.py",
+      "sha256": "a437523f2da578f120cd510f14ff2cfeb19f6a182a60574aff4978a50ec9abb0",
+      "size": 1213
+    },
+    {
+      "path": "src/arc_cli/__init__.py",
+      "sha256": "b7fd1dac18c9041a53ae23256dfc489e3c10de5c6b8b16be5585ff74123d98d2",
+      "size": 90
+    },
+    {
+      "path": "src/arc_cli/__main__.py",
+      "sha256": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+      "size": 48
+    },
+    {
+      "path": "src/arc_cli/advisory.py",
+      "sha256": "dad2f4c12a21561b3b647110e3c5296b9efdd80c604848b37c8b9a89fc8fbf14",
+      "size": 27961
+    },
+    {
+      "path": "src/arc_cli/backends.py",
+      "sha256": "4d32c098ac672b70017fca9e5159cbf2f5136dbdf7b770a51c773800655798fe",
+      "size": 42549
+    },
+    {
+      "path": "src/arc_cli/batch.py",
+      "sha256": "5a0ecdf43e0528ce6e2bf601d0670d5a86d2cd9d2c2f506dcabf37b656a10609",
+      "size": 7981
+    },
+    {
+      "path": "src/arc_cli/capabilities.py",
+      "sha256": "97c5b08e6a136190ec422471ec17431a51816d9f6e5bca8049411c80bf824b4f",
+      "size": 9131
+    },
+    {
+      "path": "src/arc_cli/cli.py",
+      "sha256": "9722a86dc77c953b334e8057ce82c93171cec9194629ebda865dbdcdaf3dc223",
+      "size": 225091
+    },
+    {
+      "path": "src/arc_cli/command_docs.py",
+      "sha256": "6453ab84ae53013e8a3a706ae042879cfdbe74db9e79ccad28fcae329bb8f848",
+      "size": 6485
+    },
+    {
+      "path": "src/arc_cli/completion.py",
+      "sha256": "ead2a23cd91bf093314742d04c063e0dbe2702e6a24af5cb8e246694aa9a37ea",
+      "size": 19769
+    },
+    {
+      "path": "src/arc_cli/config.py",
+      "sha256": "9259d311690e4deffacc200260c89fd23a58f30f77fcb268564fecd6a61e483d",
+      "size": 23633
+    },
+    {
+      "path": "src/arc_cli/doctor.py",
+      "sha256": "589167b833a1e5b0b1c7c144693ed17c0eb1f32fa22a76091d98a97c27a5b428",
+      "size": 10653
+    },
+    {
+      "path": "src/arc_cli/errors.py",
+      "sha256": "f35fb8f108393563820226cd156b274848740e48e95b94ba46437961ac8cfbbd",
+      "size": 498
+    },
+    {
+      "path": "src/arc_cli/execution.py",
+      "sha256": "b6e66489de10e7a18b62bf07e74e1b89359d9452a8c8f034d12004aefb5fc08d",
+      "size": 9302
+    },
+    {
+      "path": "src/arc_cli/filtering.py",
+      "sha256": "7999c5fc5f0a03fd857c864c2926ef821c2fb68612ad58f1685c072d73bf85ed",
+      "size": 6077
+    },
+    {
+      "path": "src/arc_cli/formats.py",
+      "sha256": "af226caad1698dd692305ba5d9c6cd111c4ec8f6fca0d5a8f76bf69027086ad7",
+      "size": 10843
+    },
+    {
+      "path": "src/arc_cli/interactive.py",
+      "sha256": "5b833fa2e8d183313972264827e4e53f2c71bc071089c82f9b8a7924c46cabb1",
+      "size": 5247
+    },
+    {
+      "path": "src/arc_cli/machine.py",
+      "sha256": "27199083addb94dbcc89cc39d81eca586c7728c4871b9de9cd03107b864c70db",
+      "size": 5276
+    },
+    {
+      "path": "src/arc_cli/man/arc-add.1",
+      "sha256": "2e7b83c6725dd5bdb33e7c7e09fc178fca608a8370a9cd75d9766ed797cd4b58",
+      "size": 827
+    },
+    {
+      "path": "src/arc_cli/man/arc-aliases.1",
+      "sha256": "87a80607455d2a6e9166c6e8e7d831a2fcf7ed7291ed87a6ffd1ad3410ebbbf1",
+      "size": 767
+    },
+    {
+      "path": "src/arc_cli/man/arc-backends.1",
+      "sha256": "17532c322631a79851f460d11e0e8081317df9a8c1fbf26c134c6c49a506a0ac",
+      "size": 1176
+    },
+    {
+      "path": "src/arc_cli/man/arc-backends.7",
+      "sha256": "a89314be6ff6eb685e9cc4cafbcaa2938c5423c904215a585ecc0e7cefadddd7",
+      "size": 1479
+    },
+    {
+      "path": "src/arc_cli/man/arc-batch.1",
+      "sha256": "a51dd3dfb5cf2b893f949e1c991867943d5260bfe12a66bdb8a65e2858a7063d",
+      "size": 1449
+    },
+    {
+      "path": "src/arc_cli/man/arc-benchmark.1",
+      "sha256": "4723b9c1684bdbc781c1c8680440fd10645561b9e6dd6c47bc03745cf1e12b91",
+      "size": 1235
+    },
+    {
+      "path": "src/arc_cli/man/arc-completion.1",
+      "sha256": "bbed8e67e7f1e054ac900e9540b5ebebecdb077a8543079b12f2fc9f91370f8c",
+      "size": 779
+    },
+    {
+      "path": "src/arc_cli/man/arc-config.1",
+      "sha256": "6baad8623065c4699b399e9762630cdcd565970b502825e69b02ea7a87b8f8b2",
+      "size": 1305
+    },
+    {
+      "path": "src/arc_cli/man/arc-config.5",
+      "sha256": "635e4eeb80768f583982c63727bbb5b615c3a06042f367e7291a80e670292eab",
+      "size": 1162
+    },
+    {
+      "path": "src/arc_cli/man/arc-convert.1",
+      "sha256": "5984dd6777919e831c79235598c0c84387685b05d2d206b07531ba328cb47c57",
+      "size": 5529
+    },
+    {
+      "path": "src/arc_cli/man/arc-create.1",
+      "sha256": "be1ed568e7d18fe3088ac310b0b6a832b9bf3b6ae2f7ead64508e1f35fd20bb7",
+      "size": 2310
+    },
+    {
+      "path": "src/arc_cli/man/arc-diagnostics.1",
+      "sha256": "12dbc0205486e7ce0c18f5143bc35f5c332d2937bf3a6e0107b6deacc954c165",
+      "size": 1027
+    },
+    {
+      "path": "src/arc_cli/man/arc-diff.1",
+      "sha256": "a6666ddf97353146224b847bde94668da063fce3dce54a1559191fa1f6a5525c",
+      "size": 2150
+    },
+    {
+      "path": "src/arc_cli/man/arc-doctor.1",
+      "sha256": "c761ee7fcb61aad5cc97b0dab1998bdd6b2dc84e8a8f440bf72e4c7e0bd131f5",
+      "size": 941
+    },
+    {
+      "path": "src/arc_cli/man/arc-explain.1",
+      "sha256": "0fe57b47985a147bf0b811ff0650a6a6f6a6c0bbf7dee801726b6135e48ab4e7",
+      "size": 922
+    },
+    {
+      "path": "src/arc_cli/man/arc-extract.1",
+      "sha256": "771cd7ffe0ecf577832a9ecec657b2cd00159af137f150cd6de6f8117a7051f8",
+      "size": 1323
+    },
+    {
+      "path": "src/arc_cli/man/arc-formats.7",
+      "sha256": "272f6ada2b0f8a6b6bbcbbaf8bc61f8dfb600b60416bbdc5c9e11fb72cbf27d1",
+      "size": 2235
+    },
+    {
+      "path": "src/arc_cli/man/arc-identify.1",
+      "sha256": "668844be8018cb71fb362a680a35dfa3f246b0a2329c2dc960cf1e049fa29e92",
+      "size": 499
+    },
+    {
+      "path": "src/arc_cli/man/arc-info.1",
+      "sha256": "084004205f3110eea3c70bd6d28657fc2bbdbbdc47690b65dcc370b6d3f1135b",
+      "size": 2386
+    },
+    {
+      "path": "src/arc_cli/man/arc-list.1",
+      "sha256": "2ca5e3c3d2e06750e11b33e172e073654d08c21719801f33f455961e66757841",
+      "size": 591
+    },
+    {
+      "path": "src/arc_cli/man/arc-profiles.5",
+      "sha256": "07130c5fd05612932e91cf8802ef85ad757bec32363e61bd428637a44a7f764c",
+      "size": 667
+    },
+    {
+      "path": "src/arc_cli/man/arc-recover.1",
+      "sha256": "503391d99c65ef3383bc95680e25ded019555447a7c5bdbee71365073d37456c",
+      "size": 997
+    },
+    {
+      "path": "src/arc_cli/man/arc-remote.7",
+      "sha256": "04f97390478c7560cf08da8b6fafa331f04dd9d7498fa678848afc3dcde062b0",
+      "size": 1814
+    },
+    {
+      "path": "src/arc_cli/man/arc-remove.1",
+      "sha256": "9e766326f16bd1b5bc4241ab96455ccc63872f2650c6f299e048034ded503034",
+      "size": 870
+    },
+    {
+      "path": "src/arc_cli/man/arc-schema.1",
+      "sha256": "e3f627540b65484743133ed57fa543d9ae935b7e5e28ceb1a57acc7e462a8ca7",
+      "size": 1227
+    },
+    {
+      "path": "src/arc_cli/man/arc-test.1",
+      "sha256": "7070c305d7d929812609a8d6924cfd87010d6d939c8893131ebc1ebe4d9422ca",
+      "size": 1352
+    },
+    {
+      "path": "src/arc_cli/man/arc-update.1",
+      "sha256": "c5f5902e5be16ede779fa6942bfa59f04856660ededf7c6bf5a5ca6c7362781e",
+      "size": 759
+    },
+    {
+      "path": "src/arc_cli/man/arc.1",
+      "sha256": "432bac4a6e357b5be94623c3ed9642a6121e024c402e7c6a819798ab3f7e6755",
+      "size": 6780
+    },
+    {
+      "path": "src/arc_cli/manpages.py",
+      "sha256": "d13f67feebd789ed567ca0e4e996499a48d291fb5441df61f4bd688fe4934247",
+      "size": 3509
+    },
+    {
+      "path": "src/arc_cli/manual.py",
+      "sha256": "6fb495ac36178093a48ce1d162053241c392e8a0c5d1cd0c739e9327688b6aca",
+      "size": 43448
+    },
+    {
+      "path": "src/arc_cli/model.py",
+      "sha256": "fdce788daa01ca272bd454f42a7d69355c949fbde0b2f7f9f76642f225887640",
+      "size": 1396
+    },
+    {
+      "path": "src/arc_cli/mutation_policy.py",
+      "sha256": "51127b015dffade2aba2d84b3831cf7bf8cc4911324e1764f9a2f03e13908ced",
+      "size": 4805
+    },
+    {
+      "path": "src/arc_cli/progress.py",
+      "sha256": "6c7b94d75a94a959a2fb1b7c0a20daa9a4ac461c0ca4396c6c66fca7b43e54e5",
+      "size": 9001
+    },
+    {
+      "path": "src/arc_cli/provenance.py",
+      "sha256": "1f2f3a11611462777e1c07a738b6ec312db29c926c5d10d5752265ef85983b15",
+      "size": 16418
+    },
+    {
+      "path": "src/arc_cli/qualification.py",
+      "sha256": "c0aa4523809a87cbd9270432d0e57809b514b4ceaff76e460dd03994dc0c52d4",
+      "size": 20043
+    },
+    {
+      "path": "src/arc_cli/remote.py",
+      "sha256": "4e9ca03bb0384a389e93a5c438075525da788c85c60195eb5abd551d00dfa1d9",
+      "size": 55051
+    },
+    {
+      "path": "src/arc_cli/safety.py",
+      "sha256": "62b65441ae4ddebd82404ebc9dfedcba3458b514913904b00653e65a4acf83a8",
+      "size": 7158
+    },
+    {
+      "path": "src/arc_cli/schemas/archive-diff-v1.schema.json",
+      "sha256": "4b44f10d8cc1056821108b9d7e501e49f0314c9a6affbbef52bfcc74abb2d94f",
+      "size": 4949
+    },
+    {
+      "path": "src/arc_cli/schemas/backend-capability-v1.schema.json",
+      "sha256": "33d00fdc48c2327b0edb8c97468686449e8ef473b96e2e75effe66d97ea93113",
+      "size": 2732
+    },
+    {
+      "path": "src/arc_cli/schemas/batch-input-v1.schema.json",
+      "sha256": "ff116eba819ce0113515d102af8beaefe564ddd7ca54da858e87b30cc4bd13b9",
+      "size": 1232
+    },
+    {
+      "path": "src/arc_cli/schemas/benchmark-v1.schema.json",
+      "sha256": "8e1e40cb44f8f468325aa6795e314ba9b477b5ef1af043c2a9b37fa9aba4f8c6",
+      "size": 5422
+    },
+    {
+      "path": "src/arc_cli/schemas/config-inspection-v1.schema.json",
+      "sha256": "51f2dee6265943bec085cbc8559d6554a0e3967886ab04d676eb3e25955575f6",
+      "size": 2178
+    },
+    {
+      "path": "src/arc_cli/schemas/diagnostics-bundle-v1.schema.json",
+      "sha256": "d375c78f525b9d8788ec16abd1f944adf67f651d5ce5d7dd38377bc4e9e2ea26",
+      "size": 849
+    },
+    {
+      "path": "src/arc_cli/schemas/format-recommendation-v1.schema.json",
+      "sha256": "1c2c4ce9d8a36924c45c90540072fa9d6f815b31bdbef0a119b638396fb261cd",
+      "size": 2827
+    },
+    {
+      "path": "src/arc_cli/schemas/logical-fingerprint-v1.schema.json",
+      "sha256": "c4f825195c85842f27c1b5c1ee226c50cfe83834c7090c0578cae7ee86d51485",
+      "size": 1914
+    },
+    {
+      "path": "src/arc_cli/schemas/machine-v1.schema.json",
+      "sha256": "fa5bbd3291cf8a86d17e4317157b9a7ca824dd8588ee284acb2868d70c4dc10a",
+      "size": 2300
+    },
+    {
+      "path": "src/arc_cli/schemas/remote-capability-v1.schema.json",
+      "sha256": "a409b35cf513c2658a13d8729cc6b618d1d4cb822c64f26faf36ad33be10c801",
+      "size": 2815
+    },
+    {
+      "path": "src/arc_cli/schemas/verification-evidence-v1.schema.json",
+      "sha256": "6d63b1aff4f1df49d4248b9ab34c2eaa4038a334c6cbaa1bb870dc7fb645e5c3",
+      "size": 1680
+    },
+    {
+      "path": "src/arc_cli/transactions.py",
+      "sha256": "6557781cf07d1f4fc7c7377266b50dea189fa3a9e932d1c2167f1b7bb2d12bad",
+      "size": 12632
+    },
+    {
+      "path": "src/arc_cli/verification.py",
+      "sha256": "2399814d5103297f5f37431a6b6db68f43e7fa10aea85c2ef0a38c6f8b9574fe",
+      "size": 5395
+    },
+    {
+      "path": "tests/test_cli_integration.py",
+      "sha256": "01679bba011ad3bc7a0daeaf88698e277906f6b6ed674e171a35cbf1b6244ef0",
+      "size": 1793
+    },
+    {
+      "path": "tests/test_command_aliases.py",
+      "sha256": "300f070722903f0a73b6dc6c2af728121d9ea09360a98a34e8cce97f09f7e804",
+      "size": 2823
+    },
+    {
+      "path": "tests/test_completion.py",
+      "sha256": "80c9bdf5b2a2a8a87bef79a187bdd4f0da754e697aa312af01eb0d0d96cbb00f",
+      "size": 350
+    },
+    {
+      "path": "tests/test_convert_command.py",
+      "sha256": "1a68fa4c447542d087d953b406e2fa0a54203d23beca9695f89abad2d885eef8",
+      "size": 18315
+    },
+    {
+      "path": "tests/test_create_ui_shortcuts.py",
+      "sha256": "68ffa24ee855abb6f46751cb5f5328f180928d12821567ab5abf04029905e7f0",
+      "size": 9823
+    },
+    {
+      "path": "tests/test_distribution_contract.py",
+      "sha256": "f341c989295b3b4de89137e40e0d095e747d182ef687853ff4b71d545a0802f5",
+      "size": 4566
+    },
+    {
+      "path": "tests/test_filtering.py",
+      "sha256": "4b3b7af478e4f9e264e43d5afb6b6a6482246fad320f4cf2d4c96d416485129f",
+      "size": 759
+    },
+    {
+      "path": "tests/test_final_gate.py",
+      "sha256": "a63d43b4dd90900569ddd0b3b5f0395c1c317a9f756561e158f49780a693cb26",
+      "size": 14743
+    },
+    {
+      "path": "tests/test_formats.py",
+      "sha256": "ebff7fd4f2cf5e49b7c5261a75bb7258e05a220cac1cde2c26790d0b7b096bd1",
+      "size": 830
+    },
+    {
+      "path": "tests/test_info_command.py",
+      "sha256": "2904a1b47798608f850ec64cc0ad51bbce8a1d82d75038187989df7e2c1b20a0",
+      "size": 7030
+    },
+    {
+      "path": "tests/test_manpages.py",
+      "sha256": "940aeaa113036beba378da4101a8179240b48420dcf1dc35a0e82f726b5be89c",
+      "size": 3564
+    },
+    {
+      "path": "tests/test_r01_semantics.py",
+      "sha256": "dab751752101ad5012f1b67b79a8eb9eb7fc19f001b31a7036bad4baa98e28fe",
+      "size": 8711
+    },
+    {
+      "path": "tests/test_r02_interaction.py",
+      "sha256": "1a24081c99b6490fc416df6512df509d4d200b631ed8f27f254635a4dec9112a",
+      "size": 14246
+    },
+    {
+      "path": "tests/test_r03_qualification.py",
+      "sha256": "b9be25889b0ee5cdab38d97be180170bc103b3909bc401a4ac8e99f09188523b",
+      "size": 13340
+    },
+    {
+      "path": "tests/test_r04_execution_plan.py",
+      "sha256": "6b27a9a109d4cce4b498ab013c9268c29ca54737d095b055e573310dfc0dd12e",
+      "size": 3004
+    },
+    {
+      "path": "tests/test_r04_remote_transport.py",
+      "sha256": "41fffc57ad8e3e1edc38ef50bf006fceb1a82c7fe3b4d36056aee80e65512a12",
+      "size": 28298
+    },
+    {
+      "path": "tests/test_r05_remote_native.py",
+      "sha256": "a2319ea226aecc859093b8eb5c8abc6eafa5324129420d14eb9c5b8a6dfd850d",
+      "size": 13270
+    },
+    {
+      "path": "tests/test_r06_runtime_install_truth.py",
+      "sha256": "6cfeca07e986a8e91299ec5a8cc5dfdc95f55e6adcb98078fdcb28589b234f68",
+      "size": 9190
+    },
+    {
+      "path": "tests/test_r07_execution_recovery_resume.py",
+      "sha256": "6d50cb6604a56ef74ad46a4a99ac85cc44319de56d77a1962339e48e31f482b0",
+      "size": 10233
+    },
+    {
+      "path": "tests/test_r08_machine_capability_verification.py",
+      "sha256": "46d08b2043896505cb87431bb81d6b23abdcd8328e25c4e86da5913bda05923a",
+      "size": 9665
+    },
+    {
+      "path": "tests/test_r09a_provenance_diff.py",
+      "sha256": "802c2bfa56fa912c166e49a49ad1d69a98862f12bf390af731d740f492f6e4dc",
+      "size": 16042
+    },
+    {
+      "path": "tests/test_r09b_gate.py",
+      "sha256": "d29996689228865473ca80ad661b88ca7b0d74a0f30c564c837191673a044318",
+      "size": 8506
+    },
+    {
+      "path": "tests/test_r09b_remote_capability_publication.py",
+      "sha256": "9de809cfdf6963fb6fcf90a1fde9ceceef83e62dad17e2f9fa6bad3608de675b",
+      "size": 6650
+    },
+    {
+      "path": "tests/test_r10_gate.py",
+      "sha256": "a1707e2d2eb92fced549bb96b0a0419aee588fd3d22eaa96b1102c6070feab3f",
+      "size": 5248
+    },
+    {
+      "path": "tests/test_r10_mutation_policy_progress.py",
+      "sha256": "a9548c470ff30853a2cdf566257fc895e4c7c9158571a79bcafd581d03966085",
+      "size": 2873
+    },
+    {
+      "path": "tests/test_r10a_backend_command_truth.py",
+      "sha256": "08191584b6c67691691876784cf5e3b359c975f9e5a0cd85fdb0c6719638396b",
+      "size": 4071
+    },
+    {
+      "path": "tests/test_r10b_machine_batch.py",
+      "sha256": "ecc14027c059615d561b5039b3be6979b4d1deeac51739de83829e3de01d9c27",
+      "size": 7555
+    },
+    {
+      "path": "tests/test_r10c_mutation_policy_convergence.py",
+      "sha256": "206faad8d3245188a875fd9f005463a9ccf7215837dd613edf5e286ad72d4b3e",
+      "size": 7446
+    },
+    {
+      "path": "tests/test_r11_config_provenance.py",
+      "sha256": "985acb5f85e398a42bb326c1a163f20d47a5e89e5c31ef4b0a6f73a025f9d753",
+      "size": 9162
+    },
+    {
+      "path": "tests/test_r11_gate.py",
+      "sha256": "bbf0f192386ad461b4d054034fb61f7839cc549bb0b10fcdc7f712de51670633",
+      "size": 7371
+    },
+    {
+      "path": "tests/test_r11a_config_diagnostic_convergence.py",
+      "sha256": "06b702370582d772d1a39b45751a782cef118afceb573ac889077625a3fb006b",
+      "size": 4338
+    },
+    {
+      "path": "tests/test_r11b_doctor_environment_isolation.py",
+      "sha256": "def64f0fdd62b579e38a92598a353a05fff27880437fcd522cc4e2a74a5e9f28",
+      "size": 2186
+    },
+    {
+      "path": "tests/test_r12_advisory_benchmark_diagnostics.py",
+      "sha256": "bb66c246011ec3dbb3f368fa115712bab066f44fa4675b68090d214da8e3d008",
+      "size": 10404
+    },
+    {
+      "path": "tests/test_r12_gate.py",
+      "sha256": "6be2b1aa0ee2e74080f0dbdf5c4b8e048331329d7ea2d4add0efb8e3e3e834e9",
+      "size": 8762
+    },
+    {
+      "path": "tests/test_r12a_benchmark_corpus_truth.py",
+      "sha256": "334ff144a3a6e5331b07f7c856eaaeb05121d49448a274f9781ae2758993085e",
+      "size": 6065
+    },
+    {
+      "path": "tests/test_safety.py",
+      "sha256": "9e8296af15649e3591fa1bdc83c172df34249fd6ffaf3474e229963e08217c86",
+      "size": 644
+    },
+    {
+      "path": "uv.lock",
+      "sha256": "7934d5d4ff767083ec9696cb52c12b4d697863593b3972da0f366f3041cef090",
+      "size": 6975
+    }
+  ],
+  "source_head_at_seal": "95981f72b12568479676030177f828b00f05ab28",
+  "status": "SEALED_CONTENT"
+}

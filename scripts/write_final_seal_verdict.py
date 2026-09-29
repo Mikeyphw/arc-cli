@@ -9,7 +9,7 @@ import shutil
 import sys
 import time
 
-from arc_final_seal import BASE_COMMIT_EXPECTED_PREFIX, ROADMAP, SEAL_ID
+from arc_final_seal import CAMPAIGN_BASE_COMMIT_EXPECTED_PREFIX, QUALIFIED_GATE_COMMIT_EXPECTED_PREFIX, ROADMAP, SEAL_ID
 
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE = ROOT / ".devtool" / "evidence" / "arc-final-gate"
@@ -27,19 +27,21 @@ def main() -> int:
     wrapper = load("wrapper-seal.json")
     content = load("content-seal.json")
     checks = {
-        "gate": gate.get("status") == "GATE_PASS",
+        "gate": gate.get("status") == "GATE_PASS" and gate.get("gate") == SEAL_ID,
         "wrapper_seal": wrapper.get("status") == "PASS",
-        "content_candidate": content.get("status") == "PASS",
+        "content_candidate": content.get("status") == "PASS" and content.get("seal_id") == SEAL_ID,
+        "qualified_gate_prefix": gate.get("qualified_gate_commit_expected_prefix") == QUALIFIED_GATE_COMMIT_EXPECTED_PREFIX and content.get("qualified_gate_commit_expected_prefix") == QUALIFIED_GATE_COMMIT_EXPECTED_PREFIX,
     }
     status = "SEALED" if all(checks.values()) else "FAILED"
     verdict = {
         "schema_version": 4,
         "status": status,
-        "gate": "ARC-R01-R05-FINAL",
+        "gate": SEAL_ID,
         "seal_id": SEAL_ID,
         "content_root_sha256": content.get("candidate_root_sha256"),
         "sealed_file_count": content.get("sealed_file_count"),
-        "base_commit_expected_prefix": BASE_COMMIT_EXPECTED_PREFIX,
+        "campaign_base_commit_expected_prefix": CAMPAIGN_BASE_COMMIT_EXPECTED_PREFIX,
+        "qualified_gate_commit_expected_prefix": QUALIFIED_GATE_COMMIT_EXPECTED_PREFIX,
         "roadmap": ROADMAP,
         "checks": checks,
         "gate_summary": gate,

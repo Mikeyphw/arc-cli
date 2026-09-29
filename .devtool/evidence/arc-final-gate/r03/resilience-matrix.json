@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "resilience_matrix": [
+    {
+      "name": "resilience:corrupt-zip",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": "exit=5",
+      "backend": null,
+      "format": "zip",
+      "operation": "test"
+    },
+    {
+      "name": "resilience:corrupt-tar",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": "exit=5",
+      "backend": null,
+      "format": "tar",
+      "operation": "test"
+    },
+    {
+      "name": "password:zip",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": "wrong-password-exit=6",
+      "backend": "7zz",
+      "format": "zip",
+      "operation": "password"
+    },
+    {
+      "name": "password:7z",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": "wrong-password-exit=6",
+      "backend": "7zz",
+      "format": "7z",
+      "operation": "password"
+    },
+    {
+      "name": "password:rar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "duration_seconds": 0.0,
+      "detail": "no installed backend can create rar; required=create,password (rar: not installed)",
+      "backend": null,
+      "format": "rar",
+      "operation": "password"
+    },
+    {
+      "name": "resilience:large-manifest",
+      "status": "PASS",
+      "duration_seconds": 1.8264941539964639,
+      "detail": "1200-member archive",
+      "backend": null,
+      "format": "tar",
+      "operation": "create"
+    }
+  ]
+}

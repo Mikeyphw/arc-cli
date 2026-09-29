@@ -1,3 +1,12 @@
+## ARC-R01–R12 final campaign content seal
+
+- Final seal retry hardening: declare `.devtool` evidence parent write scopes for embedded validation and classify only safe Devtool launcher-template byte drift as applicator-owned while retaining strict wrapper command/discovery/EXO/docs checks; missing, unmarked, or non-executable launchers still fail closed.
+
+- Upgrade the historical ARC-R01–R05 seal contract to `ARC-R01-R12-FINAL`, binding the qualified R12 Gate commit prefix `95981f7` and the complete R01–R12 roadmap ledger.
+- Expand authoritative content-root coverage to bundled JSON Schemas, generated manpages, and `MANIFEST.in` in addition to source/tests/scripts/docs/workflows/completion/release metadata.
+- Expand `final_gate` to execute every current repository test file in isolated campaign-phase processes and preserve wrapper/content/final-verdict evidence.
+- Keep the live content root validation-time and host-independent; the before-commit finalizer re-verifies the exact candidate before Devtool commits the seal overlay.
+
 ## ARC-R12A benchmark corpus truth convergence
 
 - Fix real directory benchmark round-trip verification by invoking Arc from the corpus parent with a portable basename instead of archiving the host's absolute source path. Cross-format TAR/ZIP qualification now uses a portable ordinary-directory corpus; metadata-rich empty-directory/symlink fidelity is tested separately so provider limitations are reported truthfully rather than failing the harness assumption.

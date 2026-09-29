@@ -1,0 +1,29 @@
+{
+  "gate_python": "/data/data/com.termux/files/usr/bin/python3",
+  "platform": "Android-16-aarch64-64bit-ELF",
+  "python": "3.14.6 (main, Jul  5 2026, 10:35:55) [Clang 21.0.0 (https://android.googlesource.com/toolchain/llvm-project 5e96669f0",
+  "schema_version": 2,
+  "tools": {
+    "7z": "/data/data/com.termux/files/usr/bin/7z",
+    "7zz": "/data/data/com.termux/files/usr/bin/7zz",
+    "bsdtar": "/data/data/com.termux/files/usr/bin/bsdtar",
+    "bzip2": "/data/data/com.termux/files/usr/bin/bzip2",
+    "fzf": "/data/data/com.termux/files/usr/bin/fzf",
+    "gzip": "/data/data/com.termux/files/usr/bin/gzip",
+    "pbzip2": null,
+    "pigz": null,
+    "pixz": null,
+    "pzstd": null,
+    "rar": null,
+    "rclone": "/data/data/com.termux/files/home/.local/bin/rclone",
+    "rg": "/data/data/com.termux/files/usr/bin/rg",
+    "ssh": "/data/data/com.termux/files/usr/bin/ssh",
+    "tar": "/data/data/com.termux/files/usr/bin/tar",
+    "unrar": "/data/data/com.termux/files/usr/bin/unrar",
+    "unzip": "/data/data/com.termux/files/usr/bin/unzip",
+    "xz": "/data/data/com.termux/files/usr/bin/xz",
+    "yazi": "/data/data/com.termux/files/usr/bin/yazi",
+    "zip": "/data/data/com.termux/files/usr/bin/zip",
+    "zstd": "/data/data/com.termux/files/usr/bin/zstd"
+  }
+}

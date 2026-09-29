@@ -1,6 +1,6 @@
-# ARC R01–R05 Final Gate and Seal
+# ARC R01–R12 Final Campaign Gate and Content Seal
 
-This is the cumulative qualification contract for the normalized archive CLI after ARC-R01 through ARC-R05. Feature overlays intentionally used narrow validation. The final overlay is different: it proves the campaign as one wrapper-driven system and records a content-addressed seal for the exact repository tree.
+This is the terminal qualification and content-identity contract for the ARC roadmap through R12/R12A. All implementation overlays and milestone gates remain separate. The final seal changes no Arc runtime behavior: it upgrades the historical R01–R05 seal authority to cover the complete qualified campaign and records a content-addressed identity for the exact validation transaction tree.
 
 ## Authoritative entry points
 
@@ -11,81 +11,78 @@ Use the checked-in Devtool wrapper:
 ./devtoolw seal
 ```
 
-`gate` resolves to the `final_gate` EXO workflow. `seal` resolves to `final_seal`, which repeats the full gate and then requires both Devtool's wrapper-surface final seal and the repository content seal before producing the final verdict. The overlay itself validates by invoking `./devtoolw seal`, so the same repository-facing entry point must succeed before Devtool commits the overlay.
+`gate` resolves to `final_gate`, which executes every current repository test file in fresh phase processes plus source/completion/Devtool contracts. `seal` resolves to `final_seal`, which repeats that cumulative gate, executes Devtool's wrapper contract seal (tolerating only safe applicator-template byte drift for existing executable marker-bearing launchers), generates/verifies the live content ledger, and writes the final `SEALED` verdict.
 
-## Gate model
+The qualified pre-seal campaign identity is the R12 Gate commit prefix `95981f7` (378/378 tests, zero diagnostics). The final content root is intentionally generated from the live transaction tree rather than precomputed in the overlay.
 
-The committed `release/ARC-FINAL-SEAL.json` is a static schema-6 seal contract. It defines the campaign, authoritative scope, wrapper entry points, base R05 ancestry, and where live seal evidence is written. During `./devtoolw seal`, ARC computes a schema-5 candidate ledger from the exact post-gate transaction tree, recording every authoritative file with SHA-256 and size and deriving one canonical root SHA-256. The candidate is immediately verified. Devtool then invokes a read-only `before_commit` finalizer that re-verifies the same candidate ledger before commit. The final-contract suite proves generator/verifier round-trip, fail-closed mutation detection, authoritative-path coverage, and ancestry from the R05 base `a7028c1`.
+## Seal model
 
-The content seal alone is not a release verdict. `final_seal` requires these layers in order:
+`release/ARC-FINAL-SEAL.json` is a static schema-7 contract. It binds:
 
-1. cumulative behavior/packaging gate;
-2. Devtool `wrapper seal` over launchers, help, discovery, completion state, resolution, doctor integration, and canonical wrapper execution provenance;
-3. exact content-seal verification;
-4. final verdict aggregation.
+- seal ID `ARC-R01-R12-FINAL`;
+- historical campaign base `a7028c1`;
+- qualified R12 Gate commit prefix `95981f7`;
+- the R01–R12 roadmap ledger;
+- wrapper gate/seal entry points;
+- live candidate-ledger and verdict locations;
+- the requirement that the candidate be reverified immediately before commit.
 
-Only step 4 may write `status: SEALED`.
+During `./devtoolw seal`, `scripts/run_content_seal.py` computes a schema-5 live ledger from the exact transaction worktree. Each authoritative file contributes path, SHA-256, and byte size to a canonical content-root SHA-256. `scripts/verify_arc_final_seal.py` fails closed on changed, missing, newly-authoritative, or incorrectly-scoped paths.
+
+The authoritative scope now explicitly includes Python source/scripts/tests, JSON Schemas, generated manpages, docs, completion, workflows, release contracts, `MANIFEST.in`, packaging metadata, launchers, and top-level project metadata. Runtime caches/evidence/build outputs remain outside the content root.
 
 ## Required gates
 
 | Gate | Requirement | Executable evidence |
 |---|---|---|
-| G01 | Repository content identity | static schema-6 release contract + post-gate schema-5 live ledger + exact authoritative-path/hash verification + R05 ancestry check |
-| G02 | Full behavior | complete pytest tree in `run_final_gate_tests.py` |
-| G03 | R01 semantic correctness | R01 regression suite |
-| G04 | R02 interaction, completion, progress, safety | R02 suite |
-| G05 | R03 native capability qualification | full R03 qualification including large manifest |
-| G06 | R04 SSH/rclone transport, cache, remote completion, native rendering | R04 suites |
-| G07 | R05 SSH-native execution convergence | R05 suite |
-| G08 | Packaging | wheel + sdist build, metadata, entry point, package contents |
-| G09 | Completion artifact parity | committed `_arc` equals generator output |
-| G10 | Version and CLI coherence | pyproject, package version, CLI version/discovery surfaces |
-| G11 | Devtool wrapper contract | `./devtoolw gate`/`seal` configuration plus Devtool `wrapper seal` |
-| G12 | Promise ledger and final verdict | R01–R05 audits + `write_final_seal_verdict.py` |
+| G01 | Qualified campaign base | R12 Gate commit prefix `95981f7`, gate ledger, ancestry check |
+| G02 | Complete behavior | every `tests/test_*.py` file through `run_final_gate_tests.py` |
+| G03 | R01 semantics | R01 suite |
+| G04 | R02 interaction/progress/safety | R02 suite |
+| G05 | R03 backend qualification | R03 runtime/capability matrix |
+| G06 | R04 transport/planning | R04 execution + remote transport suites |
+| G07 | R05 remote-native convergence | R05 suite |
+| G08 | R06 runtime/install truth | R06 suite |
+| G09 | R07 explain/recovery/resume | R07 suite |
+| G10 | R08 machine/capability/verification | R08 suite |
+| G11 | R09 provenance + remote publication | R09A/R09B + R09B gate |
+| G12 | R10 mutation/command/batch/recovery | R10/R10A/R10B/R10C + R10 gate |
+| G13 | R11 configuration provenance | R11/R11A/R11B + R11 gate |
+| G14 | R12 advisory/benchmark/diagnostics | R12/R12A + R12 gate |
+| G15 | Packaging/manpage/schema/completion parity | core compatibility + package tests |
+| G16 | Devtool wrapper contract | `devtool wrapper seal --json` |
+| G17 | Exact repository content identity | live schema-5 candidate ledger + root verification |
+| G18 | Final verdict | gate + wrapper seal + content candidate => `SEALED` |
 
-## Wrapper workflows
+## Content-root invariants
 
-`final_gate` runs syntax/source-hygiene and completion/repository-contract jobs before the cumulative gate job. The gate job bootstraps only the Python packages needed to execute the complete test tree and writes `.devtool/evidence/arc-final-gate/gate-verdict.json`.
+The content seal must detect all of the following:
 
-`final_seal` contains the same gate DAG and then adds:
+- mutation of any sealed authoritative file;
+- deletion of a sealed authoritative file;
+- addition of a new authoritative source/test/schema/manpage/doc/workflow file;
+- drift in generated completion, schemas, manpages, packaging manifests, or release contract;
+- a candidate ledger whose path coverage no longer equals live authoritative discovery.
 
-- `wrapper-seal`: `scripts/run_wrapper_seal.py`, which calls Devtool's own `wrapper seal --json` and stores the machine result;
-- `content-seal`: exact repository-tree verification;
-- `verdict`: aggregation that fails closed unless gate, wrapper seal, and post-gate live content ledger are all PASS; success is `SEALED`.
-
-## Capability skips
-
-Native backend availability is environment-specific. The R03 matrix records missing binaries and unsupported operations as `SKIPPED_BACKEND_UNAVAILABLE` or `SKIPPED_CAPABILITY_UNSUPPORTED`; they are not counted as runtime PASS. Installed compatible backends are exercised for real, while deterministic unit/integration tests cover resolver behavior for optional backends.
-
-SSH/rclone credentials or a live private remote are not required for the seal. R04/R05 use controlled fake-provider integration tests for transport semantics. The final verdict records which transport/backend binaries were installed on the validation host.
+Unrelated ignored/runtime detritus remains outside the seal scope by design.
 
 ## Evidence tree
 
-A successful wrapper-driven seal writes approximately:
+A successful `./devtoolw seal` writes under `.devtool/evidence/arc-final-gate/`:
 
 ```text
-.devtool/evidence/arc-final-gate/
-├── pytest.xml
-├── environment.json
-├── gate-verdict.json
-├── gate-summary.json
-├── r03/
-│   ├── qualification.json
-│   ├── capability-matrix.json
-│   ├── backend-matrix.json
-│   ├── safety-matrix.json
-│   ├── resilience-matrix.json
-│   └── summary.json
-├── package/
-│   └── summary.json
-├── seal-verification.json
-├── wrapper-seal.json
-├── content-seal.json
-├── final-seal-verdict.json
-└── summary.json
+environment.json
+gate-verdict.json
+gate-summary.json
+pytest-*.xml
+wrapper-seal.json
+candidate-seal.json
+content-seal.json
+final-seal-verdict.json
+summary.json
 ```
 
-The authoritative workflow outcome is `final-seal-verdict.json` with `SEALED`, including the live `content_root_sha256`. The read-only `before_commit` hook re-verifies the exact candidate ledger created by that same workflow. Re-running `./devtoolw seal` recomputes the live root and will fail if authoritative bytes or path coverage have drifted.
+The authoritative outcome is `final-seal-verdict.json` with `status: SEALED`, `seal_id: ARC-R01-R12-FINAL`, the live `content_root_sha256`, the qualified gate prefix, and the R01–R12 roadmap.
 
 ## Re-running
 
@@ -94,18 +91,4 @@ The authoritative workflow outcome is `final-seal-verdict.json` with `SEALED`, i
 ./devtoolw seal
 ```
 
-The lower-level Python scripts exist for workflow jobs and debugging, but they are not the authoritative human/agent entry points.
-
-
-## Seal scope
-
-The committed content seal covers ARC's exact authoritative source/config/docs/test set. Runtime, editor, transaction, package-build, and unrelated untracked worktree files are outside the seal scope; every authoritative path must be covered and every sealed byte must match exactly.
-
-
-## Live validated-tree seal
-
-V6 deliberately does **not** precompute the final content root in the overlay. A host-independent static root proved brittle because the cumulative gate intentionally exercises platform-specific code paths before sealing. Instead, `scripts/run_content_seal.py` executes only after the behavior gate and Devtool wrapper seal have passed. It writes `.devtool/evidence/arc-final-gate/candidate-seal.json`, containing the exact authoritative path list, SHA-256 for every file, sizes, and a canonical content root derived from the live transaction tree.
-
-`release/ARC-FINAL-SEAL.json` is the committed seal contract, not a self-referential content ledger. It is itself included in the authoritative live root. The artifact `before_commit` finalizer has no repository write capability: it re-runs `scripts/verify_arc_final_seal.py` against the candidate produced during validation and blocks the commit if any authoritative byte/path has changed after the gate.
-
-The Devtool-created Git commit is the durable repository identity; the run evidence records the corresponding validated content root. Together they provide a reproducible campaign seal without requiring a root to be guessed on a different host before Termux validation runs.
+Re-running recomputes the entire behavior gate and live root. Any authoritative drift after the campaign seal fails closed instead of inheriting historical green evidence.

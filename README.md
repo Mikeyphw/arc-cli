@@ -598,7 +598,7 @@ By default it writes machine-readable ledgers under `.devtool/evidence/arc-r03/`
 - `resilience-matrix.json` — corruption, password, and large-manifest qualification.
 - `summary.json` and `qualification.json` — aggregate status.
 
-Unavailable binaries are reported explicitly as `SKIPPED_BACKEND_UNAVAILABLE` or `SKIPPED_CAPABILITY_UNSUPPORTED`; they are never counted as passing runtime qualification. The ARC final gate consumes these ledgers together with the R01–R05 behavioral suites.
+Unavailable binaries are reported explicitly as `SKIPPED_BACKEND_UNAVAILABLE` or `SKIPPED_CAPABILITY_UNSUPPORTED`; they are never counted as passing runtime qualification. The ARC final gate consumes these ledgers together with the complete R01–R12 behavioral and qualification suites.
 
 ## Advisory formats, benchmarking, and support bundles
 
@@ -664,16 +664,16 @@ The `r05` profile and `arc.r05-tests` job run only `tests/test_r05_remote_native
 
 ### ARC final gate and content seal
 
-The final qualification after ARC-R01 through ARC-R05 is wrapper-first and intentionally comprehensive. The repository exposes two authoritative entry points:
+The final qualification after ARC-R01 through ARC-R12 is wrapper-first and intentionally comprehensive. The static seal contract binds the qualified R12 Gate commit prefix `95981f7`; the live ledger then binds the exact final transaction-tree bytes. The repository exposes two authoritative entry points:
 
 ```bash
 ./devtoolw gate
 ./devtoolw seal
 ```
 
-`gate` runs the cumulative EXO qualification: syntax/source hygiene, completion and repository contracts, the complete pytest tree, full installed-native-backend R03 qualification (including the large-manifest case), package build verification, metadata/CLI coherence, and campaign promise checks. `seal` repeats that gate, runs Devtool's own wrapper final seal, then computes and verifies a byte-exact content ledger from the actual post-gate transaction worktree. The committed `release/ARC-FINAL-SEAL.json` is a static seal contract that defines the scope and evidence locations; the live content root is written to `.devtool/evidence/arc-final-gate/candidate-seal.json` and the final `SEALED` verdict. A read-only `before_commit` finalizer re-verifies that exact candidate ledger immediately before Devtool commits.
+`gate` runs the cumulative EXO qualification: syntax/source hygiene, completion and repository contracts, the complete pytest tree, full installed-native-backend R03 qualification (including the large-manifest case), package build verification, metadata/CLI coherence, and campaign promise checks. `seal` repeats that gate, runs Devtool's wrapper contract seal; launcher-template byte drift caused solely by a newer applying Devtool is recorded but does not invalidate ARC when the launchers remain present, executable, marker-bearing, and every non-template wrapper check passes, then computes and verifies a byte-exact content ledger from the actual post-gate transaction worktree. The committed `release/ARC-FINAL-SEAL.json` is a static seal contract that defines the scope and evidence locations; the live content root is written to `.devtool/evidence/arc-final-gate/candidate-seal.json` and the final `SEALED` verdict. A read-only `before_commit` finalizer re-verifies that exact candidate ledger immediately before Devtool commits.
 
-The committed content contract is `release/ARC-FINAL-SEAL.json`. See [`docs/ARC-FINAL-GATE-SEAL.md`](docs/ARC-FINAL-GATE-SEAL.md) for every required gate and its evidence mapping.
+The static schema-7 campaign contract is `release/ARC-FINAL-SEAL.json`; it binds the qualified R12 Gate prefix `95981f7`, while the live candidate ledger binds the exact transaction-tree bytes. See [`docs/ARC-FINAL-GATE-SEAL.md`](docs/ARC-FINAL-GATE-SEAL.md) for every required gate and its evidence mapping.
 
 ### Explain, recover, and resume
 

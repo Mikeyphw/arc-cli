@@ -1,0 +1,46 @@
+{
+  "checks": {
+    "candidate_content": true,
+    "content": true,
+    "gate": true,
+    "qualified_gate_ancestry": true,
+    "qualified_gate_prefix": true,
+    "root_consistency": true,
+    "verdict": true,
+    "wrapper": true
+  },
+  "content_root_sha256": "6614ecc1c74d55f6a1df5f6f21dba90c4d159da1e0bfe7cb853adf1053c49e4e",
+  "content_verification": {
+    "actual_root_sha256": "6614ecc1c74d55f6a1df5f6f21dba90c4d159da1e0bfe7cb853adf1053c49e4e",
+    "actual_sealed_file_count": 179,
+    "authoritative_file_count": 179,
+    "campaign_base_commit_expected_prefix": "a7028c1",
+    "changed": [],
+    "expected_root_sha256": "6614ecc1c74d55f6a1df5f6f21dba90c4d159da1e0bfe7cb853adf1053c49e4e",
+    "missing": [],
+    "qualified_gate_ancestry": {
+      "head": "95981f72b12568479676030177f828b00f05ab28",
+      "qualified_gate_commit_expected_prefix": "95981f7",
+      "status": "PASS",
+      "stderr": ""
+    },
+    "qualified_gate_commit_expected_prefix": "95981f7",
+    "schema_version": 5,
+    "seal_scope": "authoritative-repository-content",
+    "seal_source": "validated-gate-worktree",
+    "sealed_file_count": 179,
+    "sealed_non_authoritative": [],
+    "status": "PASS",
+    "unsealed_authoritative": []
+  },
+  "qualified_gate_ancestry": {
+    "head": "95981f72b12568479676030177f828b00f05ab28",
+    "qualified_gate_commit_expected_prefix": "95981f7",
+    "status": "PASS",
+    "stderr": ""
+  },
+  "qualified_gate_commit_expected_prefix": "95981f7",
+  "schema_version": 1,
+  "seal_id": "ARC-R01-R12-FINAL",
+  "status": "PASS"
+}

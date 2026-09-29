@@ -1,6 +1,6 @@
 # Arc Next Roadmap — runtime truth, resilient operations, typed evidence, and operator UX
 
-Status: active implementation roadmap after the ARC-R01..R05 final seal and the convert/info/alias/manual audit remediation.
+Status: R06–R12 implementation and milestone gates complete; the terminal ARC-R01–R12 content seal is the only remaining campaign artifact.
 
 ## Working rules
 
@@ -136,7 +136,7 @@ R12 also bundles/queryable `format-recommendation-v1`, `benchmark-v1`, and `diag
 
 **R12 gate: QUALIFIED.** The separate `r12_gate` qualification closes R12 + R12A across the complete advisory/benchmark/diagnostics promise ledger and the cumulative R09B→R12 regression surface. Recommendation remains non-prescriptive, benchmark corpus truth is preserved across real backends, diagnostics manifest/redaction/no-network guarantees are qualified, and machine/config/remote/docs/completion/distribution contracts remain green.
 
-**Separate final campaign content seal:** bind the exact post-gate source/artifact identity in a later seal artifact rather than folding content-root/seal work into the gate.
+**Final campaign content seal:** terminal separate artifact upgrades the historical seal authority to `ARC-R01-R12-FINAL`, binds the qualified R12 Gate commit prefix `95981f7`, expands authoritative content coverage to JSON Schemas/generated manpages/`MANIFEST.in`, reruns every repository test file phase-isolated through `final_gate`, and requires wrapper + live content-root evidence before the final `SEALED` verdict.
 
 ## Gate and seal policy
 

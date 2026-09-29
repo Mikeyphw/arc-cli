@@ -1,0 +1,7344 @@
+{
+  "schema_version": 1,
+  "capability_matrix": [
+    {
+      "role": "tar",
+      "preferences": [
+        "bsdtar",
+        "tar"
+      ],
+      "candidates": [
+        {
+          "binary": "bsdtar",
+          "path": "/data/data/com.termux/files/usr/bin/bsdtar",
+          "installed": true,
+          "capabilities": [
+            "add",
+            "create",
+            "extract",
+            "list",
+            "metadata",
+            "safe-index",
+            "test",
+            "update"
+          ],
+          "capability_profile": {
+            "schema_version": 1,
+            "binary": "bsdtar",
+            "operations": [
+              "add",
+              "create",
+              "extract",
+              "list",
+              "test",
+              "update"
+            ],
+            "streams": {
+              "stdin": true,
+              "stdout": true
+            },
+            "encryption": {
+              "read": false,
+              "write": false
+            },
+            "archive_features": {
+              "solid": false,
+              "multipart": false
+            },
+            "metadata": [
+              "acls",
+              "links",
+              "mode",
+              "owner",
+              "timestamps",
+              "xattrs"
+            ],
+            "mutation": [
+              "add",
+              "create",
+              "update"
+            ],
+            "verification": {
+              "levels": [
+                "none",
+                "structure",
+                "members"
+              ],
+              "maximum": "members"
+            },
+            "random_access": false,
+            "remote_suitability": "streamable",
+            "threads": false,
+            "safe_index": true
+          }
+        },
+        {
+          "binary": "tar",
+          "path": "/data/data/com.termux/files/usr/bin/tar",
+          "installed": true,
+          "capabilities": [
+            "add",
+            "create",
+            "extract",
+            "list",
+            "metadata",
+            "remove",
+            "safe-index",
+            "test",
+            "update"
+          ],
+          "capability_profile": {
+            "schema_version": 1,
+            "binary": "tar",
+            "operations": [
+              "add",
+              "create",
+              "extract",
+              "list",
+              "remove",
+              "test",
+              "update"
+            ],
+            "streams": {
+              "stdin": true,
+              "stdout": true
+            },
+            "encryption": {
+              "read": false,
+              "write": false
+            },
+            "archive_features": {
+              "solid": false,
+              "multipart": false
+            },
+            "metadata": [
+              "acls",
+              "links",
+              "mode",
+              "owner",
+              "timestamps",
+              "xattrs"
+            ],
+            "mutation": [
+              "add",
+              "create",
+              "remove",
+              "update"
+            ],
+            "verification": {
+              "levels": [
+                "none",
+                "structure",
+                "members"
+              ],
+              "maximum": "members"
+            },
+            "random_access": false,
+            "remote_suitability": "streamable",
+            "threads": false,
+            "safe_index": true
+          }
+        }
+      ]
+    },
+    {
+      "role": "zip_extract",
+      "preferences": [
+        "7zz",
+        "7z",
+        "unzip"
+      ],
+      "candidates": [
+        {
+          "binary": "7zz",
+          "path": "/data/data/com.termux/files/usr/bin/7zz",
+          "installed": true,
+          "capabilities": [
+            "add",
+            "create",
+            "extract",
+            "list",
+            "metadata",
+            "password",
+            "remove",
+            "safe-index",
+            "test",
+            "threads",
+            "update"
+          ],
+          "capability_profile": {
+            "schema_version": 1,
+            "binary": "7zz",
+            "operations": [
+              "add",
+              "create",
+              "extract",
+              "list",
+              "remove",
+              "test",
+              "update"
+            ],
+            "streams": {
+              "stdin": true,
+              "stdout": true
+            },
+            "encryption": {
+              "read": true,
+              "write": true
+            },
+            "archive_features": {
+              "solid": true,
+              "multipart": true
+            },
+            "metadata": [
+              "attributes",
+              "links",
+              "timestamps"
+            ],
+            "mutation": [
+              "add",
+              "create",
+              "remove",
+              "update"
+            ],
+            "verification": {
+              "levels": [
+                "none",
+                "structure",
+                "members",
+                "full"
+              ],
+              "maximum": "full"
+            },
+            "random_access": true,
+            "remote_suitability": "staged-random-access",
+            "threads": true,
+            "safe_index": true
+          }
+        },
+        {
+          "binary": "7z",
+          "path": "/data/data/com.termux/files/usr/bin/7z",
+          "installed": true,
+          "capabilities": [
+            "add",
+            "create",
+            "extract",
+            "list",
+            "metadata",
+            "password",
+            "remove",
+            "safe-index",
+            "test",
+            "threads",
+            "update"
+          ],
+          "capability_profile": {
+            "schema_version": 1,
+            "binary": "7z",
+            "operations": [
+              "add",
+              "create",
+              "extract",
+              "list",
+              "remove",
+              "test",
+              "update"
+            ],
+            "streams": {
+              "stdin": true,
+              "stdout": true
+            },
+            "encryption": {
+              "read": true,
+              "write": true
+            },
+            "archive_features": {
+              "solid": true,
+              "multipart": true
+            },
+            "metadata": [
+              "attributes",
+              "links",
+              "timestamps"
+            ],
+            "mutation": [
+              "add",
+              "create",
+              "remove",
+              "update"
+            ],
+            "verification": {
+              "levels": [
+                "none",
+                "structure",
+                "members",
+                "full"
+              ],
+              "maximum": "full"
+            },
+            "random_access": true,
+            "remote_suitability": "staged-random-access",
+            "threads": true,
+            "safe_index": true
+          }
+        },
+        {
+          "binary": "unzip",
+          "path": "/data/data/com.termux/files/usr/bin/unzip",
+          "installed": true,
+          "capabilities": [
+            "extract",
+            "list",
+            "metadata",
+            "password",
+            "safe-index",
+            "test"
+          ],
+          "capability_profile": {
+            "schema_version": 1,
+            "binary": "unzip",
+            "operations": [
+              "extract",
+              "list",
+              "test"
+            ],
+            "streams": {
+              "stdin": false,
+              "stdout": true
+            },
+            "encryption": {
+              "read": true,
+              "write": false
+            },
+            "archive_features": {
+              "solid": false,
+              "multipart": false
+            },
+            "metadata": [
+              "timestamps"
+            ],
+            "mutation": [],
+            "verification": {
+              "levels": [
+                "none",
+                "structure",
+                "members",
+                "full"
+              ],
+              "maximum": "full"
+            },
+            "random_access": true,
+            "remote_suitability": "staged-random-access",
+            "threads": false,
+            "safe_index": true
+          }
+        }
+      ]
+    },
+    {
+      "role": "zip_create",
+      "preferences": [
+        "7zz",
+        "7z",
+        "zip"
+      ],
+      "candidates": [
+        {
+          "binary": "7zz",
+          "path": "/data/data/com.termux/files/usr/bin/7zz",
+          "installed": true,
+          "capabilities": [
+            "add",
+            "create",
+            "extract",
+            "list",
+            "metadata",
+            "password",
+            "remove",
+            "safe-index",
+            "test",
+            "threads",
+            "update"
+          ],
+          "capability_profile": {
+            "schema_version": 1,
+            "binary": "7zz",
+            "operations": [
+              "add",
+              "create",
+              "extract",
+              "list",
+              "remove",
+              "test",
+              "update"
+            ],
+            "streams": {
+              "stdin": true,
+              "stdout": true
+            },
+            "encryption": {
+              "read": true,
+              "write": true
+            },
+            "archive_features": {
+              "solid": true,
+              "multipart": true
+            },
+            "metadata": [
+              "attributes",
+              "links",
+              "timestamps"
+            ],
+            "mutation": [
+              "add",
+              "create",
+              "remove",
+              "update"
+            ],
+            "verification": {
+              "levels": [
+                "none",
+                "structure",
+                "members",
+                "full"
+              ],
+              "maximum": "full"
+            },
+            "random_access": true,
+            "remote_suitability": "staged-random-access",
+            "threads": true,
+            "safe_index": true
+          }
+        },
+        {
+          "binary": "7z",
+          "path": "/data/data/com.termux/files/usr/bin/7z",
+          "installed": true,
+          "capabilities": [
+            "add",
+            "create",
+            "extract",
+            "list",
+            "metadata",
+            "password",
+            "remove",
+            "safe-index",
+            "test",
+            "threads",
+            "update"
+          ],
+          "capability_profile": {
+            "schema_version": 1,
+            "binary": "7z",
+            "operations": [
+              "add",
+              "create",
+              "extract",
+              "list",
+              "remove",
+              "test",
+              "update"
+            ],
+            "streams": {
+              "stdin": true,
+              "stdout": true
+            },
+            "encryption": {
+              "read": true,
+              "write": true
+            },
+            "archive_features": {
+              "solid": true,
+              "multipart": true
+            },
+            "metadata": [
+              "attributes",
+              "links",
+              "timestamps"
+            ],
+            "mutation": [
+              "add",
+              "create",
+              "remove",
+              "update"
+            ],
+            "verification": {
+              "levels": [
+                "none",
+                "structure",
+                "members",
+                "full"
+              ],
+              "maximum": "full"
+            },
+            "random_access": true,
+            "remote_suitability": "staged-random-access",
+            "threads": true,
+            "safe_index": true
+          }
+        },
+        {
+          "binary": "zip",
+          "path": "/data/data/com.termux/files/usr/bin/zip",
+          "installed": true,
+          "capabilities": [
+            "add",
+            "create",
+            "metadata",
+            "password",
+            "remove",
+            "update"
+          ],
+          "capability_profile": {
+            "schema_version": 1,
+            "binary": "zip",
+            "operations": [
+              "add",
+              "create",
+              "remove",
+              "update"
+            ],
+            "streams": {
+              "stdin": true,
+              "stdout": false
+            },
+            "encryption": {
+              "read": false,
+              "write": true
+            },
+            "archive_features": {
+              "solid": false,
+              "multipart": false
+            },
+            "metadata": [
+              "timestamps"
+            ],
+            "mutation": [
+              "add",
+              "create",
+              "remove",
+              "update"
+            ],
+            "verification": {
+              "levels": [
+                "none"
+              ],
+              "maximum": "none"
+            },
+            "random_access": true,
+            "remote_suitability": "staged-random-access",
+            "threads": false,
+            "safe_index": false
+          }
+        }
+      ]
+    },
+    {
+      "role": "7z",
+      "preferences": [
+        "7zz",
+        "7z"
+      ],
+      "candidates": [
+        {
+          "binary": "7zz",
+          "path": "/data/data/com.termux/files/usr/bin/7zz",
+          "installed": true,
+          "capabilities": [
+            "add",
+            "create",
+            "extract",
+            "list",
+            "metadata",
+            "password",
+            "remove",
+            "safe-index",
+            "test",
+            "threads",
+            "update"
+          ],
+          "capability_profile": {
+            "schema_version": 1,
+            "binary": "7zz",
+            "operations": [
+              "add",
+              "create",
+              "extract",
+              "list",
+              "remove",
+              "test",
+              "update"
+            ],
+            "streams": {
+              "stdin": true,
+              "stdout": true
+            },
+            "encryption": {
+              "read": true,
+              "write": true
+            },
+            "archive_features": {
+              "solid": true,
+              "multipart": true
+            },
+            "metadata": [
+              "attributes",
+              "links",
+              "timestamps"
+            ],
+            "mutation": [
+              "add",
+              "create",
+              "remove",
+              "update"
+            ],
+            "verification": {
+              "levels": [
+                "none",
+                "structure",
+                "members",
+                "full"
+              ],
+              "maximum": "full"
+            },
+            "random_access": true,
+            "remote_suitability": "staged-random-access",
+            "threads": true,
+            "safe_index": true
+          }
+        },
+        {
+          "binary": "7z",
+          "path": "/data/data/com.termux/files/usr/bin/7z",
+          "installed": true,
+          "capabilities": [
+            "add",
+            "create",
+            "extract",
+            "list",
+            "metadata",
+            "password",
+            "remove",
+            "safe-index",
+            "test",
+            "threads",
+            "update"
+          ],
+          "capability_profile": {
+            "schema_version": 1,
+            "binary": "7z",
+            "operations": [
+              "add",
+              "create",
+              "extract",
+              "list",
+              "remove",
+              "test",
+              "update"
+            ],
+            "streams": {
+              "stdin": true,
+              "stdout": true
+            },
+            "encryption": {
+              "read": true,
+              "write": true
+            },
+            "archive_features": {
+              "solid": true,
+              "multipart": true
+            },
+            "metadata": [
+              "attributes",
+              "links",
+              "timestamps"
+            ],
+            "mutation": [
+              "add",
+              "create",
+              "remove",
+              "update"
+            ],
+            "verification": {
+              "levels": [
+                "none",
+                "structure",
+                "members",
+                "full"
+              ],
+              "maximum": "full"
+            },
+            "random_access": true,
+            "remote_suitability": "staged-random-access",
+            "threads": true,
+            "safe_index": true
+          }
+        }
+      ]
+    },
+    {
+      "role": "rar_extract",
+      "preferences": [
+        "7zz",
+        "7z",
+        "unrar"
+      ],
+      "candidates": [
+        {
+          "binary": "7zz",
+          "path": "/data/data/com.termux/files/usr/bin/7zz",
+          "installed": true,
+          "capabilities": [
+            "add",
+            "create",
+            "extract",
+            "list",
+            "metadata",
+            "password",
+            "remove",
+            "safe-index",
+            "test",
+            "threads",
+            "update"
+          ],
+          "capability_profile": {
+            "schema_version": 1,
+            "binary": "7zz",
+            "operations": [
+              "add",
+              "create",
+              "extract",
+              "list",
+              "remove",
+              "test",
+              "update"
+            ],
+            "streams": {
+              "stdin": true,
+              "stdout": true
+            },
+            "encryption": {
+              "read": true,
+              "write": true
+            },
+            "archive_features": {
+              "solid": true,
+              "multipart": true
+            },
+            "metadata": [
+              "attributes",
+              "links",
+              "timestamps"
+            ],
+            "mutation": [
+              "add",
+              "create",
+              "remove",
+              "update"
+            ],
+            "verification": {
+              "levels": [
+                "none",
+                "structure",
+                "members",
+                "full"
+              ],
+              "maximum": "full"
+            },
+            "random_access": true,
+            "remote_suitability": "staged-random-access",
+            "threads": true,
+            "safe_index": true
+          }
+        },
+        {
+          "binary": "7z",
+          "path": "/data/data/com.termux/files/usr/bin/7z",
+          "installed": true,
+          "capabilities": [
+            "add",
+            "create",
+            "extract",
+            "list",
+            "metadata",
+            "password",
+            "remove",
+            "safe-index",
+            "test",
+            "threads",
+            "update"
+          ],
+          "capability_profile": {
+            "schema_version": 1,
+            "binary": "7z",
+            "operations": [
+              "add",
+              "create",
+              "extract",
+              "list",
+              "remove",
+              "test",
+              "update"
+            ],
+            "streams": {
+              "stdin": true,
+              "stdout": true
+            },
+            "encryption": {
+              "read": true,
+              "write": true
+            },
+            "archive_features": {
+              "solid": true,
+              "multipart": true
+            },
+            "metadata": [
+              "attributes",
+              "links",
+              "timestamps"
+            ],
+            "mutation": [
+              "add",
+              "create",
+              "remove",
+              "update"
+            ],
+            "verification": {
+              "levels": [
+                "none",
+                "structure",
+                "members",
+                "full"
+              ],
+              "maximum": "full"
+            },
+            "random_access": true,
+            "remote_suitability": "staged-random-access",
+            "threads": true,
+            "safe_index": true
+          }
+        },
+        {
+          "binary": "unrar",
+          "path": "/data/data/com.termux/files/usr/bin/unrar",
+          "installed": true,
+          "capabilities": [
+            "extract",
+            "list",
+            "metadata",
+            "password",
+            "safe-index",
+            "test"
+          ],
+          "capability_profile": {
+            "schema_version": 1,
+            "binary": "unrar",
+            "operations": [
+              "extract",
+              "list",
+              "test"
+            ],
+            "streams": {
+              "stdin": false,
+              "stdout": true
+            },
+            "encryption": {
+              "read": true,
+              "write": false
+            },
+            "archive_features": {
+              "solid": false,
+              "multipart": false
+            },
+            "metadata": [
+              "attributes",
+              "links",
+              "timestamps"
+            ],
+            "mutation": [],
+            "verification": {
+              "levels": [
+                "none",
+                "structure",
+                "members",
+                "full"
+              ],
+              "maximum": "full"
+            },
+            "random_access": true,
+            "remote_suitability": "staged-random-access",
+            "threads": false,
+            "safe_index": true
+          }
+        }
+      ]
+    },
+    {
+      "role": "rar_create",
+      "preferences": [
+        "rar"
+      ],
+      "candidates": [
+        {
+          "binary": "rar",
+          "path": null,
+          "installed": false,
+          "capabilities": [
+            "add",
+            "create",
+            "extract",
+            "list",
+            "metadata",
+            "password",
+            "remove",
+            "safe-index",
+            "test",
+            "update"
+          ],
+          "capability_profile": {
+            "schema_version": 1,
+            "binary": "rar",
+            "operations": [
+              "add",
+              "create",
+              "extract",
+              "list",
+              "remove",
+              "test",
+              "update"
+            ],
+            "streams": {
+              "stdin": false,
+              "stdout": true
+            },
+            "encryption": {
+              "read": true,
+              "write": true
+            },
+            "archive_features": {
+              "solid": true,
+              "multipart": true
+            },
+            "metadata": [
+              "attributes",
+              "links",
+              "timestamps"
+            ],
+            "mutation": [
+              "add",
+              "create",
+              "remove",
+              "update"
+            ],
+            "verification": {
+              "levels": [
+                "none",
+                "structure",
+                "members",
+                "full"
+              ],
+              "maximum": "full"
+            },
+            "random_access": true,
+            "remote_suitability": "staged-random-access",
+            "threads": false,
+            "safe_index": true
+          }
+        }
+      ]
+    },
+    {
+      "role": "gzip",
+      "preferences": [
+        "pigz",
+        "gzip"
+      ],
+      "candidates": [
+        {
+          "binary": "pigz",
+          "path": null,
+          "installed": false,
+          "capabilities": [
+            "create",
+            "extract",
+            "test",
+            "threads"
+          ],
+          "capability_profile": {
+            "schema_version": 1,
+            "binary": "pigz",
+            "operations": [
+              "create",
+              "extract",
+              "test"
+            ],
+            "streams": {
+              "stdin": true,
+              "stdout": true
+            },
+            "encryption": {
+              "read": false,
+              "write": false
+            },
+            "archive_features": {
+              "solid": false,
+              "multipart": false
+            },
+            "metadata": [],
+            "mutation": [
+              "create"
+            ],
+            "verification": {
+              "levels": [
+                "none",
+                "structure",
+                "full"
+              ],
+              "maximum": "full"
+            },
+            "random_access": false,
+            "remote_suitability": "streamable",
+            "threads": true,
+            "safe_index": false
+          }
+        },
+        {
+          "binary": "gzip",
+          "path": "/data/data/com.termux/files/usr/bin/gzip",
+          "installed": true,
+          "capabilities": [
+            "create",
+            "extract",
+            "test"
+          ],
+          "capability_profile": {
+            "schema_version": 1,
+            "binary": "gzip",
+            "operations": [
+              "create",
+              "extract",
+              "test"
+            ],
+            "streams": {
+              "stdin": true,
+              "stdout": true
+            },
+            "encryption": {
+              "read": false,
+              "write": false
+            },
+            "archive_features": {
+              "solid": false,
+              "multipart": false
+            },
+            "metadata": [],
+            "mutation": [
+              "create"
+            ],
+            "verification": {
+              "levels": [
+                "none",
+                "structure",
+                "full"
+              ],
+              "maximum": "full"
+            },
+            "random_access": false,
+            "remote_suitability": "streamable",
+            "threads": false,
+            "safe_index": false
+          }
+        }
+      ]
+    },
+    {
+      "role": "bzip2",
+      "preferences": [
+        "pbzip2",
+        "bzip2"
+      ],
+      "candidates": [
+        {
+          "binary": "pbzip2",
+          "path": null,
+          "installed": false,
+          "capabilities": [
+            "create",
+            "extract",
+            "test",
+            "threads"
+          ],
+          "capability_profile": {
+            "schema_version": 1,
+            "binary": "pbzip2",
+            "operations": [
+              "create",
+              "extract",
+              "test"
+            ],
+            "streams": {
+              "stdin": true,
+              "stdout": true
+            },
+            "encryption": {
+              "read": false,
+              "write": false
+            },
+            "archive_features": {
+              "solid": false,
+              "multipart": false
+            },
+            "metadata": [],
+            "mutation": [
+              "create"
+            ],
+            "verification": {
+              "levels": [
+                "none",
+                "structure",
+                "full"
+              ],
+              "maximum": "full"
+            },
+            "random_access": false,
+            "remote_suitability": "streamable",
+            "threads": true,
+            "safe_index": false
+          }
+        },
+        {
+          "binary": "bzip2",
+          "path": "/data/data/com.termux/files/usr/bin/bzip2",
+          "installed": true,
+          "capabilities": [
+            "create",
+            "extract",
+            "test"
+          ],
+          "capability_profile": {
+            "schema_version": 1,
+            "binary": "bzip2",
+            "operations": [
+              "create",
+              "extract",
+              "test"
+            ],
+            "streams": {
+              "stdin": true,
+              "stdout": true
+            },
+            "encryption": {
+              "read": false,
+              "write": false
+            },
+            "archive_features": {
+              "solid": false,
+              "multipart": false
+            },
+            "metadata": [],
+            "mutation": [
+              "create"
+            ],
+            "verification": {
+              "levels": [
+                "none",
+                "structure",
+                "full"
+              ],
+              "maximum": "full"
+            },
+            "random_access": false,
+            "remote_suitability": "streamable",
+            "threads": false,
+            "safe_index": false
+          }
+        }
+      ]
+    },
+    {
+      "role": "xz",
+      "preferences": [
+        "pixz",
+        "xz"
+      ],
+      "candidates": [
+        {
+          "binary": "pixz",
+          "path": null,
+          "installed": false,
+          "capabilities": [
+            "create",
+            "extract",
+            "test",
+            "threads"
+          ],
+          "capability_profile": {
+            "schema_version": 1,
+            "binary": "pixz",
+            "operations": [
+              "create",
+              "extract",
+              "test"
+            ],
+            "streams": {
+              "stdin": true,
+              "stdout": true
+            },
+            "encryption": {
+              "read": false,
+              "write": false
+            },
+            "archive_features": {
+              "solid": false,
+              "multipart": false
+            },
+            "metadata": [],
+            "mutation": [
+              "create"
+            ],
+            "verification": {
+              "levels": [
+                "none",
+                "structure",
+                "full"
+              ],
+              "maximum": "full"
+            },
+            "random_access": false,
+            "remote_suitability": "streamable",
+            "threads": true,
+            "safe_index": false
+          }
+        },
+        {
+          "binary": "xz",
+          "path": "/data/data/com.termux/files/usr/bin/xz",
+          "installed": true,
+          "capabilities": [
+            "create",
+            "extract",
+            "test",
+            "threads"
+          ],
+          "capability_profile": {
+            "schema_version": 1,
+            "binary": "xz",
+            "operations": [
+              "create",
+              "extract",
+              "test"
+            ],
+            "streams": {
+              "stdin": true,
+              "stdout": true
+            },
+            "encryption": {
+              "read": false,
+              "write": false
+            },
+            "archive_features": {
+              "solid": false,
+              "multipart": false
+            },
+            "metadata": [],
+            "mutation": [
+              "create"
+            ],
+            "verification": {
+              "levels": [
+                "none",
+                "structure",
+                "full"
+              ],
+              "maximum": "full"
+            },
+            "random_access": false,
+            "remote_suitability": "streamable",
+            "threads": true,
+            "safe_index": false
+          }
+        }
+      ]
+    },
+    {
+      "role": "zstd",
+      "preferences": [
+        "pzstd",
+        "zstd"
+      ],
+      "candidates": [
+        {
+          "binary": "pzstd",
+          "path": null,
+          "installed": false,
+          "capabilities": [
+            "create",
+            "extract",
+            "test",
+            "threads"
+          ],
+          "capability_profile": {
+            "schema_version": 1,
+            "binary": "pzstd",
+            "operations": [
+              "create",
+              "extract",
+              "test"
+            ],
+            "streams": {
+              "stdin": true,
+              "stdout": true
+            },
+            "encryption": {
+              "read": false,
+              "write": false
+            },
+            "archive_features": {
+              "solid": false,
+              "multipart": false
+            },
+            "metadata": [],
+            "mutation": [
+              "create"
+            ],
+            "verification": {
+              "levels": [
+                "none",
+                "structure",
+                "full"
+              ],
+              "maximum": "full"
+            },
+            "random_access": false,
+            "remote_suitability": "streamable",
+            "threads": true,
+            "safe_index": false
+          }
+        },
+        {
+          "binary": "zstd",
+          "path": "/data/data/com.termux/files/usr/bin/zstd",
+          "installed": true,
+          "capabilities": [
+            "create",
+            "extract",
+            "test",
+            "threads"
+          ],
+          "capability_profile": {
+            "schema_version": 1,
+            "binary": "zstd",
+            "operations": [
+              "create",
+              "extract",
+              "test"
+            ],
+            "streams": {
+              "stdin": true,
+              "stdout": true
+            },
+            "encryption": {
+              "read": false,
+              "write": false
+            },
+            "archive_features": {
+              "solid": false,
+              "multipart": false
+            },
+            "metadata": [],
+            "mutation": [
+              "create"
+            ],
+            "verification": {
+              "levels": [
+                "none",
+                "structure",
+                "full"
+              ],
+              "maximum": "full"
+            },
+            "random_access": false,
+            "remote_suitability": "streamable",
+            "threads": true,
+            "safe_index": false
+          }
+        }
+      ]
+    }
+  ],
+  "backend_operation_matrix": [
+    {
+      "format": "tar",
+      "operation": "create",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot create tar"
+    },
+    {
+      "format": "tar",
+      "operation": "create",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot create tar"
+    },
+    {
+      "format": "tar",
+      "operation": "create",
+      "backend": "bsdtar",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "safe-index",
+        "test",
+        "update"
+      ]
+    },
+    {
+      "format": "tar",
+      "operation": "create",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot create tar"
+    },
+    {
+      "format": "tar",
+      "operation": "create",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot create tar"
+    },
+    {
+      "format": "tar",
+      "operation": "create",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "create",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "create",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "create",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "create",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "create",
+      "backend": "tar",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "remove",
+        "safe-index",
+        "test",
+        "update"
+      ]
+    },
+    {
+      "format": "tar",
+      "operation": "create",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot create tar"
+    },
+    {
+      "format": "tar",
+      "operation": "create",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot create tar"
+    },
+    {
+      "format": "tar",
+      "operation": "create",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot create tar"
+    },
+    {
+      "format": "tar",
+      "operation": "create",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot create tar"
+    },
+    {
+      "format": "tar",
+      "operation": "create",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot create tar"
+    },
+    {
+      "format": "tar",
+      "operation": "list",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot list tar"
+    },
+    {
+      "format": "tar",
+      "operation": "list",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot list tar"
+    },
+    {
+      "format": "tar",
+      "operation": "list",
+      "backend": "bsdtar",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "safe-index",
+        "test",
+        "update"
+      ]
+    },
+    {
+      "format": "tar",
+      "operation": "list",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot list tar"
+    },
+    {
+      "format": "tar",
+      "operation": "list",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot list tar"
+    },
+    {
+      "format": "tar",
+      "operation": "list",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "list",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "list",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "list",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "list",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "list",
+      "backend": "tar",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "remove",
+        "safe-index",
+        "test",
+        "update"
+      ]
+    },
+    {
+      "format": "tar",
+      "operation": "list",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot list tar"
+    },
+    {
+      "format": "tar",
+      "operation": "list",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot list tar"
+    },
+    {
+      "format": "tar",
+      "operation": "list",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot list tar"
+    },
+    {
+      "format": "tar",
+      "operation": "list",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot list tar"
+    },
+    {
+      "format": "tar",
+      "operation": "list",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot list tar"
+    },
+    {
+      "format": "tar",
+      "operation": "extract",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot extract tar"
+    },
+    {
+      "format": "tar",
+      "operation": "extract",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot extract tar"
+    },
+    {
+      "format": "tar",
+      "operation": "extract",
+      "backend": "bsdtar",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "safe-index",
+        "test",
+        "update"
+      ]
+    },
+    {
+      "format": "tar",
+      "operation": "extract",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot extract tar"
+    },
+    {
+      "format": "tar",
+      "operation": "extract",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot extract tar"
+    },
+    {
+      "format": "tar",
+      "operation": "extract",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "extract",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "extract",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "extract",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "extract",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "extract",
+      "backend": "tar",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "remove",
+        "safe-index",
+        "test",
+        "update"
+      ]
+    },
+    {
+      "format": "tar",
+      "operation": "extract",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot extract tar"
+    },
+    {
+      "format": "tar",
+      "operation": "extract",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot extract tar"
+    },
+    {
+      "format": "tar",
+      "operation": "extract",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot extract tar"
+    },
+    {
+      "format": "tar",
+      "operation": "extract",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot extract tar"
+    },
+    {
+      "format": "tar",
+      "operation": "extract",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot extract tar"
+    },
+    {
+      "format": "tar",
+      "operation": "test",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot test tar"
+    },
+    {
+      "format": "tar",
+      "operation": "test",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot test tar"
+    },
+    {
+      "format": "tar",
+      "operation": "test",
+      "backend": "bsdtar",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "safe-index",
+        "test",
+        "update"
+      ]
+    },
+    {
+      "format": "tar",
+      "operation": "test",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot test tar"
+    },
+    {
+      "format": "tar",
+      "operation": "test",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot test tar"
+    },
+    {
+      "format": "tar",
+      "operation": "test",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "test",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "test",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "test",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "test",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "test",
+      "backend": "tar",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "remove",
+        "safe-index",
+        "test",
+        "update"
+      ]
+    },
+    {
+      "format": "tar",
+      "operation": "test",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot test tar"
+    },
+    {
+      "format": "tar",
+      "operation": "test",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot test tar"
+    },
+    {
+      "format": "tar",
+      "operation": "test",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot test tar"
+    },
+    {
+      "format": "tar",
+      "operation": "test",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot test tar"
+    },
+    {
+      "format": "tar",
+      "operation": "test",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot test tar"
+    },
+    {
+      "format": "tar",
+      "operation": "add",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot add tar"
+    },
+    {
+      "format": "tar",
+      "operation": "add",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot add tar"
+    },
+    {
+      "format": "tar",
+      "operation": "add",
+      "backend": "bsdtar",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "safe-index",
+        "test",
+        "update"
+      ]
+    },
+    {
+      "format": "tar",
+      "operation": "add",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot add tar"
+    },
+    {
+      "format": "tar",
+      "operation": "add",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot add tar"
+    },
+    {
+      "format": "tar",
+      "operation": "add",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "add",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "add",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "add",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "add",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "add",
+      "backend": "tar",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "remove",
+        "safe-index",
+        "test",
+        "update"
+      ]
+    },
+    {
+      "format": "tar",
+      "operation": "add",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot add tar"
+    },
+    {
+      "format": "tar",
+      "operation": "add",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot add tar"
+    },
+    {
+      "format": "tar",
+      "operation": "add",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot add tar"
+    },
+    {
+      "format": "tar",
+      "operation": "add",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot add tar"
+    },
+    {
+      "format": "tar",
+      "operation": "add",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot add tar"
+    },
+    {
+      "format": "tar",
+      "operation": "update",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot update tar"
+    },
+    {
+      "format": "tar",
+      "operation": "update",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot update tar"
+    },
+    {
+      "format": "tar",
+      "operation": "update",
+      "backend": "bsdtar",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "safe-index",
+        "test",
+        "update"
+      ]
+    },
+    {
+      "format": "tar",
+      "operation": "update",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot update tar"
+    },
+    {
+      "format": "tar",
+      "operation": "update",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot update tar"
+    },
+    {
+      "format": "tar",
+      "operation": "update",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "update",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "update",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "update",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "update",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "update",
+      "backend": "tar",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "remove",
+        "safe-index",
+        "test",
+        "update"
+      ]
+    },
+    {
+      "format": "tar",
+      "operation": "update",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot update tar"
+    },
+    {
+      "format": "tar",
+      "operation": "update",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot update tar"
+    },
+    {
+      "format": "tar",
+      "operation": "update",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot update tar"
+    },
+    {
+      "format": "tar",
+      "operation": "update",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot update tar"
+    },
+    {
+      "format": "tar",
+      "operation": "update",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot update tar"
+    },
+    {
+      "format": "tar",
+      "operation": "remove",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot remove tar"
+    },
+    {
+      "format": "tar",
+      "operation": "remove",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot remove tar"
+    },
+    {
+      "format": "tar",
+      "operation": "remove",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar lacks required capability/capabilities: remove"
+    },
+    {
+      "format": "tar",
+      "operation": "remove",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot remove tar"
+    },
+    {
+      "format": "tar",
+      "operation": "remove",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot remove tar"
+    },
+    {
+      "format": "tar",
+      "operation": "remove",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "remove",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "remove",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "remove",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "remove",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar",
+      "operation": "remove",
+      "backend": "tar",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "remove",
+        "safe-index",
+        "test",
+        "update"
+      ]
+    },
+    {
+      "format": "tar",
+      "operation": "remove",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot remove tar"
+    },
+    {
+      "format": "tar",
+      "operation": "remove",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot remove tar"
+    },
+    {
+      "format": "tar",
+      "operation": "remove",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot remove tar"
+    },
+    {
+      "format": "tar",
+      "operation": "remove",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot remove tar"
+    },
+    {
+      "format": "tar",
+      "operation": "remove",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot remove tar"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "create",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot create tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "create",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot create tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "create",
+      "backend": "bsdtar",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "safe-index",
+        "test",
+        "update"
+      ]
+    },
+    {
+      "format": "tar.gz",
+      "operation": "create",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot create tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "create",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot create tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "create",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "create",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "create",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "create",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "create",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "create",
+      "backend": "tar",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "remove",
+        "safe-index",
+        "test",
+        "update"
+      ]
+    },
+    {
+      "format": "tar.gz",
+      "operation": "create",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot create tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "create",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot create tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "create",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot create tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "create",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot create tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "create",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot create tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "list",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot list tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "list",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot list tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "list",
+      "backend": "bsdtar",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "safe-index",
+        "test",
+        "update"
+      ]
+    },
+    {
+      "format": "tar.gz",
+      "operation": "list",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot list tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "list",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot list tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "list",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "list",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "list",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "list",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "list",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "list",
+      "backend": "tar",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "remove",
+        "safe-index",
+        "test",
+        "update"
+      ]
+    },
+    {
+      "format": "tar.gz",
+      "operation": "list",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot list tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "list",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot list tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "list",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot list tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "list",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot list tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "list",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot list tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "extract",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot extract tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "extract",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot extract tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "extract",
+      "backend": "bsdtar",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "safe-index",
+        "test",
+        "update"
+      ]
+    },
+    {
+      "format": "tar.gz",
+      "operation": "extract",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot extract tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "extract",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot extract tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "extract",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "extract",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "extract",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "extract",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "extract",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "extract",
+      "backend": "tar",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "remove",
+        "safe-index",
+        "test",
+        "update"
+      ]
+    },
+    {
+      "format": "tar.gz",
+      "operation": "extract",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot extract tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "extract",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot extract tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "extract",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot extract tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "extract",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot extract tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "extract",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot extract tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "test",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot test tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "test",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot test tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "test",
+      "backend": "bsdtar",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "safe-index",
+        "test",
+        "update"
+      ]
+    },
+    {
+      "format": "tar.gz",
+      "operation": "test",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot test tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "test",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot test tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "test",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "test",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "test",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "test",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "test",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "test",
+      "backend": "tar",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "remove",
+        "safe-index",
+        "test",
+        "update"
+      ]
+    },
+    {
+      "format": "tar.gz",
+      "operation": "test",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot test tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "test",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot test tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "test",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot test tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "test",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot test tar.gzip"
+    },
+    {
+      "format": "tar.gz",
+      "operation": "test",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot test tar.gzip"
+    },
+    {
+      "format": "zip",
+      "operation": "create",
+      "backend": "7z",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "zip",
+      "operation": "create",
+      "backend": "7zz",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "zip",
+      "operation": "create",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot create zip"
+    },
+    {
+      "format": "zip",
+      "operation": "create",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot create zip"
+    },
+    {
+      "format": "zip",
+      "operation": "create",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot create zip"
+    },
+    {
+      "format": "zip",
+      "operation": "create",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "create",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "create",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "create",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "create",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "create",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot create zip"
+    },
+    {
+      "format": "zip",
+      "operation": "create",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot create zip"
+    },
+    {
+      "format": "zip",
+      "operation": "create",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip lacks required capability/capabilities: create"
+    },
+    {
+      "format": "zip",
+      "operation": "create",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot create zip"
+    },
+    {
+      "format": "zip",
+      "operation": "create",
+      "backend": "zip",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "metadata",
+        "password",
+        "remove",
+        "update"
+      ]
+    },
+    {
+      "format": "zip",
+      "operation": "create",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot create zip"
+    },
+    {
+      "format": "zip",
+      "operation": "list",
+      "backend": "7z",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "zip",
+      "operation": "list",
+      "backend": "7zz",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "zip",
+      "operation": "list",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot list zip"
+    },
+    {
+      "format": "zip",
+      "operation": "list",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot list zip"
+    },
+    {
+      "format": "zip",
+      "operation": "list",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot list zip"
+    },
+    {
+      "format": "zip",
+      "operation": "list",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "list",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "list",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "list",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "list",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "list",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot list zip"
+    },
+    {
+      "format": "zip",
+      "operation": "list",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot list zip"
+    },
+    {
+      "format": "zip",
+      "operation": "list",
+      "backend": "unzip",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "safe-index",
+        "test"
+      ]
+    },
+    {
+      "format": "zip",
+      "operation": "list",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot list zip"
+    },
+    {
+      "format": "zip",
+      "operation": "list",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip lacks required capability/capabilities: list"
+    },
+    {
+      "format": "zip",
+      "operation": "list",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot list zip"
+    },
+    {
+      "format": "zip",
+      "operation": "extract",
+      "backend": "7z",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "zip",
+      "operation": "extract",
+      "backend": "7zz",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "zip",
+      "operation": "extract",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot extract zip"
+    },
+    {
+      "format": "zip",
+      "operation": "extract",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot extract zip"
+    },
+    {
+      "format": "zip",
+      "operation": "extract",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot extract zip"
+    },
+    {
+      "format": "zip",
+      "operation": "extract",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "extract",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "extract",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "extract",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "extract",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "extract",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot extract zip"
+    },
+    {
+      "format": "zip",
+      "operation": "extract",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot extract zip"
+    },
+    {
+      "format": "zip",
+      "operation": "extract",
+      "backend": "unzip",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "safe-index",
+        "test"
+      ]
+    },
+    {
+      "format": "zip",
+      "operation": "extract",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot extract zip"
+    },
+    {
+      "format": "zip",
+      "operation": "extract",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip lacks required capability/capabilities: extract"
+    },
+    {
+      "format": "zip",
+      "operation": "extract",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot extract zip"
+    },
+    {
+      "format": "zip",
+      "operation": "test",
+      "backend": "7z",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "zip",
+      "operation": "test",
+      "backend": "7zz",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "zip",
+      "operation": "test",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot test zip"
+    },
+    {
+      "format": "zip",
+      "operation": "test",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot test zip"
+    },
+    {
+      "format": "zip",
+      "operation": "test",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot test zip"
+    },
+    {
+      "format": "zip",
+      "operation": "test",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "test",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "test",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "test",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "test",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "test",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot test zip"
+    },
+    {
+      "format": "zip",
+      "operation": "test",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot test zip"
+    },
+    {
+      "format": "zip",
+      "operation": "test",
+      "backend": "unzip",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "safe-index",
+        "test"
+      ]
+    },
+    {
+      "format": "zip",
+      "operation": "test",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot test zip"
+    },
+    {
+      "format": "zip",
+      "operation": "test",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip lacks required capability/capabilities: test"
+    },
+    {
+      "format": "zip",
+      "operation": "test",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot test zip"
+    },
+    {
+      "format": "zip",
+      "operation": "add",
+      "backend": "7z",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "zip",
+      "operation": "add",
+      "backend": "7zz",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "zip",
+      "operation": "add",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot add zip"
+    },
+    {
+      "format": "zip",
+      "operation": "add",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot add zip"
+    },
+    {
+      "format": "zip",
+      "operation": "add",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot add zip"
+    },
+    {
+      "format": "zip",
+      "operation": "add",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "add",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "add",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "add",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "add",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "add",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot add zip"
+    },
+    {
+      "format": "zip",
+      "operation": "add",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot add zip"
+    },
+    {
+      "format": "zip",
+      "operation": "add",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip lacks required capability/capabilities: add"
+    },
+    {
+      "format": "zip",
+      "operation": "add",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot add zip"
+    },
+    {
+      "format": "zip",
+      "operation": "add",
+      "backend": "zip",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "metadata",
+        "password",
+        "remove",
+        "update"
+      ]
+    },
+    {
+      "format": "zip",
+      "operation": "add",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot add zip"
+    },
+    {
+      "format": "zip",
+      "operation": "update",
+      "backend": "7z",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "zip",
+      "operation": "update",
+      "backend": "7zz",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "zip",
+      "operation": "update",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot update zip"
+    },
+    {
+      "format": "zip",
+      "operation": "update",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot update zip"
+    },
+    {
+      "format": "zip",
+      "operation": "update",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot update zip"
+    },
+    {
+      "format": "zip",
+      "operation": "update",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "update",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "update",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "update",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "update",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "update",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot update zip"
+    },
+    {
+      "format": "zip",
+      "operation": "update",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot update zip"
+    },
+    {
+      "format": "zip",
+      "operation": "update",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip lacks required capability/capabilities: update"
+    },
+    {
+      "format": "zip",
+      "operation": "update",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot update zip"
+    },
+    {
+      "format": "zip",
+      "operation": "update",
+      "backend": "zip",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "metadata",
+        "password",
+        "remove",
+        "update"
+      ]
+    },
+    {
+      "format": "zip",
+      "operation": "update",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot update zip"
+    },
+    {
+      "format": "zip",
+      "operation": "remove",
+      "backend": "7z",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "zip",
+      "operation": "remove",
+      "backend": "7zz",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "zip",
+      "operation": "remove",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot remove zip"
+    },
+    {
+      "format": "zip",
+      "operation": "remove",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot remove zip"
+    },
+    {
+      "format": "zip",
+      "operation": "remove",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot remove zip"
+    },
+    {
+      "format": "zip",
+      "operation": "remove",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "remove",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "remove",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "remove",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "remove",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zip",
+      "operation": "remove",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot remove zip"
+    },
+    {
+      "format": "zip",
+      "operation": "remove",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot remove zip"
+    },
+    {
+      "format": "zip",
+      "operation": "remove",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip lacks required capability/capabilities: remove"
+    },
+    {
+      "format": "zip",
+      "operation": "remove",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot remove zip"
+    },
+    {
+      "format": "zip",
+      "operation": "remove",
+      "backend": "zip",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "metadata",
+        "password",
+        "remove",
+        "update"
+      ]
+    },
+    {
+      "format": "zip",
+      "operation": "remove",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot remove zip"
+    },
+    {
+      "format": "7z",
+      "operation": "create",
+      "backend": "7z",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "7z",
+      "operation": "create",
+      "backend": "7zz",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "7z",
+      "operation": "create",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot create 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "create",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot create 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "create",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot create 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "create",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "create",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "create",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "create",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "create",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "create",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot create 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "create",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot create 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "create",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot create 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "create",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot create 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "create",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot create 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "create",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot create 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "list",
+      "backend": "7z",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "7z",
+      "operation": "list",
+      "backend": "7zz",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "7z",
+      "operation": "list",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot list 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "list",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot list 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "list",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot list 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "list",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "list",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "list",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "list",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "list",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "list",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot list 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "list",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot list 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "list",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot list 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "list",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot list 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "list",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot list 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "list",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot list 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "extract",
+      "backend": "7z",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "7z",
+      "operation": "extract",
+      "backend": "7zz",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "7z",
+      "operation": "extract",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot extract 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "extract",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot extract 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "extract",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot extract 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "extract",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "extract",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "extract",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "extract",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "extract",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "extract",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot extract 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "extract",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot extract 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "extract",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot extract 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "extract",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot extract 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "extract",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot extract 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "extract",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot extract 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "test",
+      "backend": "7z",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "7z",
+      "operation": "test",
+      "backend": "7zz",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "7z",
+      "operation": "test",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot test 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "test",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot test 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "test",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot test 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "test",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "test",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "test",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "test",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "test",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "test",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot test 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "test",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot test 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "test",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot test 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "test",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot test 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "test",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot test 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "test",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot test 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "add",
+      "backend": "7z",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "7z",
+      "operation": "add",
+      "backend": "7zz",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "7z",
+      "operation": "add",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot add 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "add",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot add 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "add",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot add 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "add",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "add",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "add",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "add",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "add",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "add",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot add 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "add",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot add 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "add",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot add 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "add",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot add 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "add",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot add 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "add",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot add 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "update",
+      "backend": "7z",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "7z",
+      "operation": "update",
+      "backend": "7zz",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "7z",
+      "operation": "update",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot update 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "update",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot update 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "update",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot update 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "update",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "update",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "update",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "update",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "update",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "update",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot update 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "update",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot update 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "update",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot update 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "update",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot update 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "update",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot update 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "update",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot update 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "remove",
+      "backend": "7z",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "7z",
+      "operation": "remove",
+      "backend": "7zz",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "7z",
+      "operation": "remove",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot remove 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "remove",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot remove 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "remove",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot remove 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "remove",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "remove",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "remove",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "remove",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "remove",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "7z",
+      "operation": "remove",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot remove 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "remove",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot remove 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "remove",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot remove 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "remove",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot remove 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "remove",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot remove 7z"
+    },
+    {
+      "format": "7z",
+      "operation": "remove",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot remove 7z"
+    },
+    {
+      "format": "rar",
+      "operation": "create",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot create rar"
+    },
+    {
+      "format": "rar",
+      "operation": "create",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot create rar"
+    },
+    {
+      "format": "rar",
+      "operation": "create",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot create rar"
+    },
+    {
+      "format": "rar",
+      "operation": "create",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot create rar"
+    },
+    {
+      "format": "rar",
+      "operation": "create",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot create rar"
+    },
+    {
+      "format": "rar",
+      "operation": "create",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "create",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "create",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "create",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "create",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "create",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot create rar"
+    },
+    {
+      "format": "rar",
+      "operation": "create",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot create rar"
+    },
+    {
+      "format": "rar",
+      "operation": "create",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot create rar"
+    },
+    {
+      "format": "rar",
+      "operation": "create",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot create rar"
+    },
+    {
+      "format": "rar",
+      "operation": "create",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot create rar"
+    },
+    {
+      "format": "rar",
+      "operation": "create",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot create rar"
+    },
+    {
+      "format": "rar",
+      "operation": "list",
+      "backend": "7z",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "rar",
+      "operation": "list",
+      "backend": "7zz",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "rar",
+      "operation": "list",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot list rar"
+    },
+    {
+      "format": "rar",
+      "operation": "list",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot list rar"
+    },
+    {
+      "format": "rar",
+      "operation": "list",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot list rar"
+    },
+    {
+      "format": "rar",
+      "operation": "list",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "list",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "list",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "list",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "list",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "list",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot list rar"
+    },
+    {
+      "format": "rar",
+      "operation": "list",
+      "backend": "unrar",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "safe-index",
+        "test"
+      ]
+    },
+    {
+      "format": "rar",
+      "operation": "list",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot list rar"
+    },
+    {
+      "format": "rar",
+      "operation": "list",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot list rar"
+    },
+    {
+      "format": "rar",
+      "operation": "list",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot list rar"
+    },
+    {
+      "format": "rar",
+      "operation": "list",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot list rar"
+    },
+    {
+      "format": "rar",
+      "operation": "extract",
+      "backend": "7z",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "rar",
+      "operation": "extract",
+      "backend": "7zz",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "rar",
+      "operation": "extract",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot extract rar"
+    },
+    {
+      "format": "rar",
+      "operation": "extract",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot extract rar"
+    },
+    {
+      "format": "rar",
+      "operation": "extract",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot extract rar"
+    },
+    {
+      "format": "rar",
+      "operation": "extract",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "extract",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "extract",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "extract",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "extract",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "extract",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot extract rar"
+    },
+    {
+      "format": "rar",
+      "operation": "extract",
+      "backend": "unrar",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "safe-index",
+        "test"
+      ]
+    },
+    {
+      "format": "rar",
+      "operation": "extract",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot extract rar"
+    },
+    {
+      "format": "rar",
+      "operation": "extract",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot extract rar"
+    },
+    {
+      "format": "rar",
+      "operation": "extract",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot extract rar"
+    },
+    {
+      "format": "rar",
+      "operation": "extract",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot extract rar"
+    },
+    {
+      "format": "rar",
+      "operation": "test",
+      "backend": "7z",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "rar",
+      "operation": "test",
+      "backend": "7zz",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "add",
+        "create",
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "remove",
+        "safe-index",
+        "test",
+        "threads",
+        "update"
+      ]
+    },
+    {
+      "format": "rar",
+      "operation": "test",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot test rar"
+    },
+    {
+      "format": "rar",
+      "operation": "test",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot test rar"
+    },
+    {
+      "format": "rar",
+      "operation": "test",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot test rar"
+    },
+    {
+      "format": "rar",
+      "operation": "test",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "test",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "test",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "test",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "test",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "test",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot test rar"
+    },
+    {
+      "format": "rar",
+      "operation": "test",
+      "backend": "unrar",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "extract",
+        "list",
+        "metadata",
+        "password",
+        "safe-index",
+        "test"
+      ]
+    },
+    {
+      "format": "rar",
+      "operation": "test",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot test rar"
+    },
+    {
+      "format": "rar",
+      "operation": "test",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot test rar"
+    },
+    {
+      "format": "rar",
+      "operation": "test",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot test rar"
+    },
+    {
+      "format": "rar",
+      "operation": "test",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot test rar"
+    },
+    {
+      "format": "rar",
+      "operation": "add",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot add rar"
+    },
+    {
+      "format": "rar",
+      "operation": "add",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot add rar"
+    },
+    {
+      "format": "rar",
+      "operation": "add",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot add rar"
+    },
+    {
+      "format": "rar",
+      "operation": "add",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot add rar"
+    },
+    {
+      "format": "rar",
+      "operation": "add",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot add rar"
+    },
+    {
+      "format": "rar",
+      "operation": "add",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "add",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "add",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "add",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "add",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "add",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot add rar"
+    },
+    {
+      "format": "rar",
+      "operation": "add",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot add rar"
+    },
+    {
+      "format": "rar",
+      "operation": "add",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot add rar"
+    },
+    {
+      "format": "rar",
+      "operation": "add",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot add rar"
+    },
+    {
+      "format": "rar",
+      "operation": "add",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot add rar"
+    },
+    {
+      "format": "rar",
+      "operation": "add",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot add rar"
+    },
+    {
+      "format": "rar",
+      "operation": "update",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot update rar"
+    },
+    {
+      "format": "rar",
+      "operation": "update",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot update rar"
+    },
+    {
+      "format": "rar",
+      "operation": "update",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot update rar"
+    },
+    {
+      "format": "rar",
+      "operation": "update",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot update rar"
+    },
+    {
+      "format": "rar",
+      "operation": "update",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot update rar"
+    },
+    {
+      "format": "rar",
+      "operation": "update",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "update",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "update",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "update",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "update",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "update",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot update rar"
+    },
+    {
+      "format": "rar",
+      "operation": "update",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot update rar"
+    },
+    {
+      "format": "rar",
+      "operation": "update",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot update rar"
+    },
+    {
+      "format": "rar",
+      "operation": "update",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot update rar"
+    },
+    {
+      "format": "rar",
+      "operation": "update",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot update rar"
+    },
+    {
+      "format": "rar",
+      "operation": "update",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot update rar"
+    },
+    {
+      "format": "rar",
+      "operation": "remove",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot remove rar"
+    },
+    {
+      "format": "rar",
+      "operation": "remove",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot remove rar"
+    },
+    {
+      "format": "rar",
+      "operation": "remove",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot remove rar"
+    },
+    {
+      "format": "rar",
+      "operation": "remove",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot remove rar"
+    },
+    {
+      "format": "rar",
+      "operation": "remove",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot remove rar"
+    },
+    {
+      "format": "rar",
+      "operation": "remove",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "remove",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "remove",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "remove",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "remove",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "rar",
+      "operation": "remove",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot remove rar"
+    },
+    {
+      "format": "rar",
+      "operation": "remove",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot remove rar"
+    },
+    {
+      "format": "rar",
+      "operation": "remove",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot remove rar"
+    },
+    {
+      "format": "rar",
+      "operation": "remove",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot remove rar"
+    },
+    {
+      "format": "rar",
+      "operation": "remove",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot remove rar"
+    },
+    {
+      "format": "rar",
+      "operation": "remove",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot remove rar"
+    },
+    {
+      "format": "gzip",
+      "operation": "create",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot create gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "create",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot create gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "create",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot create gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "create",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot create gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "create",
+      "backend": "gzip",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "create",
+        "extract",
+        "test"
+      ]
+    },
+    {
+      "format": "gzip",
+      "operation": "create",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "gzip",
+      "operation": "create",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "gzip",
+      "operation": "create",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "gzip",
+      "operation": "create",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "gzip",
+      "operation": "create",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "gzip",
+      "operation": "create",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot create gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "create",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot create gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "create",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot create gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "create",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot create gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "create",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot create gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "create",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot create gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "extract",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot extract gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "extract",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot extract gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "extract",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot extract gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "extract",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot extract gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "extract",
+      "backend": "gzip",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "create",
+        "extract",
+        "test"
+      ]
+    },
+    {
+      "format": "gzip",
+      "operation": "extract",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "gzip",
+      "operation": "extract",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "gzip",
+      "operation": "extract",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "gzip",
+      "operation": "extract",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "gzip",
+      "operation": "extract",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "gzip",
+      "operation": "extract",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot extract gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "extract",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot extract gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "extract",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot extract gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "extract",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot extract gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "extract",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot extract gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "extract",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot extract gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "test",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot test gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "test",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot test gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "test",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot test gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "test",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot test gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "test",
+      "backend": "gzip",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "create",
+        "extract",
+        "test"
+      ]
+    },
+    {
+      "format": "gzip",
+      "operation": "test",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "gzip",
+      "operation": "test",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "gzip",
+      "operation": "test",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "gzip",
+      "operation": "test",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "gzip",
+      "operation": "test",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "gzip",
+      "operation": "test",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot test gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "test",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot test gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "test",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot test gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "test",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot test gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "test",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot test gzip"
+    },
+    {
+      "format": "gzip",
+      "operation": "test",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot test gzip"
+    },
+    {
+      "format": "bzip2",
+      "operation": "create",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot create bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "create",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot create bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "create",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot create bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "create",
+      "backend": "bzip2",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "create",
+        "extract",
+        "test"
+      ]
+    },
+    {
+      "format": "bzip2",
+      "operation": "create",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot create bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "create",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "bzip2",
+      "operation": "create",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "bzip2",
+      "operation": "create",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "bzip2",
+      "operation": "create",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "bzip2",
+      "operation": "create",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "bzip2",
+      "operation": "create",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot create bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "create",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot create bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "create",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot create bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "create",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot create bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "create",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot create bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "create",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot create bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "extract",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot extract bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "extract",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot extract bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "extract",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot extract bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "extract",
+      "backend": "bzip2",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "create",
+        "extract",
+        "test"
+      ]
+    },
+    {
+      "format": "bzip2",
+      "operation": "extract",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot extract bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "extract",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "bzip2",
+      "operation": "extract",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "bzip2",
+      "operation": "extract",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "bzip2",
+      "operation": "extract",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "bzip2",
+      "operation": "extract",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "bzip2",
+      "operation": "extract",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot extract bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "extract",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot extract bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "extract",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot extract bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "extract",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot extract bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "extract",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot extract bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "extract",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot extract bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "test",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot test bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "test",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot test bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "test",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot test bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "test",
+      "backend": "bzip2",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "create",
+        "extract",
+        "test"
+      ]
+    },
+    {
+      "format": "bzip2",
+      "operation": "test",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot test bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "test",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "bzip2",
+      "operation": "test",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "bzip2",
+      "operation": "test",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "bzip2",
+      "operation": "test",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "bzip2",
+      "operation": "test",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "bzip2",
+      "operation": "test",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot test bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "test",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot test bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "test",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot test bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "test",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot test bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "test",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot test bzip2"
+    },
+    {
+      "format": "bzip2",
+      "operation": "test",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot test bzip2"
+    },
+    {
+      "format": "xz",
+      "operation": "create",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot create xz"
+    },
+    {
+      "format": "xz",
+      "operation": "create",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot create xz"
+    },
+    {
+      "format": "xz",
+      "operation": "create",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot create xz"
+    },
+    {
+      "format": "xz",
+      "operation": "create",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot create xz"
+    },
+    {
+      "format": "xz",
+      "operation": "create",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot create xz"
+    },
+    {
+      "format": "xz",
+      "operation": "create",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "xz",
+      "operation": "create",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "xz",
+      "operation": "create",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "xz",
+      "operation": "create",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "xz",
+      "operation": "create",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "xz",
+      "operation": "create",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot create xz"
+    },
+    {
+      "format": "xz",
+      "operation": "create",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot create xz"
+    },
+    {
+      "format": "xz",
+      "operation": "create",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot create xz"
+    },
+    {
+      "format": "xz",
+      "operation": "create",
+      "backend": "xz",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "create",
+        "extract",
+        "test",
+        "threads"
+      ]
+    },
+    {
+      "format": "xz",
+      "operation": "create",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot create xz"
+    },
+    {
+      "format": "xz",
+      "operation": "create",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot create xz"
+    },
+    {
+      "format": "xz",
+      "operation": "extract",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot extract xz"
+    },
+    {
+      "format": "xz",
+      "operation": "extract",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot extract xz"
+    },
+    {
+      "format": "xz",
+      "operation": "extract",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot extract xz"
+    },
+    {
+      "format": "xz",
+      "operation": "extract",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot extract xz"
+    },
+    {
+      "format": "xz",
+      "operation": "extract",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot extract xz"
+    },
+    {
+      "format": "xz",
+      "operation": "extract",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "xz",
+      "operation": "extract",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "xz",
+      "operation": "extract",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "xz",
+      "operation": "extract",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "xz",
+      "operation": "extract",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "xz",
+      "operation": "extract",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot extract xz"
+    },
+    {
+      "format": "xz",
+      "operation": "extract",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot extract xz"
+    },
+    {
+      "format": "xz",
+      "operation": "extract",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot extract xz"
+    },
+    {
+      "format": "xz",
+      "operation": "extract",
+      "backend": "xz",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "create",
+        "extract",
+        "test",
+        "threads"
+      ]
+    },
+    {
+      "format": "xz",
+      "operation": "extract",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot extract xz"
+    },
+    {
+      "format": "xz",
+      "operation": "extract",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot extract xz"
+    },
+    {
+      "format": "xz",
+      "operation": "test",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot test xz"
+    },
+    {
+      "format": "xz",
+      "operation": "test",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot test xz"
+    },
+    {
+      "format": "xz",
+      "operation": "test",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot test xz"
+    },
+    {
+      "format": "xz",
+      "operation": "test",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot test xz"
+    },
+    {
+      "format": "xz",
+      "operation": "test",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot test xz"
+    },
+    {
+      "format": "xz",
+      "operation": "test",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "xz",
+      "operation": "test",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "xz",
+      "operation": "test",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "xz",
+      "operation": "test",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "xz",
+      "operation": "test",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "xz",
+      "operation": "test",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot test xz"
+    },
+    {
+      "format": "xz",
+      "operation": "test",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot test xz"
+    },
+    {
+      "format": "xz",
+      "operation": "test",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot test xz"
+    },
+    {
+      "format": "xz",
+      "operation": "test",
+      "backend": "xz",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "create",
+        "extract",
+        "test",
+        "threads"
+      ]
+    },
+    {
+      "format": "xz",
+      "operation": "test",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot test xz"
+    },
+    {
+      "format": "xz",
+      "operation": "test",
+      "backend": "zstd",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zstd cannot test xz"
+    },
+    {
+      "format": "zstd",
+      "operation": "create",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot create zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "create",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot create zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "create",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot create zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "create",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot create zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "create",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot create zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "create",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zstd",
+      "operation": "create",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zstd",
+      "operation": "create",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zstd",
+      "operation": "create",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zstd",
+      "operation": "create",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zstd",
+      "operation": "create",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot create zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "create",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot create zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "create",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot create zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "create",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot create zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "create",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot create zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "create",
+      "backend": "zstd",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "create",
+        "extract",
+        "test",
+        "threads"
+      ]
+    },
+    {
+      "format": "zstd",
+      "operation": "extract",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot extract zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "extract",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot extract zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "extract",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot extract zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "extract",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot extract zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "extract",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot extract zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "extract",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zstd",
+      "operation": "extract",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zstd",
+      "operation": "extract",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zstd",
+      "operation": "extract",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zstd",
+      "operation": "extract",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zstd",
+      "operation": "extract",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot extract zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "extract",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot extract zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "extract",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot extract zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "extract",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot extract zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "extract",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot extract zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "extract",
+      "backend": "zstd",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "create",
+        "extract",
+        "test",
+        "threads"
+      ]
+    },
+    {
+      "format": "zstd",
+      "operation": "test",
+      "backend": "7z",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7z cannot test zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "test",
+      "backend": "7zz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend 7zz cannot test zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "test",
+      "backend": "bsdtar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bsdtar cannot test zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "test",
+      "backend": "bzip2",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend bzip2 cannot test zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "test",
+      "backend": "gzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend gzip cannot test zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "test",
+      "backend": "pbzip2",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zstd",
+      "operation": "test",
+      "backend": "pigz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zstd",
+      "operation": "test",
+      "backend": "pixz",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zstd",
+      "operation": "test",
+      "backend": "pzstd",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zstd",
+      "operation": "test",
+      "backend": "rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "detail": "not installed"
+    },
+    {
+      "format": "zstd",
+      "operation": "test",
+      "backend": "tar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend tar cannot test zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "test",
+      "backend": "unrar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unrar cannot test zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "test",
+      "backend": "unzip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend unzip cannot test zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "test",
+      "backend": "xz",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend xz cannot test zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "test",
+      "backend": "zip",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "detail": "backend zip cannot test zstd"
+    },
+    {
+      "format": "zstd",
+      "operation": "test",
+      "backend": "zstd",
+      "status": "PASS",
+      "detail": "resolver-qualified",
+      "capabilities": [
+        "create",
+        "extract",
+        "test",
+        "threads"
+      ]
+    }
+  ],
+  "backend_matrix": [
+    {
+      "name": "roundtrip:tar",
+      "status": "PASS",
+      "duration_seconds": 0.5243990770031814,
+      "detail": "",
+      "backend": "bsdtar",
+      "format": "tar",
+      "operation": "roundtrip"
+    },
+    {
+      "name": "roundtrip:tar.gz",
+      "status": "PASS",
+      "duration_seconds": 0.5566830770039815,
+      "detail": "",
+      "backend": "bsdtar",
+      "format": "tar.gz",
+      "operation": "roundtrip"
+    },
+    {
+      "name": "roundtrip:tar.bz2",
+      "status": "PASS",
+      "duration_seconds": 0.6112523849951685,
+      "detail": "",
+      "backend": "bsdtar",
+      "format": "tar.bz2",
+      "operation": "roundtrip"
+    },
+    {
+      "name": "roundtrip:tar.xz",
+      "status": "PASS",
+      "duration_seconds": 0.6166239239973947,
+      "detail": "",
+      "backend": "bsdtar",
+      "format": "tar.xz",
+      "operation": "roundtrip"
+    },
+    {
+      "name": "roundtrip:tar.zstd",
+      "status": "PASS",
+      "duration_seconds": 0.5846585380058968,
+      "detail": "",
+      "backend": "bsdtar",
+      "format": "tar.zstd",
+      "operation": "roundtrip"
+    },
+    {
+      "name": "roundtrip:zip",
+      "status": "PASS",
+      "duration_seconds": 0.5516464620013721,
+      "detail": "",
+      "backend": "7zz",
+      "format": "zip",
+      "operation": "roundtrip"
+    },
+    {
+      "name": "roundtrip:7z",
+      "status": "PASS",
+      "duration_seconds": 0.4916523080028128,
+      "detail": "",
+      "backend": "7zz",
+      "format": "7z",
+      "operation": "roundtrip"
+    },
+    {
+      "name": "roundtrip:rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "duration_seconds": 0.0,
+      "detail": "no installed backend can create rar; required=create (rar: not installed)",
+      "backend": null,
+      "format": "rar",
+      "operation": "create"
+    },
+    {
+      "name": "roundtrip:gzip",
+      "status": "PASS",
+      "duration_seconds": 0.42436123099469114,
+      "detail": "",
+      "backend": "gzip",
+      "format": "gzip",
+      "operation": "roundtrip"
+    },
+    {
+      "name": "roundtrip:bzip2",
+      "status": "PASS",
+      "duration_seconds": 0.4138698460010346,
+      "detail": "",
+      "backend": "bzip2",
+      "format": "bzip2",
+      "operation": "roundtrip"
+    },
+    {
+      "name": "roundtrip:xz",
+      "status": "PASS",
+      "duration_seconds": 0.438072076998651,
+      "detail": "",
+      "backend": "xz",
+      "format": "xz",
+      "operation": "roundtrip"
+    },
+    {
+      "name": "roundtrip:zstd",
+      "status": "PASS",
+      "duration_seconds": 0.61641869199957,
+      "detail": "",
+      "backend": "zstd",
+      "format": "zstd",
+      "operation": "roundtrip"
+    }
+  ],
+  "mutation_matrix": [
+    {
+      "name": "mutation:tar",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": "",
+      "backend": "add=bsdtar,update=bsdtar,remove=tar",
+      "format": "tar",
+      "operation": "mutation"
+    },
+    {
+      "name": "mutation:zip",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": "",
+      "backend": "add=7zz,update=7zz,remove=7zz",
+      "format": "zip",
+      "operation": "mutation"
+    },
+    {
+      "name": "mutation:7z",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": "",
+      "backend": "add=7zz,update=7zz,remove=7zz",
+      "format": "7z",
+      "operation": "mutation"
+    },
+    {
+      "name": "mutation:rar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "duration_seconds": 0.0,
+      "detail": "no installed backend can add rar; required=add (rar: not installed)",
+      "backend": null,
+      "format": "rar",
+      "operation": "mutation"
+    }
+  ],
+  "safety_matrix": [
+    {
+      "name": "safety:zip-traversal",
+      "status": "PASS",
+      "duration_seconds": 0.15116238500195323,
+      "detail": "unsafe traversal rejected",
+      "backend": null,
+      "format": "zip",
+      "operation": "extract"
+    },
+    {
+      "name": "safety:tar-traversal",
+      "status": "PASS",
+      "duration_seconds": 0.07765069299784955,
+      "detail": "unsafe traversal rejected",
+      "backend": null,
+      "format": "tar",
+      "operation": "extract"
+    }
+  ],
+  "resilience_matrix": [
+    {
+      "name": "resilience:corrupt-zip",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": "exit=5",
+      "backend": null,
+      "format": "zip",
+      "operation": "test"
+    },
+    {
+      "name": "resilience:corrupt-tar",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": "exit=5",
+      "backend": null,
+      "format": "tar",
+      "operation": "test"
+    },
+    {
+      "name": "password:zip",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": "wrong-password-exit=6",
+      "backend": "7zz",
+      "format": "zip",
+      "operation": "password"
+    },
+    {
+      "name": "password:7z",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": "wrong-password-exit=6",
+      "backend": "7zz",
+      "format": "7z",
+      "operation": "password"
+    },
+    {
+      "name": "password:rar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "duration_seconds": 0.0,
+      "detail": "no installed backend can create rar; required=create,password (rar: not installed)",
+      "backend": null,
+      "format": "rar",
+      "operation": "password"
+    },
+    {
+      "name": "resilience:large-manifest",
+      "status": "PASS",
+      "duration_seconds": 1.8264941539964639,
+      "detail": "1200-member archive",
+      "backend": null,
+      "format": "tar",
+      "operation": "create"
+    }
+  ],
+  "summary": {
+    "pass": 21,
+    "fail": 0,
+    "failures": [],
+    "skipped_backend_unavailable": 1,
+    "skipped_capability_unsupported": 2,
+    "operation_matrix_pass": 77,
+    "operation_matrix_skipped_backend": 220,
+    "operation_matrix_skipped_capability": 407,
+    "status": "PASS"
+  }
+}

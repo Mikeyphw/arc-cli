@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "safety_matrix": [
+    {
+      "name": "safety:zip-traversal",
+      "status": "PASS",
+      "duration_seconds": 0.15116238500195323,
+      "detail": "unsafe traversal rejected",
+      "backend": null,
+      "format": "zip",
+      "operation": "extract"
+    },
+    {
+      "name": "safety:tar-traversal",
+      "status": "PASS",
+      "duration_seconds": 0.07765069299784955,
+      "detail": "unsafe traversal rejected",
+      "backend": null,
+      "format": "tar",
+      "operation": "extract"
+    }
+  ]
+}

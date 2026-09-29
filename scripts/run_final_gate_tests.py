@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the ARC R01-R05 cumulative behavior gate and emit gate evidence.
+"""Run the ARC R01-R12 cumulative behavior gate and emit gate evidence.
 
 The repository wrapper invokes this through the final_gate EXO workflow. Each
 roadmap phase is executed in a fresh pytest process so fake transports, monkey
@@ -36,12 +36,86 @@ SUITES: list[tuple[str, list[str]]] = [
         "tests/test_filtering.py",
         "tests/test_formats.py",
         "tests/test_safety.py",
+        "tests/test_command_aliases.py",
+        "tests/test_create_ui_shortcuts.py",
+        "tests/test_info_command.py",
+        "tests/test_convert_command.py",
+        "tests/test_manpages.py",
+        "tests/test_distribution_contract.py",
     ]),
     ("r01", ["tests/test_r01_semantics.py"]),
     ("r02", ["tests/test_r02_interaction.py"]),
     ("r03", ["tests/test_r03_qualification.py"]),
-    ("r04", ["tests/test_r04_execution_plan.py", "tests/test_r04_remote_transport.py"]),
+    ("r04-plan", ["tests/test_r04_execution_plan.py"]),
+    ("r04-transport-1", [
+        'tests/test_r04_remote_transport.py::test_remote_parser_supports_ssh_alias_and_rclone_native',
+        'tests/test_r04_remote_transport.py::test_configured_rclone_parser_does_not_probe',
+        'tests/test_r04_remote_transport.py::test_native_rclone_dry_run_discovers_local_config_without_subprocess',
+        'tests/test_r04_remote_transport.py::test_existing_local_colon_path_wins_over_rclone',
+        'tests/test_r04_remote_transport.py::test_rclone_completion_cache_and_mutation_invalidation',
+        'tests/test_r04_remote_transport.py::test_double_star_remote_completion_forces_refresh',
+        'tests/test_r04_remote_transport.py::test_cache_cli_reports_and_clears_entries',
+        'tests/test_r04_remote_transport.py::test_remote_completion_refresh_cli',
+        'tests/test_r04_remote_transport.py::test_remote_transfer_dry_run_performs_no_io',
+        'tests/test_r04_remote_transport.py::test_remote_create_dispatch_stages_then_uploads',
+        'tests/test_r04_remote_transport.py::test_remote_create_dry_run_does_not_probe_or_upload',
+        'tests/test_r04_remote_transport.py::test_ssh_completion_uses_configured_alias_and_cache',
+    ]),
+    ("r04-transport-2", [
+        'tests/test_r04_remote_transport.py::test_parser_has_remote_native_options',
+        'tests/test_r04_remote_transport.py::test_rclone_upload_is_temp_then_moveto',
+        'tests/test_r04_remote_transport.py::test_remote_capability_cache_is_generation_scoped',
+        'tests/test_r04_remote_transport.py::test_remote_execution_requires_remote_arc',
+        'tests/test_r04_remote_transport.py::test_remote_execution_delegates_to_remote_arc_when_available',
+        'tests/test_r04_remote_transport.py::test_rclone_remote_file_and_directory_inputs_stage_for_create',
+        'tests/test_r04_remote_transport.py::test_remote_input_dry_run_records_without_network',
+        'tests/test_r04_remote_transport.py::test_generated_zsh_fzf_descends_single_value_remote_directories',
+        'tests/test_r04_remote_transport.py::test_remote_execution_dry_run_does_not_probe_network',
+        'tests/test_r04_remote_transport.py::test_rclone_failed_upload_cleans_temporary_object',
+        'tests/test_r04_remote_transport.py::test_configured_rclone_alias_is_preserved_in_completion',
+        'tests/test_r04_remote_transport.py::test_default_rclone_config_change_invalidates_provider_generation',
+    ]),
+    ("r04-transport-3", [
+        'tests/test_r04_remote_transport.py::test_completion_cache_state_uses_configured_ttl_and_generation',
+        'tests/test_r04_remote_transport.py::test_remote_capabilities_require_rclone_binary',
+        'tests/test_r04_remote_transport.py::test_ssh_capability_probe_reports_machine_safe_listing_features',
+        'tests/test_r04_remote_transport.py::test_rclone_tar_create_streams_directly_and_finalizes_atomically',
+        'tests/test_r04_remote_transport.py::test_remote_add_extension_changes_actual_remote_target',
+        'tests/test_r04_remote_transport.py::test_remote_gzip_extract_streams_without_archive_staging',
+        'tests/test_r04_remote_transport.py::test_ssh_atomic_upload_quotes_hostile_remote_path',
+        'tests/test_r04_remote_transport.py::test_remote_completion_preserves_newline_filename_via_nul_transport',
+        'tests/test_r04_remote_transport.py::test_stage_remote_read_cleans_partial_file_on_transport_failure',
+        'tests/test_r04_remote_transport.py::test_rclone_upload_interrupt_path_deletes_temporary_object',
+        'tests/test_r04_remote_transport.py::test_streaming_create_failure_cleans_rclone_temp_object',
+        'tests/test_r04_remote_transport.py::test_ssh_atomic_sink_contains_interrupt_cleanup_trap',
+    ]),
     ("r05", ["tests/test_r05_remote_native.py"]),
+    ("r06", ["tests/test_r06_runtime_install_truth.py"]),
+    ("r07", ["tests/test_r07_execution_recovery_resume.py"]),
+    ("r08", ["tests/test_r08_machine_capability_verification.py"]),
+    ("r09", [
+        "tests/test_r09a_provenance_diff.py",
+        "tests/test_r09b_remote_capability_publication.py",
+        "tests/test_r09b_gate.py",
+    ]),
+    ("r10", [
+        "tests/test_r10_mutation_policy_progress.py",
+        "tests/test_r10a_backend_command_truth.py",
+        "tests/test_r10b_machine_batch.py",
+        "tests/test_r10c_mutation_policy_convergence.py",
+        "tests/test_r10_gate.py",
+    ]),
+    ("r11", [
+        "tests/test_r11_config_provenance.py",
+        "tests/test_r11a_config_diagnostic_convergence.py",
+        "tests/test_r11b_doctor_environment_isolation.py",
+        "tests/test_r11_gate.py",
+    ]),
+    ("r12", [
+        "tests/test_r12_advisory_benchmark_diagnostics.py",
+        "tests/test_r12a_benchmark_corpus_truth.py",
+        "tests/test_r12_gate.py",
+    ]),
     ("final-contract", ["tests/test_final_gate.py"]),
 ]
 
@@ -118,7 +192,7 @@ def main() -> int:
             overall_rc = proc.returncode or 1
             break
 
-    from arc_final_seal import BASE_COMMIT_EXPECTED_PREFIX, ROADMAP
+    from arc_final_seal import CAMPAIGN_BASE_COMMIT_EXPECTED_PREFIX, QUALIFIED_GATE_COMMIT_EXPECTED_PREFIX, ROADMAP, SEAL_ID
     environment = {
         "schema_version": 2,
         "python": sys.version,
@@ -132,11 +206,12 @@ def main() -> int:
     verdict = {
         "schema_version": 2,
         "status": status,
-        "gate": "ARC-R01-R05-FINAL",
+        "gate": SEAL_ID,
         "pytest": counts,
         "suites": suite_results,
         "duration_seconds": round(time.time() - started, 3),
-        "base_commit_expected_prefix": BASE_COMMIT_EXPECTED_PREFIX,
+        "campaign_base_commit_expected_prefix": CAMPAIGN_BASE_COMMIT_EXPECTED_PREFIX,
+        "qualified_gate_commit_expected_prefix": QUALIFIED_GATE_COMMIT_EXPECTED_PREFIX,
         "roadmap": ROADMAP,
     }
     (evidence / "gate-verdict.json").write_text(json.dumps(verdict, indent=2, sort_keys=True) + "\n", encoding="utf-8")

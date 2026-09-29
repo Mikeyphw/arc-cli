@@ -1,0 +1,374 @@
+{
+  "campaign_base_commit_expected_prefix": "a7028c1",
+  "checks": {
+    "content_candidate": true,
+    "gate": true,
+    "qualified_gate_prefix": true,
+    "wrapper_seal": true
+  },
+  "content_root_sha256": "6614ecc1c74d55f6a1df5f6f21dba90c4d159da1e0bfe7cb853adf1053c49e4e",
+  "content_summary": {
+    "candidate_root_sha256": "6614ecc1c74d55f6a1df5f6f21dba90c4d159da1e0bfe7cb853adf1053c49e4e",
+    "seal_phase": "post-gate-live-content",
+    "sealed_file_count": 179,
+    "status": "PASS"
+  },
+  "gate": "ARC-R01-R12-FINAL",
+  "gate_summary": {
+    "campaign_base_commit_expected_prefix": "a7028c1",
+    "duration_seconds": 235.825,
+    "gate": "ARC-R01-R12-FINAL",
+    "pytest": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 1,
+      "tests": 464
+    },
+    "qualified_gate_commit_expected_prefix": "95981f7",
+    "roadmap": {
+      "ARC-R01": "semantic correctness",
+      "ARC-R02": "interaction, completion, progress, and safety",
+      "ARC-R03": "capability-aware backend qualification",
+      "ARC-R04": "execution plans, SSH/rclone transport, remote completion/cache, native command learning",
+      "ARC-R05": "SSH-native execution convergence",
+      "ARC-R06": "runtime, alias, installation, and packaging truth",
+      "ARC-R07": "explainable plans, recovery journals, and resumable batches",
+      "ARC-R08": "stable machine schema, typed backend capabilities, and verification policy",
+      "ARC-R09A": "logical provenance, equivalence, and archive diff",
+      "ARC-R09B": "remote capability, cache provenance, and publication guarantees",
+      "ARC-R10": "destructive-operation policy, backend command truth, machine batch, and recoverability",
+      "ARC-R11": "configuration provenance, strict diagnostics, and doctor convergence",
+      "ARC-R12": "advisory evidence, benchmark corpus truth, and offline support diagnostics"
+    },
+    "schema_version": 2,
+    "status": "GATE_PASS",
+    "suites": [
+      {
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 113
+        },
+        "name": "core",
+        "returncode": 0,
+        "tests": [
+          "tests/test_cli_integration.py",
+          "tests/test_completion.py",
+          "tests/test_filtering.py",
+          "tests/test_formats.py",
+          "tests/test_safety.py",
+          "tests/test_command_aliases.py",
+          "tests/test_create_ui_shortcuts.py",
+          "tests/test_info_command.py",
+          "tests/test_convert_command.py",
+          "tests/test_manpages.py",
+          "tests/test_distribution_contract.py"
+        ]
+      },
+      {
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 18
+        },
+        "name": "r01",
+        "returncode": 0,
+        "tests": [
+          "tests/test_r01_semantics.py"
+        ]
+      },
+      {
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 1,
+          "tests": 25
+        },
+        "name": "r02",
+        "returncode": 0,
+        "tests": [
+          "tests/test_r02_interaction.py"
+        ]
+      },
+      {
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 20
+        },
+        "name": "r03",
+        "returncode": 0,
+        "tests": [
+          "tests/test_r03_qualification.py"
+        ]
+      },
+      {
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 5
+        },
+        "name": "r04-plan",
+        "returncode": 0,
+        "tests": [
+          "tests/test_r04_execution_plan.py"
+        ]
+      },
+      {
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 12
+        },
+        "name": "r04-transport-1",
+        "returncode": 0,
+        "tests": [
+          "tests/test_r04_remote_transport.py::test_remote_parser_supports_ssh_alias_and_rclone_native",
+          "tests/test_r04_remote_transport.py::test_configured_rclone_parser_does_not_probe",
+          "tests/test_r04_remote_transport.py::test_native_rclone_dry_run_discovers_local_config_without_subprocess",
+          "tests/test_r04_remote_transport.py::test_existing_local_colon_path_wins_over_rclone",
+          "tests/test_r04_remote_transport.py::test_rclone_completion_cache_and_mutation_invalidation",
+          "tests/test_r04_remote_transport.py::test_double_star_remote_completion_forces_refresh",
+          "tests/test_r04_remote_transport.py::test_cache_cli_reports_and_clears_entries",
+          "tests/test_r04_remote_transport.py::test_remote_completion_refresh_cli",
+          "tests/test_r04_remote_transport.py::test_remote_transfer_dry_run_performs_no_io",
+          "tests/test_r04_remote_transport.py::test_remote_create_dispatch_stages_then_uploads",
+          "tests/test_r04_remote_transport.py::test_remote_create_dry_run_does_not_probe_or_upload",
+          "tests/test_r04_remote_transport.py::test_ssh_completion_uses_configured_alias_and_cache"
+        ]
+      },
+      {
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 12
+        },
+        "name": "r04-transport-2",
+        "returncode": 0,
+        "tests": [
+          "tests/test_r04_remote_transport.py::test_parser_has_remote_native_options",
+          "tests/test_r04_remote_transport.py::test_rclone_upload_is_temp_then_moveto",
+          "tests/test_r04_remote_transport.py::test_remote_capability_cache_is_generation_scoped",
+          "tests/test_r04_remote_transport.py::test_remote_execution_requires_remote_arc",
+          "tests/test_r04_remote_transport.py::test_remote_execution_delegates_to_remote_arc_when_available",
+          "tests/test_r04_remote_transport.py::test_rclone_remote_file_and_directory_inputs_stage_for_create",
+          "tests/test_r04_remote_transport.py::test_remote_input_dry_run_records_without_network",
+          "tests/test_r04_remote_transport.py::test_generated_zsh_fzf_descends_single_value_remote_directories",
+          "tests/test_r04_remote_transport.py::test_remote_execution_dry_run_does_not_probe_network",
+          "tests/test_r04_remote_transport.py::test_rclone_failed_upload_cleans_temporary_object",
+          "tests/test_r04_remote_transport.py::test_configured_rclone_alias_is_preserved_in_completion",
+          "tests/test_r04_remote_transport.py::test_default_rclone_config_change_invalidates_provider_generation"
+        ]
+      },
+      {
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 12
+        },
+        "name": "r04-transport-3",
+        "returncode": 0,
+        "tests": [
+          "tests/test_r04_remote_transport.py::test_completion_cache_state_uses_configured_ttl_and_generation",
+          "tests/test_r04_remote_transport.py::test_remote_capabilities_require_rclone_binary",
+          "tests/test_r04_remote_transport.py::test_ssh_capability_probe_reports_machine_safe_listing_features",
+          "tests/test_r04_remote_transport.py::test_rclone_tar_create_streams_directly_and_finalizes_atomically",
+          "tests/test_r04_remote_transport.py::test_remote_add_extension_changes_actual_remote_target",
+          "tests/test_r04_remote_transport.py::test_remote_gzip_extract_streams_without_archive_staging",
+          "tests/test_r04_remote_transport.py::test_ssh_atomic_upload_quotes_hostile_remote_path",
+          "tests/test_r04_remote_transport.py::test_remote_completion_preserves_newline_filename_via_nul_transport",
+          "tests/test_r04_remote_transport.py::test_stage_remote_read_cleans_partial_file_on_transport_failure",
+          "tests/test_r04_remote_transport.py::test_rclone_upload_interrupt_path_deletes_temporary_object",
+          "tests/test_r04_remote_transport.py::test_streaming_create_failure_cleans_rclone_temp_object",
+          "tests/test_r04_remote_transport.py::test_ssh_atomic_sink_contains_interrupt_cleanup_trap"
+        ]
+      },
+      {
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 23
+        },
+        "name": "r05",
+        "returncode": 0,
+        "tests": [
+          "tests/test_r05_remote_native.py"
+        ]
+      },
+      {
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 13
+        },
+        "name": "r06",
+        "returncode": 0,
+        "tests": [
+          "tests/test_r06_runtime_install_truth.py"
+        ]
+      },
+      {
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 16
+        },
+        "name": "r07",
+        "returncode": 0,
+        "tests": [
+          "tests/test_r07_execution_recovery_resume.py"
+        ]
+      },
+      {
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 14
+        },
+        "name": "r08",
+        "returncode": 0,
+        "tests": [
+          "tests/test_r08_machine_capability_verification.py"
+        ]
+      },
+      {
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 39
+        },
+        "name": "r09",
+        "returncode": 0,
+        "tests": [
+          "tests/test_r09a_provenance_diff.py",
+          "tests/test_r09b_remote_capability_publication.py",
+          "tests/test_r09b_gate.py"
+        ]
+      },
+      {
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 43
+        },
+        "name": "r10",
+        "returncode": 0,
+        "tests": [
+          "tests/test_r10_mutation_policy_progress.py",
+          "tests/test_r10a_backend_command_truth.py",
+          "tests/test_r10b_machine_batch.py",
+          "tests/test_r10c_mutation_policy_convergence.py",
+          "tests/test_r10_gate.py"
+        ]
+      },
+      {
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 53
+        },
+        "name": "r11",
+        "returncode": 0,
+        "tests": [
+          "tests/test_r11_config_provenance.py",
+          "tests/test_r11a_config_diagnostic_convergence.py",
+          "tests/test_r11b_doctor_environment_isolation.py",
+          "tests/test_r11_gate.py"
+        ]
+      },
+      {
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 29
+        },
+        "name": "r12",
+        "returncode": 0,
+        "tests": [
+          "tests/test_r12_advisory_benchmark_diagnostics.py",
+          "tests/test_r12a_benchmark_corpus_truth.py",
+          "tests/test_r12_gate.py"
+        ]
+      },
+      {
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 17
+        },
+        "name": "final-contract",
+        "returncode": 0,
+        "tests": [
+          "tests/test_final_gate.py"
+        ]
+      }
+    ]
+  },
+  "host": {
+    "platform": "Android-16-aarch64-64bit-ELF",
+    "python": "3.14.6 (main, Jul  5 2026, 10:35:55) [Clang 21.0.0 (https://android.googlesource.com/toolchain/llvm-project 5e96669f0",
+    "tools": {
+      "7z": "/data/data/com.termux/files/usr/bin/7z",
+      "7zz": "/data/data/com.termux/files/usr/bin/7zz",
+      "bsdtar": "/data/data/com.termux/files/usr/bin/bsdtar",
+      "bzip2": "/data/data/com.termux/files/usr/bin/bzip2",
+      "fzf": "/data/data/com.termux/files/usr/bin/fzf",
+      "gzip": "/data/data/com.termux/files/usr/bin/gzip",
+      "pigz": null,
+      "rar": null,
+      "rclone": "/data/data/com.termux/files/home/.local/bin/rclone",
+      "rg": "/data/data/com.termux/files/usr/bin/rg",
+      "ssh": "/data/data/com.termux/files/usr/bin/ssh",
+      "tar": "/data/data/com.termux/files/usr/bin/tar",
+      "unrar": "/data/data/com.termux/files/usr/bin/unrar",
+      "unzip": "/data/data/com.termux/files/usr/bin/unzip",
+      "xz": "/data/data/com.termux/files/usr/bin/xz",
+      "yazi": "/data/data/com.termux/files/usr/bin/yazi",
+      "zip": "/data/data/com.termux/files/usr/bin/zip",
+      "zstd": "/data/data/com.termux/files/usr/bin/zstd"
+    }
+  },
+  "qualified_gate_commit_expected_prefix": "95981f7",
+  "roadmap": {
+    "ARC-R01": "semantic correctness",
+    "ARC-R02": "interaction, completion, progress, and safety",
+    "ARC-R03": "capability-aware backend qualification",
+    "ARC-R04": "execution plans, SSH/rclone transport, remote completion/cache, native command learning",
+    "ARC-R05": "SSH-native execution convergence",
+    "ARC-R06": "runtime, alias, installation, and packaging truth",
+    "ARC-R07": "explainable plans, recovery journals, and resumable batches",
+    "ARC-R08": "stable machine schema, typed backend capabilities, and verification policy",
+    "ARC-R09A": "logical provenance, equivalence, and archive diff",
+    "ARC-R09B": "remote capability, cache provenance, and publication guarantees",
+    "ARC-R10": "destructive-operation policy, backend command truth, machine batch, and recoverability",
+    "ARC-R11": "configuration provenance, strict diagnostics, and doctor convergence",
+    "ARC-R12": "advisory evidence, benchmark corpus truth, and offline support diagnostics"
+  },
+  "schema_version": 4,
+  "seal_id": "ARC-R01-R12-FINAL",
+  "sealed_file_count": 179,
+  "status": "SEALED",
+  "validated_at_epoch": 1790651868,
+  "wrapper_summary": {
+    "checks": 179,
+    "exit_code": null,
+    "status": "PASS",
+    "wrapper_status": null
+  }
+}

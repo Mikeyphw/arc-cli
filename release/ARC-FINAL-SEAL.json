@@ -1,21 +1,32 @@
 {
-  "schema_version": 6,
-  "status": "SEAL_CONTRACT",
-  "seal_id": "ARC-R01-R05-FINAL",
-  "seal_strategy": "wrapper-gate-live-content-root-and-git-commit",
-  "base_commit_expected_prefix": "a7028c1",
-  "authoritative_scope": "repository config, workflows, completions, docs, release seal contract, Python scripts/source/tests, and top-level project metadata",
-  "validation_entrypoint": "./devtoolw seal",
+  "authoritative_scope": "repository config, workflows, completions, docs, release contracts, Python scripts/source/tests, JSON Schemas, generated manpages, packaging manifests, and top-level project metadata",
+  "before_commit_contract": "The artifact finalizer must reverify the exact post-gate candidate ledger and SEALED verdict before Devtool commits.",
+  "campaign_base_commit_expected_prefix": "a7028c1",
+  "durable_identity": "The qualified R12 gate commit, Devtool-created final seal commit, and validated content root recorded in run evidence identify the sealed campaign tree.",
   "gate_entrypoint": "./devtoolw gate",
   "live_ledger": ".devtool/evidence/arc-final-gate/candidate-seal.json",
   "live_verdict": ".devtool/evidence/arc-final-gate/final-seal-verdict.json",
-  "before_commit_contract": "The artifact finalizer must reverify the exact post-gate candidate ledger before Devtool commits.",
-  "durable_identity": "The Devtool-created Git commit plus the validated content root recorded in run evidence identify the final sealed tree.",
+  "qualified_gate": "ARC-R12-GATE",
+  "qualified_gate_commit_expected_prefix": "95981f7",
+  "qualified_gate_tests": 378,
   "roadmap": {
     "ARC-R01": "semantic correctness",
     "ARC-R02": "interaction, completion, progress, and safety",
     "ARC-R03": "capability-aware backend qualification",
     "ARC-R04": "execution plans, SSH/rclone transport, remote completion/cache, native command learning",
-    "ARC-R05": "SSH-native execution convergence"
-  }
+    "ARC-R05": "SSH-native execution convergence",
+    "ARC-R06": "runtime, alias, installation, and packaging truth",
+    "ARC-R07": "explainable plans, recovery journals, and resumable batches",
+    "ARC-R08": "stable machine schema, typed backend capabilities, and verification policy",
+    "ARC-R09A": "logical provenance, equivalence, and archive diff",
+    "ARC-R09B": "remote capability, cache provenance, and publication guarantees",
+    "ARC-R10": "destructive-operation policy, backend command truth, machine batch, and recoverability",
+    "ARC-R11": "configuration provenance, strict diagnostics, and doctor convergence",
+    "ARC-R12": "advisory evidence, benchmark corpus truth, and offline support diagnostics"
+  },
+  "schema_version": 7,
+  "seal_id": "ARC-R01-R12-FINAL",
+  "seal_strategy": "qualified-gate-live-content-root-wrapper-seal-and-git-commit",
+  "status": "SEAL_CONTRACT",
+  "validation_entrypoint": "./devtoolw seal"
 }

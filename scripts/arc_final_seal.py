@@ -10,15 +10,10 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = ROOT / "release" / "ARC-FINAL-SEAL.json"
-SEAL_ID = "ARC-R01-R05-FINAL"
-BASE_COMMIT_EXPECTED_PREFIX = "a7028c1"
-ROADMAP = {
-    "ARC-R01": "semantic correctness",
-    "ARC-R02": "interaction, completion, progress, and safety",
-    "ARC-R03": "capability-aware backend qualification",
-    "ARC-R04": "execution plans, SSH/rclone transport, remote completion/cache, native command learning",
-    "ARC-R05": "SSH-native execution convergence",
-}
+SEAL_ID = "ARC-R01-R12-FINAL"
+CAMPAIGN_BASE_COMMIT_EXPECTED_PREFIX = "a7028c1"
+QUALIFIED_GATE_COMMIT_EXPECTED_PREFIX = "95981f7"
+ROADMAP = {"ARC-R01": "semantic correctness", "ARC-R02": "interaction, completion, progress, and safety", "ARC-R03": "capability-aware backend qualification", "ARC-R04": "execution plans, SSH/rclone transport, remote completion/cache, native command learning", "ARC-R05": "SSH-native execution convergence", "ARC-R06": "runtime, alias, installation, and packaging truth", "ARC-R07": "explainable plans, recovery journals, and resumable batches", "ARC-R08": "stable machine schema, typed backend capabilities, and verification policy", "ARC-R09A": "logical provenance, equivalence, and archive diff", "ARC-R09B": "remote capability, cache provenance, and publication guarantees", "ARC-R10": "destructive-operation policy, backend command truth, machine batch, and recoverability", "ARC-R11": "configuration provenance, strict diagnostics, and doctor convergence", "ARC-R12": "advisory evidence, benchmark corpus truth, and offline support diagnostics"}
 
 AUTHORITATIVE_TOP_LEVEL = {
     ".devtool.toml",
@@ -34,6 +29,7 @@ AUTHORITATIVE_TOP_LEVEL = {
     "devtoolw.cmd",
     "pyproject.toml",
     "uv.lock",
+    "MANIFEST.in",
     "release/ARC-FINAL-SEAL.json",
 }
 AUTHORITATIVE_TREES: tuple[tuple[str, tuple[str, ...]], ...] = (
@@ -41,7 +37,7 @@ AUTHORITATIVE_TREES: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("completions", ("_arc",)),
     ("docs", (".md",)),
     ("scripts", (".py",)),
-    ("src/arc_cli", (".py",)),
+    ("src/arc_cli", (".py", ".json", ".1", ".5", ".7")),
     ("tests", (".py",)),
 )
 IGNORED_NAMES = {"__pycache__"}
@@ -111,6 +107,37 @@ def git_head(root: Path = ROOT) -> str | None:
     return proc.stdout.strip() if proc.returncode == 0 and proc.stdout.strip() else None
 
 
+def qualified_gate_ancestry(root: Path = ROOT) -> tuple[bool | None, dict[str, Any]]:
+    git_dir = root / ".git"
+    if not git_dir.exists():
+        return None, {
+            "status": "UNAVAILABLE",
+            "qualified_gate_commit_expected_prefix": QUALIFIED_GATE_COMMIT_EXPECTED_PREFIX,
+            "reason": "git metadata unavailable",
+        }
+    exists = subprocess.run(
+        ["git", "cat-file", "-e", f"{QUALIFIED_GATE_COMMIT_EXPECTED_PREFIX}^{{commit}}"],
+        cwd=root, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False,
+    )
+    if exists.returncode != 0:
+        return False, {
+            "status": "FAIL",
+            "qualified_gate_commit_expected_prefix": QUALIFIED_GATE_COMMIT_EXPECTED_PREFIX,
+            "reason": "qualified gate commit object missing",
+        }
+    proc = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", QUALIFIED_GATE_COMMIT_EXPECTED_PREFIX, "HEAD"],
+        cwd=root, text=True, capture_output=True, check=False,
+    )
+    ok = proc.returncode == 0
+    return ok, {
+        "status": "PASS" if ok else "FAIL",
+        "qualified_gate_commit_expected_prefix": QUALIFIED_GATE_COMMIT_EXPECTED_PREFIX,
+        "head": git_head(root),
+        "stderr": proc.stderr.strip(),
+    }
+
+
 def build_manifest(root: Path = ROOT, *, seal_source: str = "validated-transaction-worktree") -> dict[str, Any]:
     entries = compute_entries(root=root)
     return {
@@ -119,7 +146,8 @@ def build_manifest(root: Path = ROOT, *, seal_source: str = "validated-transacti
         "seal_id": SEAL_ID,
         "seal_scope": "authoritative-repository-content",
         "seal_source": seal_source,
-        "base_commit_expected_prefix": BASE_COMMIT_EXPECTED_PREFIX,
+        "campaign_base_commit_expected_prefix": CAMPAIGN_BASE_COMMIT_EXPECTED_PREFIX,
+        "qualified_gate_commit_expected_prefix": QUALIFIED_GATE_COMMIT_EXPECTED_PREFIX,
         "source_head_at_seal": git_head(root),
         "roadmap": ROADMAP,
         "sealed_file_count": len(entries),
@@ -171,13 +199,16 @@ def verify_manifest(path: Path = DEFAULT_MANIFEST, root: Path = ROOT) -> tuple[b
         or expected_by_path[path].get("size") != actual_by_path[path]["size"]
     )
     actual_root = compute_root(actual)
-    ok = not (missing or changed or unsealed_authoritative or sealed_non_authoritative) and actual_root == expected_root
+    ancestry_ok, ancestry = qualified_gate_ancestry(root)
+    content_ok = not (missing or changed or unsealed_authoritative or sealed_non_authoritative) and actual_root == expected_root
+    ok = content_ok and ancestry_ok is not False
     return ok, {
         "schema_version": 5,
         "status": "PASS" if ok else "FAIL",
         "seal_scope": seal.get("seal_scope"),
         "seal_source": seal.get("seal_source"),
-        "base_commit_expected_prefix": seal.get("base_commit_expected_prefix"),
+        "campaign_base_commit_expected_prefix": seal.get("campaign_base_commit_expected_prefix"),
+        "qualified_gate_commit_expected_prefix": seal.get("qualified_gate_commit_expected_prefix"),
         "expected_root_sha256": expected_root,
         "actual_root_sha256": actual_root,
         "sealed_file_count": len(expected),
@@ -187,4 +218,5 @@ def verify_manifest(path: Path = DEFAULT_MANIFEST, root: Path = ROOT) -> tuple[b
         "changed": changed,
         "unsealed_authoritative": unsealed_authoritative,
         "sealed_non_authoritative": sealed_non_authoritative,
+        "qualified_gate_ancestry": ancestry,
     }

@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "backend_matrix": [
+    {
+      "name": "roundtrip:tar",
+      "status": "PASS",
+      "duration_seconds": 0.5243990770031814,
+      "detail": "",
+      "backend": "bsdtar",
+      "format": "tar",
+      "operation": "roundtrip"
+    },
+    {
+      "name": "roundtrip:tar.gz",
+      "status": "PASS",
+      "duration_seconds": 0.5566830770039815,
+      "detail": "",
+      "backend": "bsdtar",
+      "format": "tar.gz",
+      "operation": "roundtrip"
+    },
+    {
+      "name": "roundtrip:tar.bz2",
+      "status": "PASS",
+      "duration_seconds": 0.6112523849951685,
+      "detail": "",
+      "backend": "bsdtar",
+      "format": "tar.bz2",
+      "operation": "roundtrip"
+    },
+    {
+      "name": "roundtrip:tar.xz",
+      "status": "PASS",
+      "duration_seconds": 0.6166239239973947,
+      "detail": "",
+      "backend": "bsdtar",
+      "format": "tar.xz",
+      "operation": "roundtrip"
+    },
+    {
+      "name": "roundtrip:tar.zstd",
+      "status": "PASS",
+      "duration_seconds": 0.5846585380058968,
+      "detail": "",
+      "backend": "bsdtar",
+      "format": "tar.zstd",
+      "operation": "roundtrip"
+    },
+    {
+      "name": "roundtrip:zip",
+      "status": "PASS",
+      "duration_seconds": 0.5516464620013721,
+      "detail": "",
+      "backend": "7zz",
+      "format": "zip",
+      "operation": "roundtrip"
+    },
+    {
+      "name": "roundtrip:7z",
+      "status": "PASS",
+      "duration_seconds": 0.4916523080028128,
+      "detail": "",
+      "backend": "7zz",
+      "format": "7z",
+      "operation": "roundtrip"
+    },
+    {
+      "name": "roundtrip:rar",
+      "status": "SKIPPED_BACKEND_UNAVAILABLE",
+      "duration_seconds": 0.0,
+      "detail": "no installed backend can create rar; required=create (rar: not installed)",
+      "backend": null,
+      "format": "rar",
+      "operation": "create"
+    },
+    {
+      "name": "roundtrip:gzip",
+      "status": "PASS",
+      "duration_seconds": 0.42436123099469114,
+      "detail": "",
+      "backend": "gzip",
+      "format": "gzip",
+      "operation": "roundtrip"
+    },
+    {
+      "name": "roundtrip:bzip2",
+      "status": "PASS",
+      "duration_seconds": 0.4138698460010346,
+      "detail": "",
+      "backend": "bzip2",
+      "format": "bzip2",
+      "operation": "roundtrip"
+    },
+    {
+      "name": "roundtrip:xz",
+      "status": "PASS",
+      "duration_seconds": 0.438072076998651,
+      "detail": "",
+      "backend": "xz",
+      "format": "xz",
+      "operation": "roundtrip"
+    },
+    {
+      "name": "roundtrip:zstd",
+      "status": "PASS",
+      "duration_seconds": 0.61641869199957,
+      "detail": "",
+      "backend": "zstd",
+      "format": "zstd",
+      "operation": "roundtrip"
+    }
+  ],
+  "mutation_matrix": [
+    {
+      "name": "mutation:tar",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": "",
+      "backend": "add=bsdtar,update=bsdtar,remove=tar",
+      "format": "tar",
+      "operation": "mutation"
+    },
+    {
+      "name": "mutation:zip",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": "",
+      "backend": "add=7zz,update=7zz,remove=7zz",
+      "format": "zip",
+      "operation": "mutation"
+    },
+    {
+      "name": "mutation:7z",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": "",
+      "backend": "add=7zz,update=7zz,remove=7zz",
+      "format": "7z",
+      "operation": "mutation"
+    },
+    {
+      "name": "mutation:rar",
+      "status": "SKIPPED_CAPABILITY_UNSUPPORTED",
+      "duration_seconds": 0.0,
+      "detail": "no installed backend can add rar; required=add (rar: not installed)",
+      "backend": null,
+      "format": "rar",
+      "operation": "mutation"
+    }
+  ]
+}

@@ -1,0 +1,4282 @@
+{
+  "checks": 179,
+  "contract_status": "PASS_WITH_APPLICATOR_TEMPLATE_DRIFT",
+  "devtool_wrapper_status": "error",
+  "payload": {
+    "command": "wrapper",
+    "data": {
+      "checks": [
+        {
+          "data": {
+            "schema": 1
+          },
+          "detail": "schema 1",
+          "name": "schema",
+          "section": "contract",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "seal-probe",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "generic-contract",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "seal-probe",
+            "invocation_metadata": {
+              "wrapper_command": "seal-probe",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "generic-contract",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "check",
+          "name": "default-command",
+          "section": "contract",
+          "status": "ok"
+        },
+        {
+          "detail": "all commands documented",
+          "name": "command-descriptions",
+          "section": "contract",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "launchers": {
+              "drifted": true,
+              "files": [
+                {
+                  "current": false,
+                  "executable": true,
+                  "exists": true,
+                  "marker_present": true,
+                  "name": "devtoolw",
+                  "path": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree/devtoolw",
+                  "reason": "drifted"
+                },
+                {
+                  "current": false,
+                  "executable": true,
+                  "exists": true,
+                  "marker_present": true,
+                  "name": "devtoolw.cmd",
+                  "path": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree/devtoolw.cmd",
+                  "reason": "drifted"
+                }
+              ],
+              "installed": true,
+              "ok": false,
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+            }
+          },
+          "detail": "devtoolw:drifted, devtoolw.cmd:drifted",
+          "name": "current",
+          "section": "launchers",
+          "status": "error"
+        },
+        {
+          "detail": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree/docs/WRAPPER.md",
+          "name": "wrapper-guide",
+          "section": "docs",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "discovered": [
+              "build",
+              "check",
+              "clean",
+              "fast",
+              "format",
+              "gate",
+              "lint",
+              "package",
+              "quality",
+              "r06",
+              "r07",
+              "r08",
+              "r09a",
+              "r09b",
+              "r09b-gate",
+              "r10",
+              "r10-gate",
+              "r10a",
+              "r10b",
+              "r10c",
+              "r11",
+              "r11-gate",
+              "r11a",
+              "r11b",
+              "r12",
+              "r12-gate",
+              "r12a",
+              "refresh-install",
+              "release",
+              "seal",
+              "setup",
+              "test",
+              "validate"
+            ],
+            "expected": [
+              "build",
+              "check",
+              "clean",
+              "fast",
+              "format",
+              "gate",
+              "lint",
+              "package",
+              "quality",
+              "r06",
+              "r07",
+              "r08",
+              "r09a",
+              "r09b",
+              "r09b-gate",
+              "r10",
+              "r10-gate",
+              "r10a",
+              "r10b",
+              "r10c",
+              "r11",
+              "r11-gate",
+              "r11a",
+              "r11b",
+              "r12",
+              "r12-gate",
+              "r12a",
+              "refresh-install",
+              "release",
+              "seal",
+              "setup",
+              "test",
+              "validate"
+            ]
+          },
+          "detail": "build, check, clean, fast, format, gate, lint, package, quality, r06, r07, r08, r09a, r09b, r09b-gate, r10, r10-gate, r10a, r10b, r10c, r11, r11-gate, r11a, r11b, r12, r12-gate, r12a, refresh-install, release, seal, setup, test, validate",
+          "name": "commands",
+          "section": "discovery",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "completed": [
+              "build",
+              "check",
+              "clean",
+              "fast",
+              "format",
+              "gate",
+              "lint",
+              "package",
+              "quality",
+              "r06",
+              "r07",
+              "r08",
+              "r09a",
+              "r09b",
+              "r09b-gate",
+              "r10",
+              "r10-gate",
+              "r10a",
+              "r10b",
+              "r10c",
+              "r11",
+              "r11-gate",
+              "r11a",
+              "r11b",
+              "r12",
+              "r12-gate",
+              "r12a",
+              "refresh-install",
+              "release",
+              "seal",
+              "setup",
+              "test",
+              "validate"
+            ],
+            "expected": [
+              "build",
+              "check",
+              "clean",
+              "fast",
+              "format",
+              "gate",
+              "lint",
+              "package",
+              "quality",
+              "r06",
+              "r07",
+              "r08",
+              "r09a",
+              "r09b",
+              "r09b-gate",
+              "r10",
+              "r10-gate",
+              "r10a",
+              "r10b",
+              "r10c",
+              "r11",
+              "r11-gate",
+              "r11a",
+              "r11b",
+              "r12",
+              "r12-gate",
+              "r12a",
+              "refresh-install",
+              "release",
+              "seal",
+              "setup",
+              "test",
+              "validate"
+            ]
+          },
+          "detail": "build, check, clean, fast, format, gate, lint, package, quality, r06, r07, r08, r09a, r09b, r09b-gate, r10, r10-gate, r10a, r10b, r10c, r11, r11-gate, r11a, r11b, r12, r12-gate, r12a, refresh-install, release, seal, setup, test, validate",
+          "name": "commands",
+          "section": "completion",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "completed": [
+              "b",
+              "f",
+              "fmt",
+              "g",
+              "l",
+              "pkg",
+              "q",
+              "refresh",
+              "rel",
+              "s",
+              "t",
+              "v",
+              "val",
+              "verify"
+            ],
+            "expected": [
+              "b",
+              "f",
+              "fmt",
+              "g",
+              "l",
+              "pkg",
+              "q",
+              "refresh",
+              "rel",
+              "s",
+              "t",
+              "v",
+              "val",
+              "verify"
+            ]
+          },
+          "detail": "b, f, fmt, g, l, pkg, q, refresh, rel, s, t, v, val, verify",
+          "name": "aliases",
+          "section": "completion",
+          "status": "ok"
+        },
+        {
+          "detail": "overview lists all commands",
+          "name": "overview",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:build",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:build",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "build",
+                "--target",
+                "arc"
+              ],
+              "command": "build",
+              "command_argv": [
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "build",
+              "devtool_command": "build",
+              "execution_kind": "native",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "build",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": ""
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:build",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "build",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:build",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "build",
+            "invocation_metadata": {
+              "wrapper_command": "build",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:build",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:check",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:check",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "quality",
+                "--target",
+                "arc"
+              ],
+              "command": "check",
+              "command_argv": [
+                "quality",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "check",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "quality",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "quality"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:check",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "check",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:check",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "check",
+            "invocation_metadata": {
+              "wrapper_command": "check",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:check",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:clean",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:clean",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "clean",
+                "--target",
+                "arc"
+              ],
+              "command": "clean",
+              "command_argv": [
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "clean",
+              "devtool_command": "clean",
+              "execution_kind": "native",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "clean",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": ""
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:clean",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "clean",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:clean",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "clean",
+            "invocation_metadata": {
+              "wrapper_command": "clean",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:clean",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:fast",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:fast",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "fast",
+                "--target",
+                "arc"
+              ],
+              "command": "fast",
+              "command_argv": [
+                "fast",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "fast",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "fast",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "fast"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:fast",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "fast",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:fast",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "fast",
+            "invocation_metadata": {
+              "wrapper_command": "fast",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:fast",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:format",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:format",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "format",
+                "--target",
+                "arc"
+              ],
+              "command": "format",
+              "command_argv": [
+                "format",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "format",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "format",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "format"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:format",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "format",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:format",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "format",
+            "invocation_metadata": {
+              "wrapper_command": "format",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:format",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:gate",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:gate",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "final_gate",
+                "--target",
+                "arc"
+              ],
+              "command": "gate",
+              "command_argv": [
+                "final_gate",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "gate",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "final_gate",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "final_gate"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:gate",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "gate",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:gate",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "gate",
+            "invocation_metadata": {
+              "wrapper_command": "gate",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:gate",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:lint",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:lint",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "lint",
+                "--target",
+                "arc"
+              ],
+              "command": "lint",
+              "command_argv": [
+                "lint",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "lint",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "lint",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "lint"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:lint",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "lint",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:lint",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "lint",
+            "invocation_metadata": {
+              "wrapper_command": "lint",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:lint",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:package",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:package",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "package",
+                "--target",
+                "arc"
+              ],
+              "command": "package",
+              "command_argv": [
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "package",
+              "devtool_command": "package",
+              "execution_kind": "native",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {
+                "collision": {
+                  "defaulted": false,
+                  "provided": false,
+                  "value": null
+                },
+                "name": {
+                  "defaulted": false,
+                  "provided": false,
+                  "value": null
+                },
+                "output": {
+                  "defaulted": false,
+                  "provided": false,
+                  "value": null
+                }
+              },
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "package",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": ""
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:package",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "package",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:package",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "package",
+            "invocation_metadata": {
+              "wrapper_command": "package",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:package",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:quality",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:quality",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "quality",
+                "--target",
+                "arc"
+              ],
+              "command": "quality",
+              "command_argv": [
+                "quality",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "quality",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "quality",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "quality"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:quality",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "quality",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:quality",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "quality",
+            "invocation_metadata": {
+              "wrapper_command": "quality",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:quality",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:r06",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:r06",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r06",
+                "--target",
+                "arc"
+              ],
+              "command": "r06",
+              "command_argv": [
+                "r06",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "r06",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r06",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "r06"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:r06",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "r06",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:r06",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "r06",
+            "invocation_metadata": {
+              "wrapper_command": "r06",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:r06",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:r07",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:r07",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r07",
+                "--target",
+                "arc"
+              ],
+              "command": "r07",
+              "command_argv": [
+                "r07",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "r07",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r07",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "r07"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:r07",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "r07",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:r07",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "r07",
+            "invocation_metadata": {
+              "wrapper_command": "r07",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:r07",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:r08",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:r08",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r08",
+                "--target",
+                "arc"
+              ],
+              "command": "r08",
+              "command_argv": [
+                "r08",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "r08",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r08",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "r08"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:r08",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "r08",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:r08",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "r08",
+            "invocation_metadata": {
+              "wrapper_command": "r08",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:r08",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:r09a",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:r09a",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r09a",
+                "--target",
+                "arc"
+              ],
+              "command": "r09a",
+              "command_argv": [
+                "r09a",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "r09a",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r09a",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "r09a"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:r09a",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "r09a",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:r09a",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "r09a",
+            "invocation_metadata": {
+              "wrapper_command": "r09a",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:r09a",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:r09b",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:r09b",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r09b",
+                "--target",
+                "arc"
+              ],
+              "command": "r09b",
+              "command_argv": [
+                "r09b",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "r09b",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r09b",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "r09b"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:r09b",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "r09b",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:r09b",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "r09b",
+            "invocation_metadata": {
+              "wrapper_command": "r09b",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:r09b",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:r09b-gate",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:r09b-gate",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r09b_gate",
+                "--target",
+                "arc"
+              ],
+              "command": "r09b-gate",
+              "command_argv": [
+                "r09b_gate",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "r09b-gate",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r09b_gate",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "r09b_gate"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:r09b-gate",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "r09b-gate",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:r09b-gate",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "r09b-gate",
+            "invocation_metadata": {
+              "wrapper_command": "r09b-gate",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:r09b-gate",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:r10",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:r10",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r10",
+                "--target",
+                "arc"
+              ],
+              "command": "r10",
+              "command_argv": [
+                "r10",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "r10",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r10",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "r10"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:r10",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "r10",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:r10",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "r10",
+            "invocation_metadata": {
+              "wrapper_command": "r10",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:r10",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:r10-gate",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:r10-gate",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r10_gate",
+                "--target",
+                "arc"
+              ],
+              "command": "r10-gate",
+              "command_argv": [
+                "r10_gate",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "r10-gate",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r10_gate",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "r10_gate"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:r10-gate",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "r10-gate",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:r10-gate",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "r10-gate",
+            "invocation_metadata": {
+              "wrapper_command": "r10-gate",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:r10-gate",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:r10a",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:r10a",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r10a",
+                "--target",
+                "arc"
+              ],
+              "command": "r10a",
+              "command_argv": [
+                "r10a",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "r10a",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r10a",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "r10a"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:r10a",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "r10a",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:r10a",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "r10a",
+            "invocation_metadata": {
+              "wrapper_command": "r10a",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:r10a",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:r10b",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:r10b",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r10b",
+                "--target",
+                "arc"
+              ],
+              "command": "r10b",
+              "command_argv": [
+                "r10b",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "r10b",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r10b",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "r10b"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:r10b",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "r10b",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:r10b",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "r10b",
+            "invocation_metadata": {
+              "wrapper_command": "r10b",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:r10b",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:r10c",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:r10c",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r10c",
+                "--target",
+                "arc"
+              ],
+              "command": "r10c",
+              "command_argv": [
+                "r10c",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "r10c",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r10c",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "r10c"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:r10c",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "r10c",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:r10c",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "r10c",
+            "invocation_metadata": {
+              "wrapper_command": "r10c",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:r10c",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:r11",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:r11",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r11",
+                "--target",
+                "arc"
+              ],
+              "command": "r11",
+              "command_argv": [
+                "r11",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "r11",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r11",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "r11"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:r11",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "r11",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:r11",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "r11",
+            "invocation_metadata": {
+              "wrapper_command": "r11",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:r11",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:r11-gate",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:r11-gate",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r11_gate",
+                "--target",
+                "arc"
+              ],
+              "command": "r11-gate",
+              "command_argv": [
+                "r11_gate",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "r11-gate",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r11_gate",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "r11_gate"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:r11-gate",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "r11-gate",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:r11-gate",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "r11-gate",
+            "invocation_metadata": {
+              "wrapper_command": "r11-gate",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:r11-gate",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:r11a",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:r11a",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r11a",
+                "--target",
+                "arc"
+              ],
+              "command": "r11a",
+              "command_argv": [
+                "r11a",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "r11a",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r11a",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "r11a"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:r11a",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "r11a",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:r11a",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "r11a",
+            "invocation_metadata": {
+              "wrapper_command": "r11a",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:r11a",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:r11b",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:r11b",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r11b",
+                "--target",
+                "arc"
+              ],
+              "command": "r11b",
+              "command_argv": [
+                "r11b",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "r11b",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r11b",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "r11b"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:r11b",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "r11b",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:r11b",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "r11b",
+            "invocation_metadata": {
+              "wrapper_command": "r11b",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:r11b",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:r12",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:r12",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r12",
+                "--target",
+                "arc"
+              ],
+              "command": "r12",
+              "command_argv": [
+                "r12",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "r12",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r12",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "r12"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:r12",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "r12",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:r12",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "r12",
+            "invocation_metadata": {
+              "wrapper_command": "r12",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:r12",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:r12-gate",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:r12-gate",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r12_gate",
+                "--target",
+                "arc"
+              ],
+              "command": "r12-gate",
+              "command_argv": [
+                "r12_gate",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "r12-gate",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r12_gate",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "r12_gate"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:r12-gate",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "r12-gate",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:r12-gate",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "r12-gate",
+            "invocation_metadata": {
+              "wrapper_command": "r12-gate",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:r12-gate",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:r12a",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:r12a",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r12a",
+                "--target",
+                "arc"
+              ],
+              "command": "r12a",
+              "command_argv": [
+                "r12a",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "r12a",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "r12a",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "r12a"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:r12a",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "r12a",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:r12a",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "r12a",
+            "invocation_metadata": {
+              "wrapper_command": "r12a",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:r12a",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:refresh-install",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:refresh-install",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "refresh_install",
+                "--target",
+                "arc"
+              ],
+              "command": "refresh-install",
+              "command_argv": [
+                "refresh_install",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "refresh-install",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "refresh_install",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "refresh_install"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:refresh-install",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "refresh-install",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:refresh-install",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "refresh-install",
+            "invocation_metadata": {
+              "wrapper_command": "refresh-install",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:refresh-install",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:release",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:release",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "release",
+                "--target",
+                "arc"
+              ],
+              "command": "release",
+              "command_argv": [
+                "release",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "release",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "release",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "release"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:release",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "release",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:release",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "release",
+            "invocation_metadata": {
+              "wrapper_command": "release",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:release",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:seal",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:seal",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "final_seal",
+                "--target",
+                "arc"
+              ],
+              "command": "seal",
+              "command_argv": [
+                "final_seal",
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "seal",
+              "devtool_command": "",
+              "execution_kind": "workflow",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "invoke",
+                "final_seal",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": "final_seal"
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:seal",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "seal",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:seal",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "seal",
+            "invocation_metadata": {
+              "wrapper_command": "seal",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:seal",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:setup",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:setup",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "restore",
+                "--target",
+                "arc"
+              ],
+              "command": "setup",
+              "command_argv": [
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "setup",
+              "devtool_command": "restore",
+              "execution_kind": "native",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {},
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "restore",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": ""
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:setup",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "setup",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:setup",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "setup",
+            "invocation_metadata": {
+              "wrapper_command": "setup",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:setup",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:test",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:test",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "test",
+                "--target",
+                "arc"
+              ],
+              "command": "test",
+              "command_argv": [
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "test",
+              "devtool_command": "test",
+              "execution_kind": "native",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {
+                "changed": {
+                  "defaulted": false,
+                  "provided": false,
+                  "value": false
+                },
+                "failed": {
+                  "defaulted": false,
+                  "provided": false,
+                  "value": false
+                },
+                "list": {
+                  "defaulted": false,
+                  "provided": false,
+                  "value": false
+                },
+                "node": {
+                  "defaulted": false,
+                  "provided": false,
+                  "value": []
+                },
+                "profile": {
+                  "defaulted": false,
+                  "provided": false,
+                  "value": null
+                }
+              },
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "test",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": ""
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:test",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "test",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:test",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "test",
+            "invocation_metadata": {
+              "wrapper_command": "test",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:test",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "detail": "command help rendered",
+          "name": "command:validate",
+          "section": "help",
+          "status": "ok"
+        },
+        {
+          "detail": "mode=help",
+          "name": "help:validate",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "resolution": {
+              "canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "validate",
+                "--target",
+                "arc"
+              ],
+              "command": "validate",
+              "command_argv": [
+                "--target",
+                "arc"
+              ],
+              "command_spelling": "validate",
+              "devtool_command": "validate",
+              "execution_kind": "native",
+              "global_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+              ],
+              "help_requested": false,
+              "launch_cwd": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "mode": "execute",
+              "options": {
+                "affected": {
+                  "defaulted": false,
+                  "provided": false,
+                  "value": false
+                },
+                "changed": {
+                  "defaulted": false,
+                  "provided": false,
+                  "value": false
+                },
+                "failed": {
+                  "defaulted": false,
+                  "provided": false,
+                  "value": false
+                },
+                "profile": {
+                  "defaulted": false,
+                  "provided": false,
+                  "value": null
+                }
+              },
+              "passthrough_argv": [],
+              "positionals": {},
+              "raw_passthrough_argv": [],
+              "redacted_canonical_argv": [
+                "--repo",
+                "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+                "validate",
+                "--target",
+                "arc"
+              ],
+              "repo_root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+              "schema": 1,
+              "scope": {
+                "all_targets": false,
+                "group": "",
+                "target": "arc"
+              },
+              "sensitive_options": [],
+              "version_requested": false,
+              "workflow_action": ""
+            }
+          },
+          "detail": "canonical argv resolved",
+          "name": "execute:validate",
+          "section": "resolution",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "callback_exit_code": 73,
+            "command_token": "<redacted>",
+            "internal_control_counts": {
+              "--internal-invocation-command": 1,
+              "--internal-invocation-source": 1,
+              "--internal-wrapper-schema": 1
+            },
+            "invocation_command": "validate",
+            "invocation_source": "wrapper",
+            "nested_wrapper_dispatch": false,
+            "reentry_count": 1,
+            "wrapper_schema": "1"
+          },
+          "detail": "canonical bridge re-entered exactly once",
+          "name": "command:validate",
+          "section": "execution-bridge",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "invocation_command": "validate",
+            "invocation_metadata": {
+              "wrapper_command": "validate",
+              "wrapper_schema": "1"
+            },
+            "invocation_source": "wrapper"
+          },
+          "detail": "wrapper provenance persisted through EXO execution store",
+          "name": "command:validate",
+          "section": "execution-origin",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "doctor": {
+              "detail": "schema 1; commands: build, check, clean, fast, format, gate, lint, package, quality, r06, r07, r08, r09a, r09b, r09b-gate, r10, r10-gate, r10a, r10b, r10c, r11, r11-gate, r11a, r11b, r12, r12-gate, r12a, refresh-install, release, seal, setup, test, validate",
+              "name": "wrapper",
+              "section": "project",
+              "status": "ok"
+            }
+          },
+          "detail": "schema 1; commands: build, check, clean, fast, format, gate, lint, package, quality, r06, r07, r08, r09a, r09b, r09b-gate, r10, r10-gate, r10a, r10b, r10c, r11, r11-gate, r11a, r11b, r12, r12-gate, r12a, refresh-install, release, seal, setup, test, validate",
+          "name": "project:wrapper",
+          "section": "doctor",
+          "status": "ok"
+        },
+        {
+          "data": {
+            "doctor": {
+              "detail": "devtoolw:drifted, devtoolw.cmd:drifted",
+              "name": "wrapper-launchers",
+              "section": "project",
+              "status": "optional"
+            }
+          },
+          "detail": "devtoolw:drifted, devtoolw.cmd:drifted",
+          "name": "project:wrapper-launchers",
+          "section": "doctor",
+          "status": "error"
+        },
+        {
+          "data": {
+            "doctor": {
+              "detail": "all wrapper commands have descriptions",
+              "name": "wrapper-docs",
+              "section": "project",
+              "status": "ok"
+            }
+          },
+          "detail": "all wrapper commands have descriptions",
+          "name": "project:wrapper-docs",
+          "section": "doctor",
+          "status": "ok"
+        }
+      ],
+      "commands": [
+        "build",
+        "check",
+        "clean",
+        "fast",
+        "format",
+        "gate",
+        "lint",
+        "package",
+        "quality",
+        "r06",
+        "r07",
+        "r08",
+        "r09a",
+        "r09b",
+        "r09b-gate",
+        "r10",
+        "r10-gate",
+        "r10a",
+        "r10b",
+        "r10c",
+        "r11",
+        "r11-gate",
+        "r11a",
+        "r11b",
+        "r12",
+        "r12-gate",
+        "r12a",
+        "refresh-install",
+        "release",
+        "seal",
+        "setup",
+        "test",
+        "validate"
+      ],
+      "ok": false,
+      "repository": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+      "schema_version": 2,
+      "status": "error"
+    },
+    "duration_seconds": 9.414692231002846,
+    "events": [],
+    "exit_code": 1,
+    "ipc_protocol_version": 2,
+    "machine": {
+      "actions": [
+        {
+          "category": "operation",
+          "confirmation_default": true,
+          "confirmation_mode": "never",
+          "confirmation_prompt": "Retry this operation?",
+          "confirmation_reason": "policy skips confirmation",
+          "destructive": false,
+          "disabled_reason": "",
+          "enabled": true,
+          "icon": "action.retry",
+          "id": "operation.retry",
+          "intent": "retry",
+          "label": "Retry operation",
+          "notification_label": "Retry",
+          "payload": {
+            "has_uncommitted_mutation": false
+          },
+          "requires_confirmation": false,
+          "short_label": "Retry",
+          "shortcut": "",
+          "token": "action.secondary"
+        },
+        {
+          "category": "sharing",
+          "confirmation_default": true,
+          "confirmation_mode": "never",
+          "confirmation_prompt": "Retry this operation?",
+          "confirmation_reason": "policy skips confirmation",
+          "destructive": false,
+          "disabled_reason": "",
+          "enabled": true,
+          "icon": "action.copy",
+          "id": "summary.copy",
+          "intent": "copy-summary",
+          "label": "Copy summary",
+          "notification_label": "Copy summary",
+          "payload": {
+            "has_uncommitted_mutation": false
+          },
+          "requires_confirmation": false,
+          "short_label": "Copy",
+          "shortcut": "",
+          "token": "action.secondary"
+        }
+      ],
+      "capabilities": {
+        "negotiation": {
+          "fallbacks": {},
+          "missing": [],
+          "requested": [
+            "tree_view"
+          ],
+          "satisfied": true,
+          "schema_version": 1,
+          "supported": [
+            "tree_view"
+          ],
+          "surface": "machine"
+        },
+        "supported": {
+          "clipboard": false,
+          "dialogs": false,
+          "hyperlinks": true,
+          "interactive": false,
+          "keyboard": false,
+          "mouse": false,
+          "multi_pane": false,
+          "native_icons": false,
+          "notifications": false,
+          "persistent_navigation": false,
+          "resize_events": false,
+          "rich_text": false,
+          "schema_version": 1,
+          "surface": "machine",
+          "tables": true,
+          "touch": false,
+          "tree_view": true
+        },
+        "surface": "machine"
+      },
+      "diagnostics": {
+        "items": [],
+        "presentations": [],
+        "summary": {
+          "blocking": false,
+          "errors": 0,
+          "info": 0,
+          "primary_id": "",
+          "schema_version": 1,
+          "total": 0,
+          "warnings": 0
+        }
+      },
+      "federation": {},
+      "navigation": [
+        {
+          "icon": "nav.dashboard",
+          "id": "dashboard",
+          "label": "Overview",
+          "order": 10,
+          "route": "dashboard",
+          "section": "primary",
+          "short_label": "Overview"
+        },
+        {
+          "icon": "nav.operations",
+          "id": "operations",
+          "label": "Active runs",
+          "order": 20,
+          "route": "operations",
+          "section": "primary",
+          "short_label": "Runs"
+        },
+        {
+          "icon": "nav.history",
+          "id": "history",
+          "label": "History",
+          "order": 30,
+          "route": "history",
+          "section": "primary",
+          "short_label": "History"
+        },
+        {
+          "icon": "nav.artifacts",
+          "id": "artifacts",
+          "label": "Artifacts",
+          "order": 40,
+          "route": "artifacts",
+          "section": "primary",
+          "short_label": "Artifacts"
+        },
+        {
+          "icon": "nav.diagnostics",
+          "id": "diagnostics",
+          "label": "Diagnostics",
+          "order": 50,
+          "route": "diagnostics",
+          "section": "primary",
+          "short_label": "Issues"
+        },
+        {
+          "icon": "nav.projects",
+          "id": "projects",
+          "label": "Repository",
+          "order": 60,
+          "route": "projects",
+          "section": "primary",
+          "short_label": "Repo"
+        },
+        {
+          "icon": "nav.targets",
+          "id": "targets",
+          "label": "Targets",
+          "order": 70,
+          "route": "targets",
+          "section": "primary",
+          "short_label": "Targets"
+        },
+        {
+          "icon": "nav.validation",
+          "id": "validation",
+          "label": "Run",
+          "order": 80,
+          "route": "validation",
+          "section": "primary",
+          "short_label": "Run"
+        },
+        {
+          "icon": "nav.workflows",
+          "id": "workflows",
+          "label": "Workflows",
+          "order": 90,
+          "route": "workflows",
+          "section": "primary",
+          "short_label": "Workflows"
+        },
+        {
+          "icon": "nav.logs",
+          "id": "logs",
+          "label": "Logs",
+          "order": 100,
+          "route": "logs",
+          "section": "primary",
+          "short_label": "Logs"
+        },
+        {
+          "icon": "nav.environment",
+          "id": "environment",
+          "label": "Environment",
+          "order": 110,
+          "route": "environment",
+          "section": "primary",
+          "short_label": "Environment"
+        },
+        {
+          "icon": "nav.settings",
+          "id": "settings",
+          "label": "Settings",
+          "order": 120,
+          "route": "settings",
+          "section": "secondary",
+          "short_label": "Settings"
+        }
+      ],
+      "notifications": [
+        {
+          "actions": [
+            "operation.retry",
+            "summary.copy"
+          ],
+          "bell": true,
+          "body": "",
+          "event": "failed",
+          "id": "run:wrapper",
+          "level": "critical",
+          "schema_version": 1,
+          "should_emit": true,
+          "title": "wrapper",
+          "token": "severity.error"
+        }
+      ],
+      "operation": {
+        "command": "wrapper",
+        "detail": "",
+        "execution_environment": "",
+        "finished_at": "",
+        "log_path": "",
+        "phase": "",
+        "run_id": "",
+        "runner": "",
+        "started_at": "2026-09-29T03:17:36.288505Z",
+        "status": "failed",
+        "target": "",
+        "title": "wrapper",
+        "token": "status.failed",
+        "updated_at": "2026-09-29T03:17:45.968889Z"
+      },
+      "presentation": {
+        "confirm_cancel": false,
+        "confirm_destructive": true,
+        "confirmation_policy": {
+          "apply_artifact": "smart",
+          "artifact_manifest": "smart",
+          "cancel": "smart",
+          "delete_artifact": "always",
+          "dirty_tree": "smart",
+          "retry": "never",
+          "rollback": "always",
+          "snapshot_overwrite": "always"
+        },
+        "density": "detailed",
+        "duration_format": "human",
+        "icons": "auto",
+        "max_steps": 0,
+        "motion": "auto",
+        "mouse": true,
+        "notification_detail": "normal",
+        "notification_policy": {
+          "bell_on_failure": true,
+          "bell_on_requires_action": false,
+          "failures": true,
+          "phase_changes": false,
+          "requires_action": true,
+          "started": false,
+          "success": true,
+          "warnings": true
+        },
+        "profile": "standard",
+        "provenance": {
+          "confirm_cancel": "default",
+          "confirm_destructive": "default",
+          "density": "surface:machine",
+          "duration_format": "default",
+          "icons": "default",
+          "max_steps": "default",
+          "motion": "default",
+          "mouse": "default",
+          "notification_detail": "default",
+          "show_commands": "default",
+          "show_completed_steps": "default",
+          "show_diagnostics": "default",
+          "show_environment": "default",
+          "sidebar": "default",
+          "theme": "default",
+          "timestamps": "default",
+          "verbosity": "default"
+        },
+        "show_commands": "on-error",
+        "show_completed_steps": true,
+        "show_diagnostics": "expanded-on-error",
+        "show_environment": "when-relevant",
+        "sidebar": "auto",
+        "theme": "auto",
+        "timestamps": "relative",
+        "verbosity": "normal"
+      },
+      "producer": "devtool",
+      "progress": {
+        "nodes": [
+          {
+            "blocked_by": [],
+            "current": null,
+            "dependencies": [],
+            "detail": "",
+            "duration_ms": null,
+            "errors": 0,
+            "execution_environment": "",
+            "finished_at": "",
+            "id": "wrapper",
+            "kind": "phase",
+            "label": "wrapper",
+            "metrics": {},
+            "parent_id": "",
+            "percent": null,
+            "runner": "",
+            "started_at": "2026-09-29T03:17:36.288505Z",
+            "status": "failed",
+            "target": "",
+            "token": "status.failed",
+            "total": null,
+            "warnings": 0,
+            "workflow": ""
+          }
+        ],
+        "summary": {
+          "active_ids": [],
+          "blocked_nodes": 0,
+          "cancelled_nodes": 0,
+          "completed_nodes": 1,
+          "failed_nodes": 1,
+          "measured_percent": null,
+          "measurement_coverage_percent": 0,
+          "overall_percent": null,
+          "pending_nodes": 0,
+          "resolution_percent": 100,
+          "running_nodes": 0,
+          "schema_version": 1,
+          "semantics_version": 2,
+          "skipped_nodes": 0,
+          "succeeded_nodes": 0,
+          "test_assemblies": 0,
+          "test_metrics_available": false,
+          "tests_failed": 0,
+          "tests_passed": 0,
+          "tests_skipped": 0,
+          "tests_total": 0,
+          "total_nodes": 1
+        },
+        "tree": [
+          {
+            "blocked_by": [],
+            "children": [
+              {
+                "blocked_by": [],
+                "children": [],
+                "current": null,
+                "detail": "",
+                "duration_ms": null,
+                "errors": 0,
+                "execution_environment": "",
+                "finished_at": "",
+                "id": "wrapper",
+                "kind": "phase",
+                "label": "wrapper",
+                "percent": null,
+                "runner": "",
+                "started_at": "2026-09-29T03:17:36.288505Z",
+                "status": "failed",
+                "target": "",
+                "token": "status.failed",
+                "total": null,
+                "warnings": 0,
+                "workflow": ""
+              }
+            ],
+            "current": null,
+            "detail": "",
+            "duration_ms": null,
+            "errors": 0,
+            "execution_environment": "",
+            "finished_at": "",
+            "id": "operation:wrapper",
+            "kind": "operation",
+            "label": "wrapper",
+            "percent": null,
+            "runner": "",
+            "started_at": "2026-09-29T03:17:36.288505Z",
+            "status": "failed",
+            "target": "",
+            "token": "status.failed",
+            "total": null,
+            "warnings": 0,
+            "workflow": ""
+          }
+        ]
+      },
+      "responsive": {
+        "diagnostic_detail": "all",
+        "effective_density": "detailed",
+        "height": null,
+        "inspector": "semantic",
+        "mode": "semantic",
+        "navigation": "semantic",
+        "panes": 1,
+        "progress_detail": "all",
+        "reason": "machine contract is renderer-neutral",
+        "schema_version": 1,
+        "surface": "machine",
+        "width": null
+      },
+      "run_id": "",
+      "schema_version": 2,
+      "selection": {
+        "groups": [],
+        "operation": "wrapper",
+        "targets": [],
+        "variant": ""
+      },
+      "test_selection": {},
+      "workflow": {
+        "current_node": "",
+        "detail": "",
+        "execution_environment": "",
+        "name": "",
+        "phase_progress": [],
+        "pipeline": [],
+        "runner": "",
+        "target": "",
+        "targets": []
+      },
+      "workspace": {
+        "name": "worktree",
+        "root": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+        "selected_groups": [],
+        "selected_target": "",
+        "targets": []
+      }
+    },
+    "machine_schema_version": 2,
+    "ok": false,
+    "repo": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree",
+    "result": {
+      "duration": 9.414692231002846,
+      "errors": [],
+      "exit_code": 1,
+      "metadata": {
+        "command": "wrapper",
+        "repo": "/data/data/com.termux/files/home/.local/share/devtool/transactions/arc-cli-4a7d1b1aeba7f193/20260929T031325Z-99b877c6df19/worktree"
+      },
+      "stderr": "",
+      "stdout": "",
+      "success": false,
+      "warnings": []
+    },
+    "schema_version": 1,
+    "started_at": "2026-09-29T03:17:36.288505Z",
+    "stderr": "",
+    "stdout": ""
+  },
+  "process_exit_code": 1,
+  "schema_version": 2,
+  "status": "PASS",
+  "stderr": "",
+  "tolerated_template_drift": [
+    {
+      "detail": "devtoolw:drifted, devtoolw.cmd:drifted",
+      "name": "current",
+      "section": "launchers"
+    },
+    {
+      "detail": "devtoolw:drifted, devtoolw.cmd:drifted",
+      "name": "project:wrapper-launchers",
+      "section": "doctor"
+    }
+  ],
+  "unexpected_checks": []
+}
