@@ -802,8 +802,12 @@ def _materialize_stdin(path: Path, explicit_format: str | None, *, dry_run: bool
     fd, name = tempfile.mkstemp(prefix="arc-stdin-", suffix=suffix)
     os.close(fd)
     temp = Path(name)
-    with temp.open("wb") as fh:
-        shutil.copyfileobj(sys.stdin.buffer, fh)
+    try:
+        with temp.open("wb") as fh:
+            shutil.copyfileobj(sys.stdin.buffer, fh)
+    except BaseException:
+        temp.unlink(missing_ok=True)
+        raise
     return temp, temp
 
 

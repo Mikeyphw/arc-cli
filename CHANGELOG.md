@@ -1,3 +1,10 @@
+## 0.2.0 COMP-R01 temporary lifecycle hardening
+
+- Automatically clean transaction-owned temporary paths on successful exit, ordinary failure, and Ctrl+C/KeyboardInterrupt while preserving durable failed/interrupted journal status.
+- Keep unrecoverable cleanup failures registered for explicit `arc recover --cleanup` instead of masking the original command error.
+- Harden remote read staging, stdin materialization, and backend manifest creation so interruption cannot bypass local temp cleanup.
+- Add focused merge/join candidate leak tests plus cumulative R03/R04/R07/composition qualification and first-class Devtool `comp_r01` ownership.
+
 ## 0.2.0 COMP-X03 exact split + join volume protocol
 
 - Added format-agnostic `arc split` by target size or requested part count with deterministic `.partNNN` naming, configurable prefix/directory/digits/checksum controls, default verification, and optional source deletion only after proof.

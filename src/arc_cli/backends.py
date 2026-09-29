@@ -152,15 +152,19 @@ def _manifest_file(entries: list[ManifestEntry], *, dry_run: bool = False, nul: 
     fd, name = tempfile.mkstemp(prefix="arc-manifest-")
     os.close(fd)
     p = Path(name)
-    if nul:
-        with p.open("wb") as fh:
-            for e in entries:
-                fh.write(os.fsencode(e.source))
-                fh.write(b"\0")
-    else:
-        with p.open("w", encoding="utf-8", errors="surrogateescape", newline="") as fh:
-            for e in entries:
-                fh.write(os.fspath(e.source) + "\n")
+    try:
+        if nul:
+            with p.open("wb") as fh:
+                for e in entries:
+                    fh.write(os.fsencode(e.source))
+                    fh.write(b"\0")
+        else:
+            with p.open("w", encoding="utf-8", errors="surrogateescape", newline="") as fh:
+                for e in entries:
+                    fh.write(os.fspath(e.source) + "\n")
+    except BaseException:
+        p.unlink(missing_ok=True)
+        raise
     return p
 
 

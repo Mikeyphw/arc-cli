@@ -89,10 +89,13 @@ def test_recover_cleanup_removes_only_registered_temp_path(tmp_path: Path, monke
             tx_cleanup(owned, reason="test-owned")
             txid = journal.id
             raise RuntimeError("boom")
+    # Transaction-owned temporary state is now removed automatically on the
+    # failing exit; explicit recovery remains idempotent for old/partial state.
+    assert not owned.exists()
+    assert unrelated.read_text() == "keep"
     assert main(["recover", txid, "--cleanup", "--json"]) == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["status"] == "cleaned"
-    assert not owned.exists()
     assert unrelated.read_text() == "keep"
 
 

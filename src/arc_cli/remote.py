@@ -876,7 +876,7 @@ def stage_remote_for_read(location: RemoteLocation, config: dict, *, dry_run: bo
     target = Path(name)
     try:
         download_remote(location, target, config, progress=progress)
-    except Exception:
+    except BaseException:
         target.unlink(missing_ok=True)
         raise
     return target, target

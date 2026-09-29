@@ -146,7 +146,7 @@ Milestone gates remain separate artifacts. A gate should reference repository-de
 
 The R01–R12 campaign is sealed. The next compact wave adds archive composition and exact transport-volume reconstruction without weakening the existing format/backend/execution authorities. The separate final campaign content seal remains historical evidence for the closed R01–R12 baseline; COMP-G1 will qualify this new wave.
 
-**Merge-window decision:** keep COMP-X01 separate because version authority and reusable naming contracts are infrastructure; keep COMP-X02 separate because archive-member merge/concat owns archive semantics and backend execution; merge split + join into COMP-X03 because they are two halves of one exact byte-volume protocol. The gate remains separate.
+**Merge-window decision:** keep COMP-X01 separate because version authority and reusable naming contracts are infrastructure; keep COMP-X02 separate because archive-member merge/concat owns archive semantics and backend execution; merge split + join into COMP-X03 because they are two halves of one exact byte-volume protocol. A newly discovered temporary-lifecycle gap is owned by one focused pre-gate remediation, COMP-R01. The gate remains separate and qualification-only.
 
 ### COMP-X01 — version authority and composition foundation — implementation 1 of 3
 
@@ -166,6 +166,12 @@ Add lossless byte-volume `arc split` and manifest-aware `arc join`. `split` owns
 
 Delivered implementation keeps split/join format-agnostic: parts are exact bytes rather than native archive volumes; SHA-256/SHA-512/BLAKE2b manifests anchor whole-file and per-part proof; zero-byte/exact-boundary cases are deterministic; the manifest is published last as the complete-set record; join is strict by default and exposes an explicit weaker `--allow-missing-manifest` mode; destructive cleanup requires verification. Split stages remote read-side sources through the existing transport authority while X03 outputs remain local. Aliases, explain/dry-run, machine/batch, completion, generated manuals, schema packaging, and Devtool `comp_x03` ownership are part of the implementation surface.
 
+### COMP-R01 — temporary lifecycle hardening — pre-gate remediation 1 of 1
+
+**Status: IMPLEMENTED; apply before COMP-G1.**
+
+Make Arc-owned temporary state self-cleaning on every ordinary command exit: success, handled errors, and interruption such as Ctrl+C/SIGINT. Transaction-owned candidates are removed automatically without erasing the durable `failed`/`interrupted` journal status; paths that genuinely cannot be removed remain registered for later `arc recover --cleanup`. Harden pre-transaction staging/materialization helpers so `KeyboardInterrupt`/`SystemExit` cannot bypass cleanup: remote read staging, stdin materialization, and backend list-manifest creation all remove their temp path on `BaseException`. Qualify merge/join unpublished candidates explicitly and retain the older recovery command as an idempotent fallback for legacy or cleanup-failure state.
+
 ### COMP-G1 — separate composition qualification gate
 
-Audit COMP-X01 through COMP-X03 together: version/package identity; output inference; real safe stream concat; TAR/ZIP/7z logical merge; mixed formats; member conflicts; remote staging; interruption/recovery; zero/exact-boundary split sizes; missing/corrupt/reordered parts; machine schemas; explain/batch/completion/manpages/wheel/sdist; and destructive cleanup after verification. The gate must not contain implementation work.
+Audit COMP-X01 through COMP-X03 plus COMP-R01 together: version/package identity; output inference; real safe stream concat; TAR/ZIP/7z logical merge; mixed formats; member conflicts; remote staging; interruption/recovery; zero/exact-boundary split sizes; missing/corrupt/reordered parts; machine schemas; explain/batch/completion/manpages/wheel/sdist; destructive cleanup after verification; and **temporary-file hygiene on success, ordinary errors, and Ctrl+C/SIGINT** across merge/split/join, transaction candidates, remote staging, stdin materialization, backend manifests, verification, and publication. The gate must not contain implementation work.

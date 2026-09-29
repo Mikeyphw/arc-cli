@@ -194,7 +194,7 @@ class TransactionJournal:
         self.event("interrupted" if interrupted else "failed", status=self.data["status"], message=str(error))
         self._save()
 
-    def cleanup(self) -> list[dict[str, Any]]:
+    def cleanup(self, *, preserve_status: bool = False) -> list[dict[str, Any]]:
         outcomes: list[dict[str, Any]] = []
         for item in self.data.setdefault("cleanup_paths", []):
             if item.get("cleaned"):
@@ -214,7 +214,11 @@ class TransactionJournal:
             except OSError as exc:
                 outcome["error"] = str(exc)
             outcomes.append(outcome)
-        if self.status != "completed" and all(item.get("cleaned") for item in self.data.get("cleanup_paths", [])):
+        if (
+            not preserve_status
+            and self.status != "completed"
+            and all(item.get("cleaned") for item in self.data.get("cleanup_paths", []))
+        ):
             self.data["status"] = "cleaned"
         self.event("cleanup", status=self.data["status"], outcomes=outcomes)
         self._save()
@@ -230,6 +234,26 @@ def current_transaction() -> TransactionJournal | None:
     return _current_transaction.get()
 
 
+def _auto_cleanup_registered(journal: TransactionJournal) -> None:
+    """Best-effort removal of transaction-owned temporary state on every exit.
+
+    Automatic cleanup preserves the terminal transaction status so an error or
+    interruption remains durable evidence even after its temporary files are
+    gone.  Any cleanup path that cannot be removed stays registered and can be
+    retried explicitly with ``arc recover --cleanup``.
+    """
+
+    pending = [item for item in journal.data.get("cleanup_paths", []) if not item.get("cleaned")]
+    if not pending:
+        return
+    try:
+        journal.cleanup(preserve_status=True)
+    except BaseException:
+        # Cleanup must never replace the user's original failure/interrupt. The
+        # journal is durable; any still-unowned path remains recoverable later.
+        pass
+
+
 @contextmanager
 def transaction_scope(
     operation: str,
@@ -242,12 +266,15 @@ def transaction_scope(
     try:
         journal.event("begin", status="active")
         yield journal
+        _auto_cleanup_registered(journal)
         if journal.status == "active":
             journal.complete()
     except KeyboardInterrupt as exc:
+        _auto_cleanup_registered(journal)
         journal.fail(exc, interrupted=True)
         raise
     except BaseException as exc:
+        _auto_cleanup_registered(journal)
         journal.fail(exc)
         raise
     finally:
