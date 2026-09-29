@@ -1,3 +1,11 @@
+## ARC-R12 advisory intelligence, benchmark, and diagnostics evidence
+
+- Add factual `arc formats recommend PATH` evidence with no implicit selection/ranking.
+- Add reproducible, host-specific `arc benchmark` encode/decode/ratio/memory evidence over generated or user-selected corpora.
+- Add offline redacted `arc diagnostics bundle` support ZIPs with config/backend/runtime/install/structured-diagnostic/cached-remote evidence and per-member hashes.
+- Bundle three R12 JSON Schemas plus `--json=v1`, docs/completion/package parity, and first-class Devtool `r12` ownership.
+- Harden backend-version collection for diagnostics on Termux/native tools that emit non-UTF-8 or mixed binary/text `--version` output; version evidence is now byte-safe and bounded instead of crashing support-bundle creation.
+
 ## ARC-R11 cumulative gate
 
 - Qualify R11 through R11B with a separate 134-test gate spanning five-layer provenance, strict typed config/environment diagnostics, doctor isolation, machine/schema parity, cumulative R10 compatibility, generated surfaces, and packaging.

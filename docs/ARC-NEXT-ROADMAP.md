@@ -124,13 +124,15 @@ The widened R11 gate audit found one final convergence gap: after diagnosing an 
 
 ## R12 — Advisory intelligence, benchmarking, and support evidence
 
-Merge window: inspect items 16–18 before implementation.
+**Merge-window decision:** merge items 16–18. Format recommendation, benchmark evidence, and diagnostics/support bundles consume the same typed backend/config/runtime/remote evidence authority; splitting them would create competing host-capability models. The R12 gate/final campaign seal remains a separate artifact.
 
-16. Add `arc formats recommend PATH` as a factual compatibility/tradeoff surface—metadata preservation, streaming, encryption, multipart, installed-backend availability—without silently choosing for the user.
-17. Add `arc benchmark` using generated or user-selected corpora to measure encode/decode throughput, compression ratio, memory where measurable, and capability availability. Keep benchmark evidence reproducible and clearly host-specific.
-18. Add `arc diagnostics bundle` containing redacted version/config provenance, backend versions/capabilities, platform/Python/runtime identity, alias/install health, recent structured diagnostics, and relevant remote capability evidence. Never include passwords, secret environment values, or archive contents by default.
+16. `arc formats recommend PATH` emits factual `arc.format-recommendation/v1` compatibility/tradeoff evidence—input compatibility, metadata preservation, streaming, encryption, multipart, random-access behavior, and installed backend chains. It intentionally carries `selection=null`: no score, rank, winner, or silent format choice.
+17. `arc benchmark [CORPUS]` accepts a user-selected file/directory or a deterministic generated corpus. `arc.benchmark/v1` records corpus SHA-256 identity, host/Python/Arc identity, capability availability, encode/decode throughput, encoded size, encoded/input ratio, traditional compression ratio, round-trip proof, and process-tree RSS where measurable. Unavailable formats stay explicit; evidence is reproducible for its corpus parameters and explicitly host-specific.
+18. `arc diagnostics bundle` creates an offline JSON-only ZIP containing redacted runtime/config provenance, backend versions/capabilities, alias/install health, doctor evidence, recent structured transaction diagnostics, and cached remote capability evidence. It performs no network probe, never includes archive contents by default, and redacts password-like fields and sensitive environment values. `manifest.json` hashes every evidence JSON member.
 
-Expected boundary: advisory/diagnostic tooling that consumes the typed capabilities, machine schema, config provenance, and runtime truth implemented earlier.
+R12 also bundles/queryable `format-recommendation-v1`, `benchmark-v1`, and `diagnostics-bundle-v1` schemas, supports `--json=v1`, ships generated manuals/completion/package resources, and owns first-class `r12` Devtool profile/workflow/test/contract/wrapper surfaces.
+
+**Separate R12 gate/final seal:** audit the complete R12 promise ledger and cumulative campaign evidence, then bind the exact post-R12 source/artifact identity without folding seal work into this implementation overlay.
 
 ## Gate and seal policy
 

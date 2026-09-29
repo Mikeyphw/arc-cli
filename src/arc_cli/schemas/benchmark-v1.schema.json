@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "arc.benchmark/v1",
+  "title": "Arc host-specific benchmark evidence v1",
+  "type": "object",
+  "$defs": {
+    "measurement": {
+      "type": "object",
+      "required": ["returncode", "seconds", "peak_rss_bytes", "memory_method", "stdout_tail", "stderr_tail", "throughput_bytes_per_second"],
+      "properties": {
+        "returncode": {"type": "integer"},
+        "seconds": {"type": "number", "exclusiveMinimum": 0},
+        "peak_rss_bytes": {"type": ["integer", "null"], "minimum": 0},
+        "memory_method": {"type": ["string", "null"]},
+        "stdout_tail": {"type": "string"},
+        "stderr_tail": {"type": "string"},
+        "throughput_bytes_per_second": {"type": ["number", "null"], "minimum": 0}
+      },
+      "additionalProperties": true
+    },
+    "iteration": {
+      "type": "object",
+      "required": ["iteration", "archive_bytes", "ratio", "encoded_to_input_ratio", "compression_ratio", "space_savings_fraction", "encode", "decode", "verified_roundtrip"],
+      "properties": {
+        "iteration": {"type": "integer", "minimum": 1},
+        "archive_bytes": {"type": "integer", "minimum": 0},
+        "ratio": {"type": ["number", "null"]},
+        "encoded_to_input_ratio": {"type": ["number", "null"]},
+        "compression_ratio": {"type": ["number", "null"]},
+        "space_savings_fraction": {"type": ["number", "null"]},
+        "encode": {"$ref": "#/$defs/measurement"},
+        "decode": {"anyOf": [{"$ref": "#/$defs/measurement"}, {"type": "null"}]},
+        "verified_roundtrip": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    }
+  },
+  "required": ["schema", "schema_version", "generated_at", "host_specific", "host", "corpus", "iterations", "results"],
+  "properties": {
+    "schema": {"const": "arc.benchmark/v1"},
+    "schema_version": {"const": 1},
+    "generated_at": {"type": "string"},
+    "host_specific": {"const": true},
+    "host": {
+      "type": "object",
+      "required": ["platform", "system", "release", "machine", "python", "python_executable", "arc_version"],
+      "additionalProperties": true
+    },
+    "corpus": {
+      "type": "object",
+      "required": ["sha256", "bytes", "files", "kind", "source", "path", "seed", "requested_size_mib"],
+      "properties": {
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "content_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "bytes": {"type": "integer", "minimum": 0},
+        "files": {"type": "integer", "minimum": 1},
+        "kind": {"enum": ["file", "directory"]},
+        "source": {"enum": ["user", "generated"]},
+        "path": {"type": ["string", "null"]},
+        "seed": {"type": ["integer", "null"]},
+        "requested_size_mib": {"type": ["integer", "null"]}
+      },
+      "additionalProperties": true
+    },
+    "iterations": {"type": "integer", "minimum": 1},
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["format", "status", "iterations"],
+        "properties": {
+          "format": {"type": "string"},
+          "status": {"enum": ["ok", "failed", "unavailable"]},
+          "reason": {"type": "string"},
+          "backend_chain": {"type": "array"},
+          "iterations": {"type": "array", "items": {"$ref": "#/$defs/iteration"}}
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

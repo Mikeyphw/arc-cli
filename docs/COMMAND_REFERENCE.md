@@ -34,8 +34,10 @@ Arc provides one normalized interface over native archive and compression backen
   update       update archive members
   remove       remove archive members
   backends     inspect native backend capabilities
-  formats      show supported formats
+  formats      show supported formats and factual tradeoffs
   profiles     show configured profiles
+  benchmark    measure host-specific archive performance
+  diagnostics  create redacted support evidence
   config       inspect effective configuration and provenance
   aliases      inspect installed executable aliases
   doctor       audit Arc installation and runtime health
@@ -279,6 +281,42 @@ arc batch jobs.json --json=v1
 
 arc-schema(1), arc-convert(1), arc(1)
 
+## arc-benchmark(1)
+
+### Name
+
+arc-benchmark - measure host-specific archive performance
+
+### Synopsis
+
+arc benchmark [CORPUS] [--format FORMAT] [OPTIONS]
+
+### Description
+
+Measure end-to-end Arc encode/decode behavior on the current host using a deterministic generated corpus or a user-selected corpus. Results are evidence for this host and run, not a universal format ranking.
+
+### Options
+
+CORPUS (optional)
+--format FORMAT (repeatable)
+--iterations N
+--size-mib N
+--seed N
+--json[=v1]
+
+### Semantics
+
+Generated corpora are deterministic for a seed and size and carry a SHA-256 corpus identity. Each measured row records encode/decode duration and throughput, encoded size, encoded/input ratio, traditional compression ratio, selected backend capability evidence, round-trip verification, and peak process-tree RSS when /proc measurement is available. Unavailable formats remain explicit rows instead of being silently skipped. Evidence is host-specific.
+
+### Examples
+
+arc benchmark --format tar.zstd --format 7z --iterations 3
+arc benchmark ./sample-data --json
+
+### See Also
+
+arc-formats(7), arc-backends(7), arc-diagnostics(1)
+
 ## arc-completion(1)
 
 ### Name
@@ -503,6 +541,40 @@ arc create misleading.rar -7z data/
 ### See Also
 
 arc(1), arc-formats(7), arc-backends(7), arc-remote(7)
+
+## arc-diagnostics(1)
+
+### Name
+
+arc-diagnostics - create redacted support evidence
+
+### Synopsis
+
+arc diagnostics bundle [OUTPUT] [OPTIONS]
+
+### Description
+
+Create a redacted, offline support bundle containing Arc/runtime identity, configuration provenance, backend versions/capabilities, alias/install health, recent structured transaction diagnostics, and cached remote capability evidence.
+
+### Options
+
+bundle [OUTPUT]
+--recent N
+--force
+--json[=v1]
+
+### Semantics
+
+Bundle creation performs no network probe and never includes archive contents by default. Password-like fields and sensitive environment values are redacted. Remote evidence is read only from Arc's existing capability cache. manifest.json records the bundle schema and SHA-256/size of every evidence JSON member.
+
+### Examples
+
+arc diagnostics bundle
+arc diagnostics bundle support.zip --recent 50 --json
+
+### See Also
+
+arc-doctor(1), arc-config(1), arc-backends(7), arc-remote(7)
 
 ## arc-diff(1)
 
@@ -838,7 +910,7 @@ arc-schema - show Arc machine-contract JSON Schemas
 
 ### Synopsis
 
-arc schema [machine-v1|backend-capability-v1|verification-evidence-v1|logical-fingerprint-v1|archive-diff-v1|remote-capability-v1|batch-input-v1|config-inspection-v1] [--list]
+arc schema [machine-v1|backend-capability-v1|verification-evidence-v1|logical-fingerprint-v1|archive-diff-v1|remote-capability-v1|batch-input-v1|config-inspection-v1|format-recommendation-v1|benchmark-v1|diagnostics-bundle-v1] [--list]
 
 ### Description
 
@@ -1059,9 +1131,13 @@ Read-side detection prefers content signatures and nested-TAR evidence. Extensio
 
 Single-stream formats represent exactly one byte stream and have no member list. Conversion from a multi-member container to a single stream therefore requires exactly one selected regular file.
 
+### Recommendation Evidence
+
+arc formats recommend PATH reports factual compatibility and tradeoffs for every normalized format: input compatibility, installed backend chain, metadata preservation, streaming, encryption, multipart, and random-access semantics. It deliberately emits selection=null and does not score, rank, or silently choose a format for the user.
+
 ### See Also
 
-arc(1), arc-create(1), arc-convert(1)
+arc(1), arc-create(1), arc-convert(1), arc-benchmark(1)
 
 ## arc-remote(7)
 

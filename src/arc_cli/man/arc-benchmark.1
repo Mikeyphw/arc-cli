@@ -1,0 +1,27 @@
+.TH "ARC-BENCHMARK" "1" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-benchmark \- measure host\-specific archive performance
+.SH "SYNOPSIS"
+arc benchmark [CORPUS] [\-\-format FORMAT] [OPTIONS]
+.SH "DESCRIPTION"
+Measure end\-to\-end Arc encode/decode behavior on the current host using a deterministic generated corpus or a user\-selected corpus. Results are evidence for this host and run, not a universal format ranking.
+.SH "OPTIONS"
+CORPUS (optional)
+.PP
+\-\-format FORMAT (repeatable)
+.PP
+\-\-iterations N
+.PP
+\-\-size\-mib N
+.PP
+\-\-seed N
+.PP
+\-\-json[=v1]
+.SH "SEMANTICS"
+Generated corpora are deterministic for a seed and size and carry a SHA\-256 corpus identity. Each measured row records encode/decode duration and throughput, encoded size, encoded/input ratio, traditional compression ratio, selected backend capability evidence, round\-trip verification, and peak process\-tree RSS when /proc measurement is available. Unavailable formats remain explicit rows instead of being silently skipped. Evidence is host\-specific.
+.SH "EXAMPLES"
+arc benchmark \-\-format tar.zstd \-\-format 7z \-\-iterations 3
+.PP
+arc benchmark ./sample\-data \-\-json
+.SH "SEE ALSO"
+arc\-formats(7), arc\-backends(7), arc\-diagnostics(1)

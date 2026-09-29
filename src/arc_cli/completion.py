@@ -20,7 +20,7 @@ VALUE_OPTIONS = {
     "--exclude-from", "--include-from", "--progress", "--password-file", "--password-env", "--profile",
     "--show-native", "--native-style", "--execution", "--source-password-file", "--source-password-env", "--source", "--batch-id",
     "--left-password-file", "--left-password-env", "--right-password-file", "--right-password-env",
-    "--verify-level", "--destination-policy", "--backup-existing",
+    "--verify-level", "--destination-policy", "--backup-existing", "--iterations", "--size-mib", "--seed", "--recent",
 }
 OPTIONAL_VALUE_OPTIONS = {"--password", "--source-password", "--left-password", "--right-password", "--yazi"}
 
@@ -53,6 +53,8 @@ COMMAND_OPTIONS: dict[str, set[str]] = {
     "convert": BASE | CONVERT,
     "backends": {"--json", "--remote", "--verbose", "--refresh"},
     "formats": {"--json", "--remote"},
+    "benchmark": {"--format", "--iterations", "--size-mib", "--seed", "--json"},
+    "diagnostics": {"--recent", "--force", "--json"},
     "profiles": {"--json"},
     "config": {"--effective", "--profile", "--cli", "--json"},
     "aliases": {"--json", "--missing"},
@@ -265,6 +267,20 @@ def completion_candidates(words: list[str]) -> list[str]:
     pos = _positionals(before_current)
     if op == "schema":
         return [x for x in schema_names() if x.startswith(prefix)]
+    if op == "formats":
+        if not pos:
+            return [x for x in ["recommend"] if x.startswith(prefix)]
+        if pos[0] == "recommend" and len(pos) == 1:
+            return _path_candidates(prefix, op=op, refresh=refresh_remote)
+        return []
+    if op == "benchmark":
+        return _path_candidates(prefix, op=op, refresh=refresh_remote) if not pos else []
+    if op == "diagnostics":
+        if not pos:
+            return [x for x in ["bundle"] if x.startswith(prefix)]
+        if pos[0] == "bundle" and len(pos) == 1:
+            return _path_candidates(prefix, op=op, refresh=refresh_remote)
+        return []
     if op == "config":
         if not pos:
             return [x for x in ["show", "explain", "profile"] if x.startswith(prefix)]

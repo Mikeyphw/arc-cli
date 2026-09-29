@@ -133,6 +133,9 @@ SCHEMA_FILES = {
     "remote-capability-v1": "remote-capability-v1.schema.json",
     "batch-input-v1": "batch-input-v1.schema.json",
     "config-inspection-v1": "config-inspection-v1.schema.json",
+    "format-recommendation-v1": "format-recommendation-v1.schema.json",
+    "benchmark-v1": "benchmark-v1.schema.json",
+    "diagnostics-bundle-v1": "diagnostics-bundle-v1.schema.json",
 }
 
 

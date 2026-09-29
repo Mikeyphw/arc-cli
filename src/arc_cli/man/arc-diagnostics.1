@@ -1,0 +1,23 @@
+.TH "ARC-DIAGNOSTICS" "1" "2026-09-27" "arc-cli" "Arc Manual"
+.SH "NAME"
+arc\-diagnostics \- create redacted support evidence
+.SH "SYNOPSIS"
+arc diagnostics bundle [OUTPUT] [OPTIONS]
+.SH "DESCRIPTION"
+Create a redacted, offline support bundle containing Arc/runtime identity, configuration provenance, backend versions/capabilities, alias/install health, recent structured transaction diagnostics, and cached remote capability evidence.
+.SH "OPTIONS"
+bundle [OUTPUT]
+.PP
+\-\-recent N
+.PP
+\-\-force
+.PP
+\-\-json[=v1]
+.SH "SEMANTICS"
+Bundle creation performs no network probe and never includes archive contents by default. Password\-like fields and sensitive environment values are redacted. Remote evidence is read only from Arc's existing capability cache. manifest.json records the bundle schema and SHA\-256/size of every evidence JSON member.
+.SH "EXAMPLES"
+arc diagnostics bundle
+.PP
+arc diagnostics bundle support.zip \-\-recent 50 \-\-json
+.SH "SEE ALSO"
+arc\-doctor(1), arc\-config(1), arc\-backends(7), arc\-remote(7)

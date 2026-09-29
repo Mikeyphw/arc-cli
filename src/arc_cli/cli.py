@@ -24,6 +24,7 @@ from rich.table import Table
 from rich.text import Text
 
 from .batch import execute_batch, load_batch_input
+from .advisory import benchmark as run_benchmark, build_diagnostics_bundle, format_recommendation
 from .backends import backend_capability_profile, backend_inventory, resolve_backend, run_backend, _compression_command, _decompression_command
 from .capabilities import VerificationLevel
 from .machine import MachineError, diagnostic as machine_diagnostic, dumps as machine_dumps, envelope as machine_envelope, load_schema, schema_names
@@ -358,6 +359,24 @@ def parser() -> argparse.ArgumentParser:
     q = sub.add_parser("formats", help=COMMAND_DOCS["formats"].summary)
     _add_json_option(q)
     q.add_argument("--remote")
+    q.add_argument("formats_action", nargs="?", choices=["recommend"], help="show factual format compatibility/tradeoffs for PATH")
+    q.add_argument("recommend_path", nargs="?", type=Path)
+
+    q = sub.add_parser("benchmark", help=COMMAND_DOCS["benchmark"].summary)
+    q.add_argument("corpus", nargs="?", type=Path, help="user-selected file/directory corpus; omit for a deterministic generated corpus")
+    q.add_argument("--format", dest="benchmark_formats", action="append", choices=["tar", "tar.gz", "tar.bz2", "tar.xz", "tar.zstd", "zip", "7z", "rar", "gzip", "bzip2", "xz", "zstd"], help="format to benchmark; repeat to select multiple formats")
+    q.add_argument("--iterations", type=int, default=1)
+    q.add_argument("--size-mib", type=int, default=8, help="generated corpus size in MiB")
+    q.add_argument("--seed", type=int, default=12345, help="deterministic generated-corpus seed")
+    _add_json_option(q)
+
+    q = sub.add_parser("diagnostics", help=COMMAND_DOCS["diagnostics"].summary)
+    diagnostics_sub = q.add_subparsers(dest="diagnostics_action", required=True)
+    bundle = diagnostics_sub.add_parser("bundle", help="create a redacted support bundle")
+    bundle.add_argument("output", nargs="?", type=Path, help="output ZIP path")
+    bundle.add_argument("--recent", type=int, default=20, help="number of recent structured transaction diagnostics to include")
+    bundle.add_argument("--force", action="store_true", help="replace an existing bundle path")
+    _add_json_option(bundle)
     q = sub.add_parser("profiles", help=COMMAND_DOCS["profiles"].summary)
     _add_json_option(q)
 
@@ -4060,6 +4079,86 @@ def _show_formats(json_mode: bool = False, remote: str | None = None, config: di
     return 0
 
 
+def _formats_recommend_command(args, config: dict) -> int:
+    payload = format_recommendation(args.recommend_path, config)
+    if args.json:
+        print(json.dumps(payload, ensure_ascii=False, sort_keys=True))
+        return 0
+    facts = payload["input"]
+    stdout_console.print(f"[bold]Input:[/bold] {facts['path']} · {facts['kind']} · {decimal(int(facts['bytes']))}")
+    t = Table(title="Format compatibility and tradeoffs")
+    t.add_column("Format")
+    t.add_column("Input")
+    t.add_column("Backend")
+    t.add_column("Metadata")
+    t.add_column("Stream")
+    t.add_column("Encrypt")
+    t.add_column("Multipart")
+    t.add_column("Notes")
+    for row in payload["candidates"]:
+        chain = " → ".join(str(item["binary"]) for item in row["backend_chain"]) or "unavailable"
+        tradeoffs = row["tradeoffs"]
+        status = "compatible" if row["compatible_with_input"] else "blocked"
+        if not row["available"]:
+            status += "/unavailable"
+        t.add_row(
+            str(row["format"]), status, chain,
+            ",".join(tradeoffs["metadata_preservation"]) or "none",
+            "yes" if tradeoffs["streaming_create"] else "no",
+            "yes" if tradeoffs["encryption_write"] else "no",
+            "yes" if tradeoffs["multipart"] else "no",
+            "; ".join(row["blockers"]) or "—",
+        )
+    stdout_console.print(t)
+    stdout_console.print("Arc reports compatibility/tradeoffs only; it does not choose a format for you.")
+    return 0
+
+
+def _benchmark_command(args, config: dict) -> int:
+    payload = run_benchmark(
+        config, corpus=args.corpus, formats=args.benchmark_formats, iterations=args.iterations,
+        size_mib=args.size_mib, seed=args.seed,
+    )
+    if args.json:
+        print(json.dumps(payload, ensure_ascii=False, sort_keys=True))
+        return 0 if all(row["status"] != "failed" for row in payload["results"]) else 1
+    corpus = payload["corpus"]
+    stdout_console.print(f"[bold]Corpus:[/bold] {corpus['source']} · {decimal(int(corpus['bytes']))} · sha256 {corpus['sha256'][:16]}…")
+    stdout_console.print(f"[dim]Host-specific evidence · {payload['host']['platform']} · Python {payload['host']['python']}[/dim]")
+    t = Table(title="Arc benchmark")
+    t.add_column("Format")
+    t.add_column("Status")
+    t.add_column("Encode")
+    t.add_column("Decode")
+    t.add_column("Compression")
+    t.add_column("Peak RSS")
+    for row in payload["results"]:
+        runs = row.get("iterations", [])
+        ok = [item for item in runs if item.get("verified_roundtrip")]
+        if ok:
+            enc = sum(float(item["encode"]["throughput_bytes_per_second"] or 0) for item in ok) / len(ok)
+            dec = sum(float(item["decode"]["throughput_bytes_per_second"] or 0) for item in ok) / len(ok)
+            ratio = sum(float(item["compression_ratio"] or 0) for item in ok) / len(ok)
+            peaks = [int(v) for item in ok for v in (item["encode"].get("peak_rss_bytes"), item["decode"].get("peak_rss_bytes")) if v is not None]
+            t.add_row(str(row["format"]), str(row["status"]), f"{decimal(enc)}/s", f"{decimal(dec)}/s", f"{ratio:.3f}:1", decimal(max(peaks)) if peaks else "unmeasured")
+        else:
+            t.add_row(str(row["format"]), str(row["status"]), "—", "—", "—", "—")
+    stdout_console.print(t)
+    return 0 if all(row["status"] != "failed" for row in payload["results"]) else 1
+
+
+def _diagnostics_command(args) -> int:
+    if args.diagnostics_action != "bundle":
+        raise UsageError(f"unknown diagnostics action: {args.diagnostics_action}")
+    result = build_diagnostics_bundle(load_config_result(), output=args.output, recent=args.recent, force=args.force)
+    if args.json:
+        print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+    else:
+        stdout_console.print(f"[green]Created[/] {result['path']}")
+        stdout_console.print(f"SHA-256 {result['sha256']} · {decimal(int(result['bytes']))} · no archive contents · no network probe")
+    return 0
+
+
 def _aliases_command(args) -> int:
     rows = alias_status_rows()
     if args.missing:
@@ -4335,7 +4434,19 @@ def _dispatch_command(args, extra: list[str], config: dict) -> int:
     if args.command == "backends":
         return _show_backends(config, args.json, args.remote, args.verbose, args.refresh)
     if args.command == "formats":
+        if getattr(args, "formats_action", None) == "recommend":
+            if args.recommend_path is None:
+                raise UsageError("arc formats recommend requires PATH")
+            if args.remote:
+                raise UsageError("arc formats recommend currently reports local installed-backend evidence; do not combine it with --remote")
+            return _formats_recommend_command(args, config)
+        if getattr(args, "recommend_path", None) is not None:
+            raise UsageError("unexpected PATH without 'recommend'")
         return _show_formats(args.json, args.remote, config)
+    if args.command == "benchmark":
+        return _benchmark_command(args, config)
+    if args.command == "diagnostics":
+        return _diagnostics_command(args)
     if args.command == "profiles":
         return _show_profiles(config, args.json)
     if args.command == "config":
@@ -4471,7 +4582,7 @@ def main(argv: list[str] | None = None) -> int:
     config_result = load_config_result()
     config = config_result.data
     try:
-        if args.command not in {"config", "doctor", "schema", "man", "help"} and not config_result.valid:
+        if args.command not in {"config", "doctor", "diagnostics", "schema", "man", "help"} and not config_result.valid:
             errors = "; ".join(issue.message for issue in config_result.issues if issue.severity == "error")
             raise UsageError(errors or f"invalid configuration: {config_result.path}")
         _apply_profile(args, config)

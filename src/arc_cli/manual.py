@@ -501,6 +501,31 @@ _add(
     )
 )
 
+_add(
+    _command_page(
+        "benchmark",
+        "Measure end-to-end Arc encode/decode behavior on the current host using a deterministic generated corpus or a user-selected corpus. Results are evidence for this host and run, not a universal format ranking.",
+        options="CORPUS (optional)\n--format FORMAT (repeatable)\n--iterations N\n--size-mib N\n--seed N\n--json[=v1]",
+        semantics=(
+            "Generated corpora are deterministic for a seed and size and carry a SHA-256 corpus identity. Each measured row records encode/decode duration and throughput, encoded size, encoded/input ratio, traditional compression ratio, selected backend capability evidence, round-trip verification, and peak process-tree RSS when /proc measurement is available. Unavailable formats remain explicit rows instead of being silently skipped. Evidence is host-specific."
+        ),
+        examples="arc benchmark --format tar.zstd --format 7z --iterations 3\narc benchmark ./sample-data --json",
+        see_also="arc-formats(7), arc-backends(7), arc-diagnostics(1)",
+    )
+)
+_add(
+    _command_page(
+        "diagnostics",
+        "Create a redacted, offline support bundle containing Arc/runtime identity, configuration provenance, backend versions/capabilities, alias/install health, recent structured transaction diagnostics, and cached remote capability evidence.",
+        options="bundle [OUTPUT]\n--recent N\n--force\n--json[=v1]",
+        semantics=(
+            "Bundle creation performs no network probe and never includes archive contents by default. Password-like fields and sensitive environment values are redacted. Remote evidence is read only from Arc's existing capability cache. manifest.json records the bundle schema and SHA-256/size of every evidence JSON member."
+        ),
+        examples="arc diagnostics bundle\narc diagnostics bundle support.zip --recent 50 --json",
+        see_also="arc-doctor(1), arc-config(1), arc-backends(7), arc-remote(7)",
+    )
+)
+
 for page in (
     ManualPage(
         "arc-config",
@@ -537,7 +562,8 @@ for page in (
             ("SELECTORS", _FORMAT_LINES),
             ("DETECTION", "Read-side detection prefers content signatures and nested-TAR evidence. Extensions are hints/fallbacks. Empty compressed TAR requires the .tar.* hint because an empty TAR marker is byte-ambiguous with an arbitrary zero-filled stream."),
             ("SINGLE STREAMS", "Single-stream formats represent exactly one byte stream and have no member list. Conversion from a multi-member container to a single stream therefore requires exactly one selected regular file."),
-            ("SEE ALSO", "arc(1), arc-create(1), arc-convert(1)"),
+            ("RECOMMENDATION EVIDENCE", "arc formats recommend PATH reports factual compatibility and tradeoffs for every normalized format: input compatibility, installed backend chain, metadata preservation, streaming, encryption, multipart, and random-access semantics. It deliberately emits selection=null and does not score, rank, or silently choose a format for the user."),
+            ("SEE ALSO", "arc(1), arc-create(1), arc-convert(1), arc-benchmark(1)"),
         ),
     ),
     ManualPage(
@@ -590,6 +616,8 @@ DEFAULT_TOPIC_SECTIONS: dict[str, int] = {
     "doctor": 1,
     "explain": 1,
     "recover": 1,
+    "benchmark": 1,
+    "diagnostics": 1,
     "schema": 1,
     "completion": 1,
     "formats": 7,

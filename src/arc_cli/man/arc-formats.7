@@ -68,5 +68,7 @@ Containers: TAR, ZIP, 7z, RAR. Compressed TAR: gzip, bzip2, xz, Zstandard. Singl
 Read\-side detection prefers content signatures and nested\-TAR evidence. Extensions are hints/fallbacks. Empty compressed TAR requires the .tar.* hint because an empty TAR marker is byte\-ambiguous with an arbitrary zero\-filled stream.
 .SH "SINGLE STREAMS"
 Single\-stream formats represent exactly one byte stream and have no member list. Conversion from a multi\-member container to a single stream therefore requires exactly one selected regular file.
+.SH "RECOMMENDATION EVIDENCE"
+arc formats recommend PATH reports factual compatibility and tradeoffs for every normalized format: input compatibility, installed backend chain, metadata preservation, streaming, encryption, multipart, and random\-access semantics. It deliberately emits selection=null and does not score, rank, or silently choose a format for the user.
 .SH "SEE ALSO"
-arc(1), arc\-create(1), arc\-convert(1)
+arc(1), arc\-create(1), arc\-convert(1), arc\-benchmark(1)

@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "arc.format-recommendation/v1",
+  "title": "Arc format recommendation evidence v1",
+  "type": "object",
+  "required": ["schema", "schema_version", "input", "candidates", "selection", "selection_policy"],
+  "properties": {
+    "schema": {"const": "arc.format-recommendation/v1"},
+    "schema_version": {"const": 1},
+    "input": {
+      "type": "object",
+      "required": ["path", "kind", "entries", "regular_files", "directories", "symlinks", "bytes"],
+      "properties": {
+        "path": {"type": "string"},
+        "kind": {"enum": ["file", "directory", "symlink", "special"]},
+        "entries": {"type": "integer", "minimum": 0},
+        "regular_files": {"type": "integer", "minimum": 0},
+        "directories": {"type": "integer", "minimum": 0},
+        "symlinks": {"type": "integer", "minimum": 0},
+        "bytes": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": true
+    },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["format", "kind", "compatible_with_input", "available", "blockers", "backend_chain", "tradeoffs"],
+        "properties": {
+          "format": {"type": "string"},
+          "kind": {"enum": ["stream", "archive", "archive+compression"]},
+          "compatible_with_input": {"type": "boolean"},
+          "available": {"type": "boolean"},
+          "blockers": {"type": "array", "items": {"type": "string"}},
+          "backend_chain": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["role", "binary", "path", "profile"],
+              "properties": {
+                "role": {"enum": ["archive", "compressor"]},
+                "binary": {"type": "string"},
+                "path": {"type": "string"},
+                "profile": {"type": "object"}
+              },
+              "additionalProperties": true
+            }
+          },
+          "tradeoffs": {
+            "type": "object",
+            "required": ["metadata_preservation", "streaming_create", "encryption_write", "multipart", "random_access_container", "single_stream"],
+            "properties": {
+              "metadata_preservation": {"type": "array", "items": {"type": "string"}},
+              "streaming_create": {"type": "boolean"},
+              "encryption_write": {"type": "boolean"},
+              "multipart": {"type": "boolean"},
+              "random_access_container": {"type": "boolean"},
+              "single_stream": {"type": "boolean"}
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "selection": {"type": "null"},
+    "selection_policy": {"type": "string"}
+  },
+  "additionalProperties": true
+}

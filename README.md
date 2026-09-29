@@ -600,6 +600,21 @@ By default it writes machine-readable ledgers under `.devtool/evidence/arc-r03/`
 
 Unavailable binaries are reported explicitly as `SKIPPED_BACKEND_UNAVAILABLE` or `SKIPPED_CAPABILITY_UNSUPPORTED`; they are never counted as passing runtime qualification. The ARC final gate consumes these ledgers together with the R01–R05 behavioral suites.
 
+## Advisory formats, benchmarking, and support bundles
+
+R12 adds advisory evidence without silently making user choices. `arc formats recommend PATH` reports the compatibility and tradeoffs of every normalized format—including installed backend chain, metadata preservation, streaming, encryption, multipart, and random-access behavior—and deliberately leaves `selection` null.
+
+```bash
+arc formats recommend ./project --json
+arc benchmark --format tar.zstd --format 7z --iterations 3
+arc benchmark ./sample-corpus --json=v1
+arc diagnostics bundle support.zip --recent 50
+```
+
+`arc benchmark` uses either a deterministic generated corpus (`--seed`, `--size-mib`) or a user-selected corpus. Evidence is explicitly host-specific and records encode/decode throughput, ratio, verified round trip, capability/backend identity, and peak process-tree RSS where `/proc` makes that measurable.
+
+`arc diagnostics bundle` is offline-by-default: it never performs a live remote probe and never includes archive contents by default. The ZIP contains JSON-only runtime/config provenance, backend versions/capabilities, alias/install health, doctor output, recent transaction diagnostics, cached remote capability evidence, and a manifest hashing every evidence member. Password-like fields and sensitive environment values are redacted. Public machine contracts are queryable as `format-recommendation-v1`, `benchmark-v1`, and `diagnostics-bundle-v1`.
+
 ## Tests
 
 ```bash
