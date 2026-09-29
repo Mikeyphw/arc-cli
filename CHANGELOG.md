@@ -1,3 +1,10 @@
+## 0.2.0 / COMP-X01 — version authority and composition foundation
+
+- Replace duplicated `0.1.0` literals with one authored `arc_cli._version.VERSION` authority and dynamic setuptools package metadata.
+- Make `arc --version`, runtime diagnostics, lock metadata, editable-install fixtures, and distribution package paths converge on `0.2.0`.
+- Add the typed composition output resolver used by the upcoming merge command: uniform-format preservation, deterministic inferred names, explicit/suffix format selection, canonical extension completion, and fail-closed mixed/conflicting format handling.
+- Add first-class COMP-X01 Devtool workflow/test/contract/wrapper ownership and the compact COMP-X01 → COMP-X03 → COMP-G1 roadmap.
+
 ## ARC-R01–R12 final campaign content seal
 
 - Final seal retry hardening: declare `.devtool` evidence parent write scopes for embedded validation and classify only safe Devtool launcher-template byte drift as applicator-owned while retaining strict wrapper command/discovery/EXO/docs checks; missing, unmarked, or non-executable launchers still fail closed.

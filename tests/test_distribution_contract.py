@@ -9,6 +9,7 @@ import tomllib
 import zipfile
 from pathlib import Path
 
+from arc_cli import __version__
 from arc_cli.command_docs import EXECUTABLE_ALIASES
 from arc_cli.manual import generated_pages
 from arc_cli.machine import schema_names
@@ -25,7 +26,7 @@ def _assert_wheel_contract(wheel: Path) -> None:
         scripts = set(parser["console_scripts"])
         assert {"arc", *EXECUTABLE_ALIASES} <= scripts
 
-        data_prefix = "arc_cli-0.1.0.data/data/share/man"
+        data_prefix = f"arc_cli-{__version__}.data/data/share/man"
         for page, _content in generated_pages():
             assert f"arc_cli/man/{page.filename}" in names
             assert f"{data_prefix}/man{page.section}/{page.filename}" in names

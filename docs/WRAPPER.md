@@ -230,3 +230,13 @@ This resolves to the `r09b_gate` EXO workflow. It rechecks machine, provenance, 
 - `r12-gate` — run the cumulative ARC-R12 final campaign qualification without creating the separate content seal.
 - `gate` / `g` — run the complete R01–R12 final behavior gate.
 - `seal` / `s` — run that gate, Devtool wrapper seal, exact live content seal, and final `SEALED` verdict.
+
+## COMP-X01 post-seal composition foundation
+
+Run the first post-seal implementation boundary with:
+
+```sh
+./devtoolw comp-x01
+```
+
+This workflow validates the single `0.2.0` version authority, dynamic package/runtime version convergence, and the reusable composition output resolver. It intentionally does not expose `merge`, `split`, or `join` yet.

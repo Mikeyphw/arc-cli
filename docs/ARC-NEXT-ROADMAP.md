@@ -1,6 +1,6 @@
 # Arc Next Roadmap — runtime truth, resilient operations, typed evidence, and operator UX
 
-Status: R06–R12 implementation and milestone gates complete; the terminal ARC-R01–R12 content seal is the only remaining campaign artifact.
+Status: ARC-R01–R12 is sealed; COMP-X01 starts the post-seal composition wave toward Arc 0.2.x.
 
 ## Working rules
 
@@ -141,3 +141,25 @@ R12 also bundles/queryable `format-recommendation-v1`, `benchmark-v1`, and `diag
 ## Gate and seal policy
 
 Milestone gates remain separate artifacts. A gate should reference repository-declared first-class test IDs and exercise the named Devtool workflow/EXO path. At a broader wave boundary, perform a promise-by-promise audit rather than treating green tests as proof of complete delivery. The final seal must bind the exact source/artifact identity and remain separate from the last implementation overlay.
+
+## Post-seal composition wave
+
+The R01–R12 campaign is sealed. The next compact wave adds archive composition and exact transport-volume reconstruction without weakening the existing format/backend/execution authorities. The separate final campaign content seal remains historical evidence for the closed R01–R12 baseline; COMP-G1 will qualify this new wave.
+
+**Merge-window decision:** keep COMP-X01 separate because version authority and reusable naming contracts are infrastructure; keep COMP-X02 separate because archive-member merge/concat owns archive semantics and backend execution; merge split + join into COMP-X03 because they are two halves of one exact byte-volume protocol. The gate remains separate.
+
+### COMP-X01 — version authority and composition foundation — implementation 1 of 3
+
+Make `0.2.0` the first post-seal version and replace the three historical version literals with one authored `arc_cli._version.VERSION` authority. Package metadata, runtime `__version__`, `arc --version`, doctor/diagnostics, lock metadata, installation tests and distribution paths must converge on it. Add the typed composition output resolver that reuses canonical format/suffix truth, preserves uniform input format, derives `<first>.merged<suffix>`, accepts output-suffix or explicit-format selection, and fails closed for mixed inputs or suffix/format conflicts. Do not implement merge execution yet.
+
+### COMP-X02 — logical merge with automatic safe concat — implementation 2 of 3
+
+Add `arc merge`: logical archive/member composition, deterministic `-o/--output` + `-F/--format` resolution through COMP-X01, explicit member-conflict policy, transaction/publication safety, explain/dry-run/machine evidence, and `--strategy auto|concat|repack`. `auto` may select concat only for same-format single compressed streams with proven concatenation semantics; compound TAR+compression and container formats repack logically.
+
+### COMP-X03 — exact split + join volume protocol — implementation 3 of 3
+
+Add lossless byte-volume `arc split` and manifest-aware `arc join`. `split` owns `--size|--parts`, output prefix/directory/digits/checksum/manifest/verify/delete-source controls and emits `arc.split-manifest/v1`. `join` discovers a sibling manifest from any part, validates completeness/order/part hashes, reconstructs to a transaction-owned candidate, proves the whole-file hash, then publishes atomically and optionally deletes parts. Native 7z/RAR multipart archive creation remains out of this command contract.
+
+### COMP-G1 — separate composition qualification gate
+
+Audit COMP-X01 through COMP-X03 together: version/package identity; output inference; real safe stream concat; TAR/ZIP/7z logical merge; mixed formats; member conflicts; remote staging; interruption/recovery; zero/exact-boundary split sizes; missing/corrupt/reordered parts; machine schemas; explain/batch/completion/manpages/wheel/sdist; and destructive cleanup after verification. The gate must not contain implementation work.

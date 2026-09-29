@@ -230,7 +230,7 @@ def _add_create_suffix_shortcuts(p: argparse.ArgumentParser, *, operation: str =
 
 def parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="arc", description="Safe, backend-aware archive and compression utility")
-    p.add_argument("--version", action="version", version="arc 0.1.0")
+    p.add_argument("--version", action="version", version=f"arc {__version__}")
     sub = p.add_subparsers(dest="command", required=True)
 
     q = sub.add_parser("identify", help=COMMAND_DOCS["identify"].summary)

@@ -194,6 +194,17 @@ pytest_tests = [
 pytest_args = ["--maxfail=1", "-ra"]
 pytest_include_defaults = false
 
+
+[test_profiles.comp_x01]
+pytest_tests = [
+  "tests/test_formats.py",
+  "tests/test_final_gate.py",
+  "tests/test_r06_runtime_install_truth.py",
+  "tests/test_distribution_contract.py",
+]
+pytest_args = ["--maxfail=1", "-ra"]
+pytest_include_defaults = false
+
 [[test]]
 id = "arc-r06-runtime-install-truth"
 name = "ARC-R06 runtime, alias, and installation truth"
@@ -749,6 +760,20 @@ command = [
   "tests/test_distribution_contract.py",
 ]
 
+
+[[test]]
+id = "arc-comp-x01-version-composition-foundation"
+name = "ARC COMP-X01 version authority and composition foundation"
+runner = "pytest"
+command = [
+  "python3", "-m", "pytest", "-q", "-ra",
+  "--junitxml=.devtool/reports/roadmap/arc-comp-x01-version-composition-foundation.xml",
+  "tests/test_formats.py",
+  "tests/test_final_gate.py",
+  "tests/test_r06_runtime_install_truth.py",
+  "tests/test_distribution_contract.py",
+]
+
 [ui.profiles.arc]
 extends = "developer"
 density = "compact"
@@ -1008,6 +1033,13 @@ command = ["python3", "scripts/check_r12_gate_contract.py"]
 inputs = [".devtool.toml", "docs/ARC-R12-GATE.md", "docs/ARC-R12-AUDIT.md", "docs/ARC-R12A-AUDIT.md", "docs/ARC-NEXT-ROADMAP.md", "docs/WRAPPER.md", "scripts/check_r12_gate_contract.py", "tests/test_r12_gate.py"]
 metadata = { read_only = true, purpose = "arc-r12-final-campaign-qualification-gate", contract = "arc-r12-gate-v1" }
 
+
+[targets.arc.jobs.comp-x01-contract]
+runner = "command"
+command = ["python3", "scripts/check_comp_x01_contract.py"]
+inputs = ["pyproject.toml", "uv.lock", "src/arc_cli/_version.py", "src/arc_cli/__init__.py", "src/arc_cli/cli.py", "src/arc_cli/composition.py", "src/arc_cli/formats.py", "tests/test_formats.py", "tests/test_final_gate.py", "tests/test_r06_runtime_install_truth.py", "tests/test_distribution_contract.py", "docs/ARC-COMP-X01-AUDIT.md", "docs/ARC-NEXT-ROADMAP.md", "docs/WRAPPER.md", "scripts/check_comp_x01_contract.py", ".devtool.toml"]
+metadata = { read_only = true, purpose = "post-seal-version-composition-foundation", contract = "arc-comp-x01-v1" }
+
 [targets.arc.jobs.backend-smoke]
 runner = "command"
 command = [".devtool/venvs/arc/bin/python", "scripts/devtool_backend_smoke.py"]
@@ -1207,6 +1239,15 @@ r12_gate = [
   { id = "gate", ref = "test:arc-r12-gate", depends_on = ["gate-contract"] },
 ]
 
+
+comp_x01 = [
+  { id = "syntax", ref = "job:syntax", depends_on = [] },
+  { id = "contract", ref = "job:comp-x01-contract", depends_on = ["syntax"] },
+  { id = "docs", ref = "job:command-docs-contract", depends_on = ["syntax"] },
+  { id = "devtool-contract", ref = "job:devtool-contract", depends_on = ["syntax"] },
+  { id = "tests", ref = "test:arc-comp-x01-version-composition-foundation", depends_on = ["contract", "docs", "devtool-contract"] },
+]
+
 refresh_install = [
   { id = "alias-contract", ref = "job:alias-contract", depends_on = [] },
   { id = "refresh", ref = "job:refresh-install", depends_on = ["alias-contract"] },
@@ -1312,7 +1353,7 @@ aliases = ["t"]
 [wrapper.commands.test.options.profile]
 type = "choice"
 description = "Select a repository test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "r10c", "r10_gate", "r11", "r11a", "r11b", "r11_gate", "r12", "r12a", "r12_gate", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "r10c", "r10_gate", "r11", "r11a", "r11b", "r11_gate", "r12", "r12a", "r12_gate", "comp_x01", "final_gate", "full"]
 command_argv = ["--profile", "{value}"]
 
 [wrapper.commands.test.options.node]
@@ -1364,7 +1405,7 @@ aliases = ["val"]
 [wrapper.commands.validate.options.profile]
 type = "choice"
 description = "Select the validation test profile"
-choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "r10c", "r10_gate", "r11", "r11a", "r11b", "r11_gate", "r12", "r12a", "r12_gate", "final_gate", "full"]
+choices = ["quick", "integration", "r04", "r05", "r06", "r07", "r08", "r09a", "r09b", "r09b_gate", "r10", "r10a", "r10b", "r10c", "r10_gate", "r11", "r11a", "r11b", "r11_gate", "r12", "r12a", "r12_gate", "comp_x01", "final_gate", "full"]
 command_argv = ["--test-profile", "{value}"]
 
 [wrapper.commands.validate.options.affected]
@@ -1524,6 +1565,12 @@ target = "arc"
 [wrapper.commands.r12-gate]
 description = "Run the cumulative ARC-R12 final campaign qualification gate"
 workflow = "r12_gate"
+target = "arc"
+
+
+[wrapper.commands.comp-x01]
+description = "Run COMP-X01 version authority and composition-foundation validation"
+workflow = "comp_x01"
 target = "arc"
 
 [wrapper.commands.refresh-install]

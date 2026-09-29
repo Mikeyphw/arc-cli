@@ -137,7 +137,9 @@ def test_final_seal_scope_covers_packaged_schemas_manpages_and_manifest():
 def test_version_and_project_metadata_are_coherent():
     data = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     assert data["project"]["name"] == "arc-cli"
-    assert data["project"]["version"] == __version__
+    assert "version" not in data["project"]
+    assert data["project"]["dynamic"] == ["version"]
+    assert data["tool"]["setuptools"]["dynamic"]["version"]["attr"] == "arc_cli._version.VERSION"
     proc = subprocess.run(
         [sys.executable, "-m", "arc_cli", "--version"],
         cwd=ROOT,

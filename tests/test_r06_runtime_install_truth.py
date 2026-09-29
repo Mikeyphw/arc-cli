@@ -8,6 +8,7 @@ import tomllib
 from pathlib import Path
 
 import arc_cli.doctor as doctor
+from arc_cli import __version__
 from arc_cli.cli import main
 from arc_cli.command_docs import alias_specs, console_script_mapping
 
@@ -169,14 +170,14 @@ def test_refresh_helper_rebinds_candidate_editable_to_persistent_checkout(monkey
     monkeypatch.setenv("PIP_PREFIX", str(prefix))
     purelib = module._purelib_path()
     purelib.mkdir(parents=True)
-    pth = purelib / "__editable__.arc_cli-0.1.0.pth"
+    pth = purelib / f"__editable__.arc_cli-{__version__}.pth"
     pth.write_text(str((candidate / "src").resolve()) + "\n", encoding="utf-8")
-    dist = purelib / "arc_cli-0.1.0.dist-info"
+    dist = purelib / f"arc_cli-{__version__}.dist-info"
     dist.mkdir()
     direct = dist / "direct_url.json"
     direct.write_text(json.dumps({"dir_info": {"editable": True}, "url": candidate.resolve().as_uri()}), encoding="utf-8")
     (dist / "RECORD").write_text(
-        "__editable__.arc_cli-0.1.0.pth,,\narc_cli-0.1.0.dist-info/direct_url.json,,\narc_cli-0.1.0.dist-info/RECORD,,\n",
+        f"__editable__.arc_cli-{__version__}.pth,,\narc_cli-{__version__}.dist-info/direct_url.json,,\narc_cli-{__version__}.dist-info/RECORD,,\n",
         encoding="utf-8",
     )
 

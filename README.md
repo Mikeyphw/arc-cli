@@ -713,3 +713,7 @@ arc convert a.zip b.zip c.zip -tzst --batch --resume
   ]
 }
 ```
+
+## Post-seal composition development
+
+Arc `0.2.0` starts the composition wave. COMP-X01 centralizes version truth and introduces the shared composition naming/format resolver; user-facing `merge`, `split`, and `join` arrive in subsequent overlays and remain separately qualified. See `docs/ARC-NEXT-ROADMAP.md`.
